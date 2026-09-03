@@ -13,3 +13,6 @@ app/src/enhanced/jniLibs/
 *.jks
 *.keystore
 secrets.properties
+# Exception: the deliberately PUBLIC CI signing key (stable signature for
+# sideloaded release builds — see app/build.gradle, NOT a secret)
+!app/ci-signing.keystore

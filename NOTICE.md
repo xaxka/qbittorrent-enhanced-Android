@@ -25,7 +25,10 @@ This project is licensed under the GNU AGPL-3.0 (see `LICENSE`).
   the `enhanced` flavor bundles a `qbittorrent-enhanced-nox` binary built from
   the pinned source commit `44ee266a575600d04788623b6939e47443d27ed1`
   (release-5.2.3.10) during CI. The client communicates with it over the
-  standard qBittorrent Web API v2.
+  standard qBittorrent Web API v2. The launcher icon uses the **official
+  qBittorrent logo** (`src/icons/qbittorrent-tray.svg` and the monochrome
+  `qbittorrent-tray-dark.svg`, GPL) converted to Android vector drawables
+  with all transforms baked into the path data.
 
 * **AndroidX / Material Components** (Apache-2.0), **Retrofit / OkHttp / Gson**
   (Apache-2.0) — used as libraries.

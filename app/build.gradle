@@ -44,6 +44,50 @@ android {
         }
     }
 
+    // One APK per ABI (arm64-v8a / armeabi-v7a / x86_64) so the Enhanced
+    // edition — which bundles a ~30 MB native engine per ABI — stays
+    // installable on slow networks and restricted storage. The universal
+    // APK is kept for the ABI-independent standard edition (no native code);
+    // CI publishes only the split Enhanced APKs.
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            universalApk true
+        }
+    }
+
+    // Distinct versionCodes per ABI (universal keeps the base code, then
+    // arm64 > armv7 > x86_64 so device-side downgrade protection works).
+    def abiVersionCode = [
+            'arm64-v8a'   : 3,
+            'armeabi-v7a' : 2,
+            'x86_64'      : 1,
+    ]
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            if (abi != null) {
+                output.versionCodeOverride = variant.versionCode + (abiVersionCode[abi] ?: 0)
+                outputFileName = "app-${variant.flavorName}-${abi}-${variant.buildType.name}.apk"
+            }
+        }
+    }
+
+    // CI release signing: a committed, public self-signed key so every build
+    // (including the ones from GitHub Releases) carries the SAME signature
+    // and can be updated in place. This is for sideloaded FOSS builds only —
+    // it proves build continuity, not developer identity.
+    signingConfigs {
+        ci {
+            storeFile file('ci-signing.keystore')
+            storePassword 'ci-qbt-android'
+            keyAlias 'qbandroid'
+            keyPassword 'ci-qbt-android'
+        }
+    }
+
     buildTypes {
         debug {
             versionNameSuffix "-debug"
@@ -51,6 +95,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // no more unsigned release APKs — releases are CI-signed and
+            // installable directly
+            signingConfig signingConfigs.ci
         }
     }
 
