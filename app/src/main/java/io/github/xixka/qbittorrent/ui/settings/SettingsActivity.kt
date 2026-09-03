@@ -33,7 +33,7 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // keep the form clear of the navigation bar in the edge-to-edge layout
-        applyWindowInsets(binding.settingsScroll, WindowInsetsSide.BOTTOM)
+        applyWindowInsets(child = binding.settingsScroll, sideMask = WindowInsetsSide.BOTTOM)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 

@@ -39,7 +39,7 @@ class DetailActivity : AppCompatActivity() {
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // keep list pages clear of the navigation bar / display cutouts
-        applyWindowInsets(binding.viewPager, WindowInsetsSide.BOTTOM)
+        applyWindowInsets(child = binding.viewPager, sideMask = WindowInsetsSide.BOTTOM)
 
         // LibreTorrent-style: plain MaterialToolbar with app:menu, no setSupportActionBar
         binding.appBar.title = title

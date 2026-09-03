@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.core.view.children
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -99,7 +100,10 @@ class MainActivity : AppCompatActivity() {
                 isLastItemDecorated = false
             }
         )
-        applyWindowInsets(binding.homeContent.torrentList, WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT)
+        applyWindowInsets(
+            child = binding.homeContent.torrentList,
+            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT,
+        )
 
         searchAdapter = TorrentListAdapter(
             onClick = { openDetail(it) },

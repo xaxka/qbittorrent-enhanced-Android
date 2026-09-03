@@ -41,7 +41,7 @@ class AddTorrentActivity : AppCompatActivity() {
         binding = ActivityAddTorrentBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // keep the form clear of the navigation bar in the edge-to-edge layout
-        applyWindowInsets(binding.addScroll, WindowInsetsSide.BOTTOM)
+        applyWindowInsets(child = binding.addScroll, sideMask = WindowInsetsSide.BOTTOM)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
