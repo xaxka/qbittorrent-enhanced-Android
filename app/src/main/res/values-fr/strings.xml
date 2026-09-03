@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">Paramètres</string>
+    <string name="refresh">Actualiser</string>
+    <string name="sort">Trier</string>
+    <string name="categories">Catégories</string>
+    <string name="speed_limits">Limites de vitesse</string>
+    <string name="local_engine">Moteur local</string>
+    <string name="pause">Mettre en pause</string>
+    <string name="resume">Reprendre</string>
+    <string name="force_start">Démarrage forcé</string>
+    <string name="recheck">Revérification forcée</string>
+    <string name="reannounce">Annonce forcée</string>
+    <string name="sequential_download">Téléchargement séquentiel</string>
+    <string name="super_seeding">Super-seeding</string>
+    <string name="top_priority">Augmenter la priorité</string>
+    <string name="bottom_priority">Diminuer la priorité</string>
+    <string name="category">Catégorie</string>
+    <string name="delete">Supprimer</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">Non configuré — ouvrez les paramètres</string>
+    <string name="status_auth_failed">Échec de connexion — vérifiez vos identifiants</string>
+    <string name="status_offline">Hors ligne</string>
+    <string name="empty_not_configured">Aucun serveur configuré.\nOuvrez les paramètres et saisissez votre adresse qBittorrent.</string>
+    <string name="empty_auth_error">Échec de connexion.\nVérifiez le nom d’utilisateur et le mot de passe dans les paramètres.</string>
+    <string name="empty_offline">Serveur injoignable.\nVérifiez l’adresse, le port (8080 par défaut) et le réseau.</string>
+    <string name="empty_no_torrents">Aucun torrent</string>
+    <string name="selected_count">%1$d sélectionnés</string>
+
+    <!-- filters -->
+    <string name="filter_all">Tous</string>
+    <string name="filter_downloading">En téléchargement</string>
+    <string name="filter_seeding">En partage</string>
+    <string name="filter_completed">Terminés</string>
+    <string name="filter_paused">En pause</string>
+    <string name="filter_active">Actifs</string>
+    <string name="filter_inactive">Inactifs</string>
+    <string name="filter_errored">En erreur</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">Trier par</string>
+    <string name="sort_name">Nom</string>
+    <string name="sort_size">Taille</string>
+    <string name="sort_progress">Progression</string>
+    <string name="sort_dlspeed">Vitesse de téléchargement</string>
+    <string name="sort_upspeed">Vitesse d’envoi</string>
+    <string name="sort_eta">Temps restant</string>
+    <string name="sort_ratio">Ratio</string>
+    <string name="sort_added_on">Date d’ajout</string>
+    <string name="sort_reverse">Inverser</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">Catégorie</string>
+    <string name="category_all">Toutes</string>
+    <string name="category_none">Aucune</string>
+    <string name="assign_category_title">Assigner une catégorie</string>
+    <string name="category_hint">Nom de la catégorie</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">Supprimer le(s) torrent(s)</string>
+    <string name="delete_files_label">Supprimer aussi les fichiers du disque</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">Limites de vitesse (Kio/s, −1 = illimité)</string>
+    <string name="download_limit_hint">Limite de téléchargement</string>
+    <string name="upload_limit_hint">Limite d’envoi</string>
+    <string name="speed_limits_saved">Limites de vitesse appliquées</string>
+    <string name="toggle_alt_limits">Basculer les limites alternatives</string>
+
+    <!-- engine -->
+    <string name="engine_starting">Démarrage du moteur local…</string>
+    <string name="engine_channel_name">Moteur local</string>
+    <string name="engine_notification_title">Moteur qBittorrent</string>
+    <string name="engine_notification_text">Le moteur local qBittorrent-nox est en cours d’exécution</string>
+    <string name="engine_stop">Arrêter</string>
+    <string name="engine_status_stopped">Moteur : arrêté</string>
+    <string name="engine_status_running">Moteur : en cours d’exécution</string>
+    <string name="engine_status_starting">Moteur : démarrage…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">Erreur</string>
+    <string name="state_missing_files">Fichiers manquants</string>
+    <string name="state_uploading">Envoi</string>
+    <string name="state_paused_up">Terminé</string>
+    <string name="state_queued_up">En file (envoi)</string>
+    <string name="state_stalled_up">Partage</string>
+    <string name="state_checking_up">Vérification</string>
+    <string name="state_forced_up">Envoi forcé</string>
+    <string name="state_allocating">Allocation</string>
+    <string name="state_downloading">Téléchargement</string>
+    <string name="state_meta_dl">Téléchargement des métadonnées</string>
+    <string name="state_paused_dl">En pause</string>
+    <string name="state_queued_dl">En file (téléchargement)</string>
+    <string name="state_stalled_dl">Bloqué</string>
+    <string name="state_checking_dl">Vérification</string>
+    <string name="state_forced_dl">Téléchargement forcé</string>
+    <string name="state_checking_resume_data">Vérification des données de reprise</string>
+    <string name="state_unknown">Inconnu</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">restant</string>
+    <string name="seeds">S</string>
+    <string name="peers">L</string>
+    <string name="ratio">R</string>
+    <string name="pause_torrent">Mettre le torrent en pause</string>
+    <string name="resume_torrent">Reprendre le torrent</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">Désactivé</string>
+    <string name="tracker_status_not_contacted">Pas encore contacté</string>
+    <string name="tracker_status_working">Fonctionne</string>
+    <string name="tracker_status_updating">Mise à jour</string>
+    <string name="tracker_status_not_working">Ne fonctionne pas</string>
+    <string name="tracker_status_unreachable">Injoignable</string>
+    <string name="tracker_status_banned">Banni</string>
+    <string name="tracker_stats">S : %1$d  L : %2$d</string>
+    <string name="add_tracker_title">Ajouter un tracker</string>
+    <string name="add_tracker_hint">URL du tracker</string>
+    <string name="remove_tracker_title">Supprimer le tracker ?</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">Ajouter un torrent</string>
+    <string name="add_urls_label">Magnet / URL</string>
+    <string name="add_urls_hint">magnet:?xt=… ou http(s)://…</string>
+    <string name="add_pick_file">Choisir un fichier .torrent</string>
+    <string name="add_save_path_label">Chemin d’enregistrement</string>
+    <string name="add_save_path_hint">Chemin côté serveur (facultatif)</string>
+    <string name="add_category_label">Catégorie</string>
+    <string name="add_category_hint">Catégorie (facultatif)</string>
+    <string name="add_paused">Ajouter en pause</string>
+    <string name="add_sequential">Téléchargement séquentiel</string>
+    <string name="add_button">Ajouter le torrent</string>
+    <string name="add_success">Torrent ajouté</string>
+    <string name="add_failed">Échec de l’ajout du torrent</string>
+    <string name="add_no_input">Saisissez un lien magnet/URL ou choisissez un fichier .torrent</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">Aperçu</string>
+    <string name="detail_tab_files">Fichiers</string>
+    <string name="detail_tab_trackers">Trackers</string>
+    <string name="detail_tab_peers">Pairs</string>
+    <string name="detail_files_empty">Aucun fichier</string>
+    <string name="detail_trackers_empty">Aucun tracker</string>
+    <string name="detail_peers_empty">Aucun pair connecté</string>
+    <string name="priority_title">Priorité du fichier</string>
+    <string name="priority_skip">Ignorer</string>
+    <string name="priority_normal">Normale</string>
+    <string name="priority_mixed">Mixte</string>
+    <string name="priority_high">Haute</string>
+    <string name="priority_maximum">Maximale</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">Taille totale</string>
+    <string name="overview_ratio">Ratio</string>
+    <string name="overview_save_path">Chemin d’enregistrement</string>
+    <string name="overview_pieces">Pièces</string>
+    <string name="overview_connected">Connecté</string>
+    <string name="overview_added_on">Ajouté le</string>
+    <string name="overview_completed_on">Terminé le</string>
+    <string name="overview_seeding_time">Durée de partage</string>
+    <string name="overview_time_active">Durée d’activité</string>
+    <string name="overview_downloaded">Téléchargé</string>
+    <string name="overview_uploaded">Envoyé</string>
+    <string name="overview_wasted">Perdu</string>
+    <string name="overview_dl_limit">Limite de téléchargement</string>
+    <string name="overview_up_limit">Limite d’envoi</string>
+    <string name="overview_tracker">Tracker principal</string>
+    <string name="overview_comment">Commentaire</string>
+    <string name="overview_private">Privé</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">Serveur</string>
+    <string name="settings_host_label">Hôte</string>
+    <string name="settings_host_hint">p. ex. 192.168.1.10</string>
+    <string name="settings_port_label">Port</string>
+    <string name="settings_username_label">Nom d’utilisateur</string>
+    <string name="settings_password_label">Mot de passe</string>
+    <string name="settings_base_path_label">Chemin de base</string>
+    <string name="settings_base_path_hint">Sous-chemin de reverse proxy (facultatif)</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">Utiliser le schéma https://</string>
+    <string name="settings_trust_all_label">Accepter tous les certificats</string>
+    <string name="settings_trust_all_sub">Accepter les certificats auto-signés</string>
+    <string name="settings_test_connection">Tester la connexion</string>
+    <string name="settings_save">Enregistrer</string>
+    <string name="settings_saved">Enregistré</string>
+    <string name="settings_connection_ok">Connecté — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">Échec de connexion : %1$s</string>
+    <string name="settings_engine_section">Moteur local (qBittorrent Enhanced)</string>
+    <string name="settings_engine_port_label">Port WebUI du moteur</string>
+    <string name="settings_engine_save_path_label">Chemin d’enregistrement du moteur</string>
+    <string name="settings_engine_save_path_hint">Dossier de téléchargement côté serveur</string>
+    <string name="settings_engine_lan_label">Accès réseau local</string>
+    <string name="settings_engine_lan_sub">Écouter sur toutes les interfaces, pas seulement loopback</string>
+    <string name="settings_engine_autostart_label">Démarrer au boot</string>
+    <string name="settings_engine_autostart_sub">Démarrer automatiquement le moteur après le démarrage de l’appareil</string>
+    <string name="settings_engine_start">Démarrer le moteur</string>
+    <string name="settings_engine_stop">Arrêter le moteur</string>
+    <string name="search">Rechercher</string>
+    <string name="torrent_list_empty">Aucun torrent</string>
+    <string name="torrents">Torrents</string>
+    <string name="pause_all">Tout mettre en pause</string>
+    <string name="resume_all">Tout reprendre</string>
+    <string name="about">À propos</string>
+    <string name="add_link">Ajouter un lien</string>
+    <string name="open_file">Ouvrir un fichier</string>
+    <string name="clipboard">Presse-papiers</string>
+    <string name="delete_torrent_with_downloaded_files">Supprimer avec les fichiers téléchargés</string>
+    <string name="force_recheck_torrent">Revérification forcée</string>
+    <string name="force_reannounce_torrent">Annonce forcée</string>
+    <string name="force_announce_torrent">Annonce forcée</string>
+    <string name="select_all">Tout sélectionner</string>
+    <string name="stats">Statistiques</string>
+    <string name="filters">Filtres</string>
+    <string name="drawer_status">État</string>
+    <string name="drawer_status_downloading">Téléchargement…</string>
+    <string name="drawer_status_downloaded">Téléchargés</string>
+    <string name="drawer_status_downloading_metadata">Téléchargement des métadonnées…</string>
+    <string name="drawer_status_error">Erreur</string>
+    <string name="drawer_sorting">Tri</string>
+    <string name="drawer_sorting_name">Nom</string>
+    <string name="drawer_sorting_date_added">Date d’ajout</string>
+    <string name="drawer_sorting_size">Taille</string>
+    <string name="drawer_sorting_progress">Progression</string>
+    <string name="drawer_sorting_ETA">Temps restant</string>
+    <string name="drawer_sorting_peers">Popularité</string>
+    <string name="drawer_date_added">Date d’ajout</string>
+    <string name="drawer_date_added_today">Aujourd’hui</string>
+    <string name="drawer_date_added_yesterday">Hier</string>
+    <string name="drawer_date_added_week">Semaine</string>
+    <string name="drawer_date_added_month">Mois</string>
+    <string name="drawer_date_added_year">Année</string>
+    <string name="tags">Étiquettes</string>
+    <string name="add_tag">Ajouter une étiquette</string>
+    <string name="no_tags">Sans étiquette</string>
+    <string name="reset_filter">Réinitialiser le filtre</string>
+    <string name="ascending_sort">Tri croissant</string>
+    <string name="descending_sort">Tri décroissant</string>
+    <string name="details">Détails</string>
+    <string name="torrent_name">Nom</string>
+    <string name="save_path">Chemin d’enregistrement</string>
+    <string name="size">Taille</string>
+    <string name="download_speed">Téléchargement</string>
+    <string name="upload_speed">Envoi</string>
+    <string name="file_list_empty">Aucun fichier</string>
+    <string name="peer_list_empty">Ce torrent n’est connecté à aucun pair pour le moment</string>
+    <string name="tracker_list_empty">Aucun tracker</string>
+    <string name="change_priority">Priorité</string>
+    <string name="share_magnet">Partager le magnet</string>
+    <string name="save_torrent_file">Enregistrer le fichier torrent</string>
+    <string name="add_trackers">Ajouter des trackers</string>
+    <string name="torrent_speed_limit">Limite de vitesse</string>
+    <string name="share_tracker_url">Partager l’URL…</string>
+    <string name="port">Port : %1$d</string>
+    <string name="relevance">Pertinence</string>
+    <string name="connection">Connexion</string>
+    <string name="client">Client</string>
+    <string name="free_space">%1$s libre</string>
+    <string name="sequential_download_exists">Téléchargement séquentiel</string>
+    <string name="download_first_last_pieces">Télécharger d’abord les première et dernière pièces</string>
+    <string name="no_categories">Sans catégorie</string>
+    <string name="add_category">Ajouter une catégorie</string>
+    <string name="session_listen_port">Serveur : %1$s</string>
+    <string name="dht_nodes">Moteur : %1$s</string>
+    <string name="about_message">Client qBittorrent pour Android
+
+L’interface est un portage de LibreTorrent (GPL-3.0)
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">Chargement…</string>
+    <string name="edit_torrent_name">Modifier le nom du torrent</string>
+    <string name="dir_chooser_title">Choisir le dossier de téléchargement</string>
+    <string name="torrent_size">Taille</string>
+    <string name="torrent_hash_sum">Somme de hachage</string>
+    <string name="torrent_added_date">Date d’ajout</string>
+    <string name="torrent_create_date">Date de création</string>
+    <string name="torrent_created_in_program">Créé dans le programme</string>
+    <string name="torrent_comment">Commentaire</string>
+    <string name="create_torrent_options">Options</string>
+    <string name="upload_torrent_into">Envoyer vers…</string>
+    <string name="share_stream_url">Partager l’URL de flux</string>
+    <string name="error_no_file_manager">Aucun gestionnaire de fichiers disponible</string>
+    <string name="add_link_hint">Lien HTTP, magnet ou torrent</string>
+    <string name="tab_overview">Aperçu</string>
+    <string name="tab_files">Fichiers</string>
+    <string name="tab_trackers">Trackers</string>
+    <string name="tab_peers">Pairs</string>
+    <string name="file_priority_skip">Ignorer</string>
+    <string name="file_priority_low">Basse</string>
+    <string name="file_priority_normal">Normale</string>
+    <string name="file_priority_high">Haute</string>
+    <string name="file_priority_max">Maximale</string>
+    <string name="tracker_disabled">Désactivé</string>
+    <string name="tracker_not_contacted">Pas encore contacté</string>
+    <string name="tracker_working">Fonctionne</string>
+    <string name="tracker_updating">Mise à jour…</string>
+    <string name="tracker_not_working">Ne fonctionne pas</string>
+    <string name="share">Partager</string>
+    <string name="dht_nodes_stat">Nœuds DHT : %1$s</string>
+    <string name="total_torrents_stat">Torrents : %1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">Rechercher des mises à jour</string>
+    <string name="update_available_title">Mise à jour disponible</string>
+    <string name="update_available_message">La version %1$s est disponible.</string>
+    <string name="update_download">Télécharger</string>
+    <string name="update_release_page">Page de la version</string>
+    <string name="update_up_to_date">Vous êtes à jour (%1$s)</string>
+    <string name="update_check_failed">Échec de la recherche de mise à jour : %1$s</string>
+    <string name="error_no_browser">Aucun navigateur disponible</string>
+    <string name="about_version">Version : %1$s</string>
+</resources>

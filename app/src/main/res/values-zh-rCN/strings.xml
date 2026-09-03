@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">设置</string>
+    <string name="refresh">刷新</string>
+    <string name="sort">排序</string>
+    <string name="categories">分类</string>
+    <string name="speed_limits">速度限制</string>
+    <string name="local_engine">本地引擎</string>
+    <string name="pause">暂停</string>
+    <string name="resume">继续</string>
+    <string name="force_start">强制开始</string>
+    <string name="recheck">强制重新校验</string>
+    <string name="reannounce">强制汇报</string>
+    <string name="sequential_download">顺序下载</string>
+    <string name="super_seeding">超级做种</string>
+    <string name="top_priority">提高优先级</string>
+    <string name="bottom_priority">降低优先级</string>
+    <string name="category">分类</string>
+    <string name="delete">删除</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">未配置 — 请打开设置</string>
+    <string name="status_auth_failed">登录失败 — 请检查凭据</string>
+    <string name="status_offline">离线</string>
+    <string name="empty_not_configured">尚未配置服务器。\n请打开设置并填写 qBittorrent 地址。</string>
+    <string name="empty_auth_error">登录失败。\n请在设置中检查用户名和密码。</string>
+    <string name="empty_offline">无法连接服务器。\n请检查地址、端口（默认 8080）和网络。</string>
+    <string name="empty_no_torrents">没有种子</string>
+    <string name="selected_count">已选择 %1$d 项</string>
+
+    <!-- filters -->
+    <string name="filter_all">全部</string>
+    <string name="filter_downloading">下载中</string>
+    <string name="filter_seeding">做种中</string>
+    <string name="filter_completed">已完成</string>
+    <string name="filter_paused">已暂停</string>
+    <string name="filter_active">活动中</string>
+    <string name="filter_inactive">非活动</string>
+    <string name="filter_errored">出错的</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">排序方式</string>
+    <string name="sort_name">名称</string>
+    <string name="sort_size">大小</string>
+    <string name="sort_progress">进度</string>
+    <string name="sort_dlspeed">下载速度</string>
+    <string name="sort_upspeed">上传速度</string>
+    <string name="sort_eta">剩余时间</string>
+    <string name="sort_ratio">分享率</string>
+    <string name="sort_added_on">添加时间</string>
+    <string name="sort_reverse">倒序</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">分类</string>
+    <string name="category_all">全部</string>
+    <string name="category_none">无</string>
+    <string name="assign_category_title">指定分类</string>
+    <string name="category_hint">分类名称</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">删除种子</string>
+    <string name="delete_files_label">同时从磁盘删除文件</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">速度限制（KiB/s，−1 = 不限）</string>
+    <string name="download_limit_hint">下载限制</string>
+    <string name="upload_limit_hint">上传限制</string>
+    <string name="speed_limits_saved">速度限制已应用</string>
+    <string name="toggle_alt_limits">切换备用限制</string>
+
+    <!-- engine -->
+    <string name="engine_starting">正在启动本地引擎…</string>
+    <string name="engine_channel_name">本地引擎</string>
+    <string name="engine_notification_title">qBittorrent 引擎</string>
+    <string name="engine_notification_text">本地 qBittorrent-nox 引擎正在运行</string>
+    <string name="engine_stop">停止</string>
+    <string name="engine_status_stopped">引擎：已停止</string>
+    <string name="engine_status_running">引擎：运行中</string>
+    <string name="engine_status_starting">引擎：启动中…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">出错</string>
+    <string name="state_missing_files">文件缺失</string>
+    <string name="state_uploading">上传中</string>
+    <string name="state_paused_up">已完成</string>
+    <string name="state_queued_up">排队（上传）</string>
+    <string name="state_stalled_up">做种中</string>
+    <string name="state_checking_up">校验中</string>
+    <string name="state_forced_up">强制上传中</string>
+    <string name="state_allocating">分配空间中</string>
+    <string name="state_downloading">下载中</string>
+    <string name="state_meta_dl">获取元数据中</string>
+    <string name="state_paused_dl">已暂停</string>
+    <string name="state_queued_dl">排队（下载）</string>
+    <string name="state_stalled_dl">等待中</string>
+    <string name="state_checking_dl">校验中</string>
+    <string name="state_forced_dl">强制下载中</string>
+    <string name="state_checking_resume_data">校验恢复数据中</string>
+    <string name="state_unknown">未知</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">剩余</string>
+    <string name="seeds">种</string>
+    <string name="peers">客</string>
+    <string name="ratio">比</string>
+    <string name="pause_torrent">暂停种子</string>
+    <string name="resume_torrent">继续种子</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">已禁用</string>
+    <string name="tracker_status_not_contacted">尚未联系</string>
+    <string name="tracker_status_working">正常</string>
+    <string name="tracker_status_updating">更新中</string>
+    <string name="tracker_status_not_working">失效</string>
+    <string name="tracker_status_unreachable">无法访问</string>
+    <string name="tracker_status_banned">已封禁</string>
+    <string name="tracker_stats">种：%1$d  客：%2$d</string>
+    <string name="add_tracker_title">添加 tracker</string>
+    <string name="add_tracker_hint">Tracker URL</string>
+    <string name="remove_tracker_title">移除 tracker？</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">添加种子</string>
+    <string name="add_urls_label">磁力 / URL 链接</string>
+    <string name="add_urls_hint">magnet:?xt=… 或 http(s)://…</string>
+    <string name="add_pick_file">选择 .torrent 文件</string>
+    <string name="add_save_path_label">保存路径</string>
+    <string name="add_save_path_hint">服务器端路径（可选）</string>
+    <string name="add_category_label">分类</string>
+    <string name="add_category_hint">分类（可选）</string>
+    <string name="add_paused">添加后暂停</string>
+    <string name="add_sequential">顺序下载</string>
+    <string name="add_button">添加种子</string>
+    <string name="add_success">种子已添加</string>
+    <string name="add_failed">添加种子失败</string>
+    <string name="add_no_input">请输入磁力/URL 链接或选择 .torrent 文件</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">概览</string>
+    <string name="detail_tab_files">文件</string>
+    <string name="detail_tab_trackers">Trackers</string>
+    <string name="detail_tab_peers">节点</string>
+    <string name="detail_files_empty">没有文件</string>
+    <string name="detail_trackers_empty">没有 tracker</string>
+    <string name="detail_peers_empty">暂无已连接的节点</string>
+    <string name="priority_title">文件优先级</string>
+    <string name="priority_skip">跳过</string>
+    <string name="priority_normal">普通</string>
+    <string name="priority_mixed">混合</string>
+    <string name="priority_high">高</string>
+    <string name="priority_maximum">最高</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">总大小</string>
+    <string name="overview_ratio">分享率</string>
+    <string name="overview_save_path">保存路径</string>
+    <string name="overview_pieces">分块</string>
+    <string name="overview_connected">已连接</string>
+    <string name="overview_added_on">添加时间</string>
+    <string name="overview_completed_on">完成时间</string>
+    <string name="overview_seeding_time">做种时间</string>
+    <string name="overview_time_active">活动时间</string>
+    <string name="overview_downloaded">已下载</string>
+    <string name="overview_uploaded">已上传</string>
+    <string name="overview_wasted">已丢弃</string>
+    <string name="overview_dl_limit">下载限制</string>
+    <string name="overview_up_limit">上传限制</string>
+    <string name="overview_tracker">主 tracker</string>
+    <string name="overview_comment">注释</string>
+    <string name="overview_private">私有</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">服务器</string>
+    <string name="settings_host_label">主机</string>
+    <string name="settings_host_hint">例如 192.168.1.10</string>
+    <string name="settings_port_label">端口</string>
+    <string name="settings_username_label">用户名</string>
+    <string name="settings_password_label">密码</string>
+    <string name="settings_base_path_label">基础路径</string>
+    <string name="settings_base_path_hint">反向代理子路径（可选）</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">使用 https:// 协议</string>
+    <string name="settings_trust_all_label">信任所有证书</string>
+    <string name="settings_trust_all_sub">接受自签名证书</string>
+    <string name="settings_test_connection">测试连接</string>
+    <string name="settings_save">保存</string>
+    <string name="settings_saved">已保存</string>
+    <string name="settings_connection_ok">已连接 — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">连接失败：%1$s</string>
+    <string name="settings_engine_section">本地引擎（qBittorrent Enhanced）</string>
+    <string name="settings_engine_port_label">引擎 WebUI 端口</string>
+    <string name="settings_engine_save_path_label">引擎保存路径</string>
+    <string name="settings_engine_save_path_hint">服务器端下载目录</string>
+    <string name="settings_engine_lan_label">局域网访问</string>
+    <string name="settings_engine_lan_sub">监听所有网卡而非仅回环地址</string>
+    <string name="settings_engine_autostart_label">开机自启</string>
+    <string name="settings_engine_autostart_sub">设备启动后自动运行引擎</string>
+    <string name="settings_engine_start">启动引擎</string>
+    <string name="settings_engine_stop">停止引擎</string>
+    <string name="search">搜索</string>
+    <string name="torrent_list_empty">没有种子</string>
+    <string name="torrents">种子</string>
+    <string name="pause_all">全部暂停</string>
+    <string name="resume_all">全部继续</string>
+    <string name="about">关于</string>
+    <string name="add_link">添加链接</string>
+    <string name="open_file">打开文件</string>
+    <string name="clipboard">剪贴板</string>
+    <string name="delete_torrent_with_downloaded_files">删除及已下载的文件</string>
+    <string name="force_recheck_torrent">强制重新校验</string>
+    <string name="force_reannounce_torrent">强制汇报</string>
+    <string name="force_announce_torrent">强制汇报</string>
+    <string name="select_all">全选</string>
+    <string name="stats">统计</string>
+    <string name="filters">筛选</string>
+    <string name="drawer_status">状态</string>
+    <string name="drawer_status_downloading">下载中…</string>
+    <string name="drawer_status_downloaded">已下载</string>
+    <string name="drawer_status_downloading_metadata">获取元数据中…</string>
+    <string name="drawer_status_error">错误</string>
+    <string name="drawer_sorting">排序</string>
+    <string name="drawer_sorting_name">名称</string>
+    <string name="drawer_sorting_date_added">添加时间</string>
+    <string name="drawer_sorting_size">大小</string>
+    <string name="drawer_sorting_progress">进度</string>
+    <string name="drawer_sorting_ETA">剩余时间</string>
+    <string name="drawer_sorting_peers">热度</string>
+    <string name="drawer_date_added">添加时间</string>
+    <string name="drawer_date_added_today">今天</string>
+    <string name="drawer_date_added_yesterday">昨天</string>
+    <string name="drawer_date_added_week">本周</string>
+    <string name="drawer_date_added_month">本月</string>
+    <string name="drawer_date_added_year">本年</string>
+    <string name="tags">标签</string>
+    <string name="add_tag">添加标签</string>
+    <string name="no_tags">无标签</string>
+    <string name="reset_filter">重置筛选</string>
+    <string name="ascending_sort">升序</string>
+    <string name="descending_sort">降序</string>
+    <string name="details">详情</string>
+    <string name="torrent_name">名称</string>
+    <string name="save_path">保存路径</string>
+    <string name="size">大小</string>
+    <string name="download_speed">下载</string>
+    <string name="upload_speed">上传</string>
+    <string name="file_list_empty">没有文件</string>
+    <string name="peer_list_empty">此种子尚未连接任何节点</string>
+    <string name="tracker_list_empty">没有 tracker</string>
+    <string name="change_priority">优先级</string>
+    <string name="share_magnet">分享磁力链接</string>
+    <string name="save_torrent_file">保存种子文件</string>
+    <string name="add_trackers">添加 trackers</string>
+    <string name="torrent_speed_limit">速度限制</string>
+    <string name="share_tracker_url">分享 URL…</string>
+    <string name="port">端口：%1$d</string>
+    <string name="relevance">相关性</string>
+    <string name="connection">连接</string>
+    <string name="client">客户端</string>
+    <string name="free_space">剩余空间 %1$s</string>
+    <string name="sequential_download_exists">顺序下载</string>
+    <string name="download_first_last_pieces">优先下载首尾分块</string>
+    <string name="no_categories">无分类</string>
+    <string name="add_category">添加分类</string>
+    <string name="session_listen_port">服务器：%1$s</string>
+    <string name="dht_nodes">引擎：%1$s</string>
+    <string name="about_message">Android 版 qBittorrent 客户端
+
+界面移植自 LibreTorrent（GPL-3.0）
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">加载中…</string>
+    <string name="edit_torrent_name">编辑种子名称</string>
+    <string name="dir_chooser_title">选择下载目录</string>
+    <string name="torrent_size">大小</string>
+    <string name="torrent_hash_sum">哈希值</string>
+    <string name="torrent_added_date">添加时间</string>
+    <string name="torrent_create_date">创建时间</string>
+    <string name="torrent_created_in_program">创建程序</string>
+    <string name="torrent_comment">注释</string>
+    <string name="create_torrent_options">选项</string>
+    <string name="upload_torrent_into">上传至…</string>
+    <string name="share_stream_url">分享流媒体 URL</string>
+    <string name="error_no_file_manager">没有可用的文件管理器</string>
+    <string name="add_link_hint">HTTP、磁力或种子链接</string>
+    <string name="tab_overview">概览</string>
+    <string name="tab_files">文件</string>
+    <string name="tab_trackers">Trackers</string>
+    <string name="tab_peers">节点</string>
+    <string name="file_priority_skip">跳过</string>
+    <string name="file_priority_low">低</string>
+    <string name="file_priority_normal">普通</string>
+    <string name="file_priority_high">高</string>
+    <string name="file_priority_max">最高</string>
+    <string name="tracker_disabled">已禁用</string>
+    <string name="tracker_not_contacted">尚未联系</string>
+    <string name="tracker_working">正常</string>
+    <string name="tracker_updating">更新中…</string>
+    <string name="tracker_not_working">失效</string>
+    <string name="share">分享</string>
+    <string name="dht_nodes_stat">DHT 节点：%1$s</string>
+    <string name="total_torrents_stat">种子：%1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">检查更新</string>
+    <string name="update_available_title">有可用更新</string>
+    <string name="update_available_message">新版本 %1$s 已发布。</string>
+    <string name="update_download">下载</string>
+    <string name="update_release_page">发布页面</string>
+    <string name="update_up_to_date">已是最新版本（%1$s）</string>
+    <string name="update_check_failed">检查更新失败：%1$s</string>
+    <string name="error_no_browser">没有可用的浏览器</string>
+    <string name="about_version">版本：%1$s</string>
+</resources>

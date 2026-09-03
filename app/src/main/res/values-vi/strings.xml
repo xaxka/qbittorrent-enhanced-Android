@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">Cài đặt</string>
+    <string name="refresh">Làm mới</string>
+    <string name="sort">Sắp xếp</string>
+    <string name="categories">Danh mục</string>
+    <string name="speed_limits">Giới hạn tốc độ</string>
+    <string name="local_engine">Engine cục bộ</string>
+    <string name="pause">Tạm dừng</string>
+    <string name="resume">Tiếp tục</string>
+    <string name="force_start">Ép bắt đầu</string>
+    <string name="recheck">Ép kiểm tra lại</string>
+    <string name="reannounce">Ép thông báo</string>
+    <string name="sequential_download">Tải xuống tuần tự</string>
+    <string name="super_seeding">Super seeding</string>
+    <string name="top_priority">Tăng ưu tiên</string>
+    <string name="bottom_priority">Giảm ưu tiên</string>
+    <string name="category">Danh mục</string>
+    <string name="delete">Xóa</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">Chưa cấu hình — mở cài đặt</string>
+    <string name="status_auth_failed">Đăng nhập thất bại — kiểm tra thông tin xác thực</string>
+    <string name="status_offline">Ngoại tuyến</string>
+    <string name="empty_not_configured">Chưa cấu hình máy chủ.\nMở cài đặt và nhập địa chỉ qBittorrent của bạn.</string>
+    <string name="empty_auth_error">Đăng nhập thất bại.\nKiểm tra tên người dùng và mật khẩu trong cài đặt.</string>
+    <string name="empty_offline">Không thể kết nối máy chủ.\nKiểm tra địa chỉ, cổng (mặc định 8080) và mạng.</string>
+    <string name="empty_no_torrents">Không có torrent</string>
+    <string name="selected_count">Đã chọn %1$d</string>
+
+    <!-- filters -->
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_downloading">Đang tải</string>
+    <string name="filter_seeding">Đang seed</string>
+    <string name="filter_completed">Hoàn tất</string>
+    <string name="filter_paused">Tạm dừng</string>
+    <string name="filter_active">Đang hoạt động</string>
+    <string name="filter_inactive">Không hoạt động</string>
+    <string name="filter_errored">Lỗi</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">Sắp xếp theo</string>
+    <string name="sort_name">Tên</string>
+    <string name="sort_size">Dung lượng</string>
+    <string name="sort_progress">Tiến độ</string>
+    <string name="sort_dlspeed">Tốc độ tải xuống</string>
+    <string name="sort_upspeed">Tốc độ tải lên</string>
+    <string name="sort_eta">Thời gian còn lại</string>
+    <string name="sort_ratio">Tỷ lệ chia sẻ</string>
+    <string name="sort_added_on">Ngày thêm</string>
+    <string name="sort_reverse">Đảo ngược</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">Danh mục</string>
+    <string name="category_all">Tất cả</string>
+    <string name="category_none">Không</string>
+    <string name="assign_category_title">Gán danh mục</string>
+    <string name="category_hint">Tên danh mục</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">Xóa torrent</string>
+    <string name="delete_files_label">Đồng thời xóa tệp khỏi ổ đĩa</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">Giới hạn tốc độ (KiB/s, −1 = không giới hạn)</string>
+    <string name="download_limit_hint">Giới hạn tải xuống</string>
+    <string name="upload_limit_hint">Giới hạn tải lên</string>
+    <string name="speed_limits_saved">Đã áp dụng giới hạn tốc độ</string>
+    <string name="toggle_alt_limits">Bật/tắt giới hạn thay thế</string>
+
+    <!-- engine -->
+    <string name="engine_starting">Đang khởi động engine cục bộ…</string>
+    <string name="engine_channel_name">Engine cục bộ</string>
+    <string name="engine_notification_title">Engine qBittorrent</string>
+    <string name="engine_notification_text">Engine qBittorrent-nox cục bộ đang chạy</string>
+    <string name="engine_stop">Dừng</string>
+    <string name="engine_status_stopped">Engine: đã dừng</string>
+    <string name="engine_status_running">Engine: đang chạy</string>
+    <string name="engine_status_starting">Engine: đang khởi động…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">Lỗi</string>
+    <string name="state_missing_files">Thiếu tệp</string>
+    <string name="state_uploading">Đang tải lên</string>
+    <string name="state_paused_up">Hoàn tất</string>
+    <string name="state_queued_up">Đang chờ (tải lên)</string>
+    <string name="state_stalled_up">Đang seed</string>
+    <string name="state_checking_up">Đang kiểm tra</string>
+    <string name="state_forced_up">Ép tải lên</string>
+    <string name="state_allocating">Đang cấp phát</string>
+    <string name="state_downloading">Đang tải xuống</string>
+    <string name="state_meta_dl">Đang tải metadata</string>
+    <string name="state_paused_dl">Tạm dừng</string>
+    <string name="state_queued_dl">Đang chờ (tải xuống)</string>
+    <string name="state_stalled_dl">Bị đình trệ</string>
+    <string name="state_checking_dl">Đang kiểm tra</string>
+    <string name="state_forced_dl">Ép tải xuống</string>
+    <string name="state_checking_resume_data">Đang kiểm tra dữ liệu tiếp tục</string>
+    <string name="state_unknown">Không rõ</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">còn lại</string>
+    <string name="seeds">S</string>
+    <string name="peers">L</string>
+    <string name="ratio">R</string>
+    <string name="pause_torrent">Tạm dừng torrent</string>
+    <string name="resume_torrent">Tiếp tục torrent</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">Đã tắt</string>
+    <string name="tracker_status_not_contacted">Chưa được liên lạc</string>
+    <string name="tracker_status_working">Hoạt động</string>
+    <string name="tracker_status_updating">Đang cập nhật</string>
+    <string name="tracker_status_not_working">Không hoạt động</string>
+    <string name="tracker_status_unreachable">Không truy cập được</string>
+    <string name="tracker_status_banned">Đã cấm</string>
+    <string name="tracker_stats">S: %1$d  L: %2$d</string>
+    <string name="add_tracker_title">Thêm tracker</string>
+    <string name="add_tracker_hint">URL của tracker</string>
+    <string name="remove_tracker_title">Xóa tracker?</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">Thêm torrent</string>
+    <string name="add_urls_label">Magnet / URL</string>
+    <string name="add_urls_hint">magnet:?xt=… hoặc http(s)://…</string>
+    <string name="add_pick_file">Chọn tệp .torrent</string>
+    <string name="add_save_path_label">Đường dẫn lưu</string>
+    <string name="add_save_path_hint">Đường dẫn phía máy chủ (không bắt buộc)</string>
+    <string name="add_category_label">Danh mục</string>
+    <string name="add_category_hint">Danh mục (không bắt buộc)</string>
+    <string name="add_paused">Thêm ở trạng thái tạm dừng</string>
+    <string name="add_sequential">Tải xuống tuần tự</string>
+    <string name="add_button">Thêm torrent</string>
+    <string name="add_success">Đã thêm torrent</string>
+    <string name="add_failed">Không thể thêm torrent</string>
+    <string name="add_no_input">Nhập liên kết magnet/URL hoặc chọn tệp .torrent</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">Tổng quan</string>
+    <string name="detail_tab_files">Tệp</string>
+    <string name="detail_tab_trackers">Tracker</string>
+    <string name="detail_tab_peers">Peer</string>
+    <string name="detail_files_empty">Không có tệp</string>
+    <string name="detail_trackers_empty">Không có tracker</string>
+    <string name="detail_peers_empty">Không có peer nào đang kết nối</string>
+    <string name="priority_title">Ưu tiên tệp</string>
+    <string name="priority_skip">Bỏ qua</string>
+    <string name="priority_normal">Bình thường</string>
+    <string name="priority_mixed">Hỗn hợp</string>
+    <string name="priority_high">Cao</string>
+    <string name="priority_maximum">Tối đa</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">Tổng dung lượng</string>
+    <string name="overview_ratio">Tỷ lệ chia sẻ</string>
+    <string name="overview_save_path">Đường dẫn lưu</string>
+    <string name="overview_pieces">Piece</string>
+    <string name="overview_connected">Đã kết nối</string>
+    <string name="overview_added_on">Ngày thêm</string>
+    <string name="overview_completed_on">Ngày hoàn tất</string>
+    <string name="overview_seeding_time">Thời gian seed</string>
+    <string name="overview_time_active">Thời gian hoạt động</string>
+    <string name="overview_downloaded">Đã tải xuống</string>
+    <string name="overview_uploaded">Đã tải lên</string>
+    <string name="overview_wasted">Lãng phí</string>
+    <string name="overview_dl_limit">Giới hạn tải xuống</string>
+    <string name="overview_up_limit">Giới hạn tải lên</string>
+    <string name="overview_tracker">Tracker chính</string>
+    <string name="overview_comment">Ghi chú</string>
+    <string name="overview_private">Riêng tư</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">Máy chủ</string>
+    <string name="settings_host_label">Máy chủ</string>
+    <string name="settings_host_hint">vd. 192.168.1.10</string>
+    <string name="settings_port_label">Cổng</string>
+    <string name="settings_username_label">Tên người dùng</string>
+    <string name="settings_password_label">Mật khẩu</string>
+    <string name="settings_base_path_label">Đường dẫn cơ sở</string>
+    <string name="settings_base_path_hint">Đường dẫn con của reverse proxy (không bắt buộc)</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">Dùng giao thức https://</string>
+    <string name="settings_trust_all_label">Tin mọi chứng chỉ</string>
+    <string name="settings_trust_all_sub">Chấp nhận chứng chỉ tự ký</string>
+    <string name="settings_test_connection">Kiểm tra kết nối</string>
+    <string name="settings_save">Lưu</string>
+    <string name="settings_saved">Đã lưu</string>
+    <string name="settings_connection_ok">Đã kết nối — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">Kết nối thất bại: %1$s</string>
+    <string name="settings_engine_section">Engine cục bộ (qBittorrent Enhanced)</string>
+    <string name="settings_engine_port_label">Cổng WebUI của engine</string>
+    <string name="settings_engine_save_path_label">Đường dẫn lưu của engine</string>
+    <string name="settings_engine_save_path_hint">Thư mục tải xuống phía máy chủ</string>
+    <string name="settings_engine_lan_label">Truy cập LAN</string>
+    <string name="settings_engine_lan_sub">Nghe trên mọi giao diện thay vì chỉ loopback</string>
+    <string name="settings_engine_autostart_label">Khởi động cùng máy</string>
+    <string name="settings_engine_autostart_sub">Tự động khởi động engine sau khi thiết bị bật</string>
+    <string name="settings_engine_start">Khởi động engine</string>
+    <string name="settings_engine_stop">Dừng engine</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="torrent_list_empty">Không có torrent</string>
+    <string name="torrents">Torrent</string>
+    <string name="pause_all">Tạm dừng tất cả</string>
+    <string name="resume_all">Tiếp tục tất cả</string>
+    <string name="about">Giới thiệu</string>
+    <string name="add_link">Thêm liên kết</string>
+    <string name="open_file">Mở tệp</string>
+    <string name="clipboard">Bộ nhớ tạm</string>
+    <string name="delete_torrent_with_downloaded_files">Xóa cả tệp đã tải xuống</string>
+    <string name="force_recheck_torrent">Ép kiểm tra lại</string>
+    <string name="force_reannounce_torrent">Ép thông báo</string>
+    <string name="force_announce_torrent">Ép thông báo</string>
+    <string name="select_all">Chọn tất cả</string>
+    <string name="stats">Thống kê</string>
+    <string name="filters">Bộ lọc</string>
+    <string name="drawer_status">Trạng thái</string>
+    <string name="drawer_status_downloading">Đang tải…</string>
+    <string name="drawer_status_downloaded">Đã tải xong</string>
+    <string name="drawer_status_downloading_metadata">Đang tải metadata…</string>
+    <string name="drawer_status_error">Lỗi</string>
+    <string name="drawer_sorting">Sắp xếp</string>
+    <string name="drawer_sorting_name">Tên</string>
+    <string name="drawer_sorting_date_added">Ngày thêm</string>
+    <string name="drawer_sorting_size">Dung lượng</string>
+    <string name="drawer_sorting_progress">Tiến độ</string>
+    <string name="drawer_sorting_ETA">Thời gian còn lại</string>
+    <string name="drawer_sorting_peers">Độ phổ biến</string>
+    <string name="drawer_date_added">Ngày thêm</string>
+    <string name="drawer_date_added_today">Hôm nay</string>
+    <string name="drawer_date_added_yesterday">Hôm qua</string>
+    <string name="drawer_date_added_week">Tuần</string>
+    <string name="drawer_date_added_month">Tháng</string>
+    <string name="drawer_date_added_year">Năm</string>
+    <string name="tags">Thẻ</string>
+    <string name="add_tag">Thêm thẻ</string>
+    <string name="no_tags">Không thẻ</string>
+    <string name="reset_filter">Đặt lại bộ lọc</string>
+    <string name="ascending_sort">Tăng dần</string>
+    <string name="descending_sort">Giảm dần</string>
+    <string name="details">Chi tiết</string>
+    <string name="torrent_name">Tên</string>
+    <string name="save_path">Đường dẫn lưu</string>
+    <string name="size">Dung lượng</string>
+    <string name="download_speed">Tải xuống</string>
+    <string name="upload_speed">Tải lên</string>
+    <string name="file_list_empty">Không có tệp</string>
+    <string name="peer_list_empty">Torrent này chưa kết nối với ai</string>
+    <string name="tracker_list_empty">Không có tracker</string>
+    <string name="change_priority">Ưu tiên</string>
+    <string name="share_magnet">Chia sẻ magnet</string>
+    <string name="save_torrent_file">Lưu tệp torrent</string>
+    <string name="add_trackers">Thêm tracker</string>
+    <string name="torrent_speed_limit">Giới hạn tốc độ</string>
+    <string name="share_tracker_url">Chia sẻ URL…</string>
+    <string name="port">Cổng: %1$d</string>
+    <string name="relevance">Liên quan</string>
+    <string name="connection">Kết nối</string>
+    <string name="client">Máy khách</string>
+    <string name="free_space">Còn trống %1$s</string>
+    <string name="sequential_download_exists">Tải xuống tuần tự</string>
+    <string name="download_first_last_pieces">Tải piece đầu và cuối trước</string>
+    <string name="no_categories">Không danh mục</string>
+    <string name="add_category">Thêm danh mục</string>
+    <string name="session_listen_port">Máy chủ: %1$s</string>
+    <string name="dht_nodes">Engine: %1$s</string>
+    <string name="about_message">Máy khách qBittorrent cho Android
+
+Giao diện là bản chuyển thể từ LibreTorrent (GPL-3.0)
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">Đang tải…</string>
+    <string name="edit_torrent_name">Sửa tên torrent</string>
+    <string name="dir_chooser_title">Chọn thư mục tải xuống</string>
+    <string name="torrent_size">Dung lượng</string>
+    <string name="torrent_hash_sum">Mã băm</string>
+    <string name="torrent_added_date">Ngày thêm</string>
+    <string name="torrent_create_date">Ngày tạo</string>
+    <string name="torrent_created_in_program">Tạo bằng</string>
+    <string name="torrent_comment">Ghi chú</string>
+    <string name="create_torrent_options">Tùy chọn</string>
+    <string name="upload_torrent_into">Tải lên vào…</string>
+    <string name="share_stream_url">Chia sẻ URL phát trực tuyến</string>
+    <string name="error_no_file_manager">Không có trình quản lý tệp</string>
+    <string name="add_link_hint">Liên kết HTTP, magnet hoặc torrent</string>
+    <string name="tab_overview">Tổng quan</string>
+    <string name="tab_files">Tệp</string>
+    <string name="tab_trackers">Tracker</string>
+    <string name="tab_peers">Peer</string>
+    <string name="file_priority_skip">Bỏ qua</string>
+    <string name="file_priority_low">Thấp</string>
+    <string name="file_priority_normal">Bình thường</string>
+    <string name="file_priority_high">Cao</string>
+    <string name="file_priority_max">Tối đa</string>
+    <string name="tracker_disabled">Đã tắt</string>
+    <string name="tracker_not_contacted">Chưa được liên lạc</string>
+    <string name="tracker_working">Hoạt động</string>
+    <string name="tracker_updating">Đang cập nhật…</string>
+    <string name="tracker_not_working">Không hoạt động</string>
+    <string name="share">Chia sẻ</string>
+    <string name="dht_nodes_stat">Nút DHT: %1$s</string>
+    <string name="total_torrents_stat">Torrent: %1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">Kiểm tra bản cập nhật</string>
+    <string name="update_available_title">Có bản cập nhật</string>
+    <string name="update_available_message">Phiên bản %1$s đã có sẵn.</string>
+    <string name="update_download">Tải xuống</string>
+    <string name="update_release_page">Trang phát hành</string>
+    <string name="update_up_to_date">Bạn đang dùng phiên bản mới nhất (%1$s)</string>
+    <string name="update_check_failed">Kiểm tra cập nhật thất bại: %1$s</string>
+    <string name="error_no_browser">Không có trình duyệt</string>
+    <string name="about_version">Phiên bản: %1$s</string>
+</resources>

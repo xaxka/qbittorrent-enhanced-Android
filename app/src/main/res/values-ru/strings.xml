@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">Настройки</string>
+    <string name="refresh">Обновить</string>
+    <string name="sort">Сортировка</string>
+    <string name="categories">Категории</string>
+    <string name="speed_limits">Ограничения скорости</string>
+    <string name="local_engine">Локальный движок</string>
+    <string name="pause">Пауза</string>
+    <string name="resume">Продолжить</string>
+    <string name="force_start">Принудительный старт</string>
+    <string name="recheck">Принудительная проверка</string>
+    <string name="reannounce">Принудительный анонс</string>
+    <string name="sequential_download">Последовательное скачивание</string>
+    <string name="super_seeding">Супер-раздача</string>
+    <string name="top_priority">Повысить приоритет</string>
+    <string name="bottom_priority">Понизить приоритет</string>
+    <string name="category">Категория</string>
+    <string name="delete">Удалить</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">Не настроено — откройте настройки</string>
+    <string name="status_auth_failed">Ошибка входа — проверьте учётные данные</string>
+    <string name="status_offline">Не в сети</string>
+    <string name="empty_not_configured">Сервер не настроен.\nОткройте настройки и укажите адрес qBittorrent.</string>
+    <string name="empty_auth_error">Ошибка входа.\nПроверьте имя пользователя и пароль в настройках.</string>
+    <string name="empty_offline">Не удаётся связаться с сервером.\nПроверьте адрес, порт (по умолчанию 8080) и сеть.</string>
+    <string name="empty_no_torrents">Нет торрентов</string>
+    <string name="selected_count">Выбрано: %1$d</string>
+
+    <!-- filters -->
+    <string name="filter_all">Все</string>
+    <string name="filter_downloading">Скачиваются</string>
+    <string name="filter_seeding">Раздаются</string>
+    <string name="filter_completed">Завершены</string>
+    <string name="filter_paused">Приостановлены</string>
+    <string name="filter_active">Активные</string>
+    <string name="filter_inactive">Неактивные</string>
+    <string name="filter_errored">С ошибками</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">Сортировать по</string>
+    <string name="sort_name">Имя</string>
+    <string name="sort_size">Размер</string>
+    <string name="sort_progress">Прогресс</string>
+    <string name="sort_dlspeed">Скорость скачивания</string>
+    <string name="sort_upspeed">Скорость отдачи</string>
+    <string name="sort_eta">Оставшееся время</string>
+    <string name="sort_ratio">Рейтинг</string>
+    <string name="sort_added_on">Дата добавления</string>
+    <string name="sort_reverse">В обратном порядке</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">Категория</string>
+    <string name="category_all">Все</string>
+    <string name="category_none">Нет</string>
+    <string name="assign_category_title">Назначить категорию</string>
+    <string name="category_hint">Название категории</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">Удалить торрент(ы)</string>
+    <string name="delete_files_label">Также удалить файлы с диска</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">Ограничения скорости (КиБ/с, −1 = без ограничений)</string>
+    <string name="download_limit_hint">Ограничение скачивания</string>
+    <string name="upload_limit_hint">Ограничение отдачи</string>
+    <string name="speed_limits_saved">Ограничения скорости применены</string>
+    <string name="toggle_alt_limits">Переключить альтернативные ограничения</string>
+
+    <!-- engine -->
+    <string name="engine_starting">Запуск локального движка…</string>
+    <string name="engine_channel_name">Локальный движок</string>
+    <string name="engine_notification_title">Движок qBittorrent</string>
+    <string name="engine_notification_text">Локальный движок qBittorrent-nox работает</string>
+    <string name="engine_stop">Остановить</string>
+    <string name="engine_status_stopped">Движок: остановлен</string>
+    <string name="engine_status_running">Движок: работает</string>
+    <string name="engine_status_starting">Движок: запускается…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">Ошибка</string>
+    <string name="state_missing_files">Файлы отсутствуют</string>
+    <string name="state_uploading">Отдаётся</string>
+    <string name="state_paused_up">Завершён</string>
+    <string name="state_queued_up">В очереди (отдача)</string>
+    <string name="state_stalled_up">Раздаётся</string>
+    <string name="state_checking_up">Проверяется</string>
+    <string name="state_forced_up">Принудительная отдача</string>
+    <string name="state_allocating">Выделяется место</string>
+    <string name="state_downloading">Скачивается</string>
+    <string name="state_meta_dl">Получение метаданных</string>
+    <string name="state_paused_dl">Приостановлен</string>
+    <string name="state_queued_dl">В очереди (скачивание)</string>
+    <string name="state_stalled_dl">Ожидание</string>
+    <string name="state_checking_dl">Проверяется</string>
+    <string name="state_forced_dl">Принудительное скачивание</string>
+    <string name="state_checking_resume_data">Проверка данных возобновления</string>
+    <string name="state_unknown">Неизвестно</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">осталось</string>
+    <string name="seeds">S</string>
+    <string name="peers">L</string>
+    <string name="ratio">R</string>
+    <string name="pause_torrent">Приостановить торрент</string>
+    <string name="resume_torrent">Продолжить торрент</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">Отключён</string>
+    <string name="tracker_status_not_contacted">Ещё не опрошен</string>
+    <string name="tracker_status_working">Работает</string>
+    <string name="tracker_status_updating">Обновляется</string>
+    <string name="tracker_status_not_working">Не работает</string>
+    <string name="tracker_status_unreachable">Недоступен</string>
+    <string name="tracker_status_banned">Заблокирован</string>
+    <string name="tracker_stats">S: %1$d  L: %2$d</string>
+    <string name="add_tracker_title">Добавить трекер</string>
+    <string name="add_tracker_hint">URL трекера</string>
+    <string name="remove_tracker_title">Удалить трекер?</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">Добавить торрент</string>
+    <string name="add_urls_label">Магнит / URL</string>
+    <string name="add_urls_hint">magnet:?xt=… или http(s)://…</string>
+    <string name="add_pick_file">Выбрать файл .torrent</string>
+    <string name="add_save_path_label">Путь сохранения</string>
+    <string name="add_save_path_hint">Путь на сервере (необязательно)</string>
+    <string name="add_category_label">Категория</string>
+    <string name="add_category_hint">Категория (необязательно)</string>
+    <string name="add_paused">Добавить приостановленным</string>
+    <string name="add_sequential">Последовательное скачивание</string>
+    <string name="add_button">Добавить торрент</string>
+    <string name="add_success">Торрент добавлен</string>
+    <string name="add_failed">Не удалось добавить торрент</string>
+    <string name="add_no_input">Введите магнит-ссылку/URL или выберите файл .torrent</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">Обзор</string>
+    <string name="detail_tab_files">Файлы</string>
+    <string name="detail_tab_trackers">Трекеры</string>
+    <string name="detail_tab_peers">Пиры</string>
+    <string name="detail_files_empty">Нет файлов</string>
+    <string name="detail_trackers_empty">Нет трекеров</string>
+    <string name="detail_peers_empty">Нет подключённых пиров</string>
+    <string name="priority_title">Приоритет файла</string>
+    <string name="priority_skip">Пропустить</string>
+    <string name="priority_normal">Обычный</string>
+    <string name="priority_mixed">Смешанный</string>
+    <string name="priority_high">Высокий</string>
+    <string name="priority_maximum">Максимальный</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">Общий размер</string>
+    <string name="overview_ratio">Рейтинг</string>
+    <string name="overview_save_path">Путь сохранения</string>
+    <string name="overview_pieces">Части</string>
+    <string name="overview_connected">Подключено</string>
+    <string name="overview_added_on">Добавлен</string>
+    <string name="overview_completed_on">Завершён</string>
+    <string name="overview_seeding_time">Время раздачи</string>
+    <string name="overview_time_active">Активен</string>
+    <string name="overview_downloaded">Скачано</string>
+    <string name="overview_uploaded">Отдано</string>
+    <string name="overview_wasted">Потеряно</string>
+    <string name="overview_dl_limit">Ограничение скачивания</string>
+    <string name="overview_up_limit">Ограничение отдачи</string>
+    <string name="overview_tracker">Основной трекер</string>
+    <string name="overview_comment">Комментарий</string>
+    <string name="overview_private">Частный</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">Сервер</string>
+    <string name="settings_host_label">Хост</string>
+    <string name="settings_host_hint">например 192.168.1.10</string>
+    <string name="settings_port_label">Порт</string>
+    <string name="settings_username_label">Имя пользователя</string>
+    <string name="settings_password_label">Пароль</string>
+    <string name="settings_base_path_label">Базовый путь</string>
+    <string name="settings_base_path_hint">Подпуть обратного прокси (необязательно)</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">Использовать схему https://</string>
+    <string name="settings_trust_all_label">Доверять всем сертификатам</string>
+    <string name="settings_trust_all_sub">Принимать самоподписанные сертификаты</string>
+    <string name="settings_test_connection">Проверить соединение</string>
+    <string name="settings_save">Сохранить</string>
+    <string name="settings_saved">Сохранено</string>
+    <string name="settings_connection_ok">Подключено — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">Не удалось подключиться: %1$s</string>
+    <string name="settings_engine_section">Локальный движок (qBittorrent Enhanced)</string>
+    <string name="settings_engine_port_label">Порт WebUI движка</string>
+    <string name="settings_engine_save_path_label">Путь сохранения движка</string>
+    <string name="settings_engine_save_path_hint">Папка загрузок на сервере</string>
+    <string name="settings_engine_lan_label">Доступ по локальной сети</string>
+    <string name="settings_engine_lan_sub">Слушать все интерфейсы, а не только loopback</string>
+    <string name="settings_engine_autostart_label">Запуск при загрузке</string>
+    <string name="settings_engine_autostart_sub">Запускать движок автоматически после включения устройства</string>
+    <string name="settings_engine_start">Запустить движок</string>
+    <string name="settings_engine_stop">Остановить движок</string>
+    <string name="search">Поиск</string>
+    <string name="torrent_list_empty">Нет торрентов</string>
+    <string name="torrents">Торренты</string>
+    <string name="pause_all">Приостановить все</string>
+    <string name="resume_all">Продолжить все</string>
+    <string name="about">О программе</string>
+    <string name="add_link">Добавить ссылку</string>
+    <string name="open_file">Открыть файл</string>
+    <string name="clipboard">Буфер обмена</string>
+    <string name="delete_torrent_with_downloaded_files">Удалить вместе со скачанными файлами</string>
+    <string name="force_recheck_torrent">Принудительная проверка</string>
+    <string name="force_reannounce_torrent">Принудительный анонс</string>
+    <string name="force_announce_torrent">Принудительный анонс</string>
+    <string name="select_all">Выбрать все</string>
+    <string name="stats">Статистика</string>
+    <string name="filters">Фильтры</string>
+    <string name="drawer_status">Состояние</string>
+    <string name="drawer_status_downloading">Скачиваются…</string>
+    <string name="drawer_status_downloaded">Скачаны</string>
+    <string name="drawer_status_downloading_metadata">Получение метаданных…</string>
+    <string name="drawer_status_error">Ошибка</string>
+    <string name="drawer_sorting">Сортировка</string>
+    <string name="drawer_sorting_name">Имя</string>
+    <string name="drawer_sorting_date_added">Дата добавления</string>
+    <string name="drawer_sorting_size">Размер</string>
+    <string name="drawer_sorting_progress">Прогресс</string>
+    <string name="drawer_sorting_ETA">Оставшееся время</string>
+    <string name="drawer_sorting_peers">Популярность</string>
+    <string name="drawer_date_added">Дата добавления</string>
+    <string name="drawer_date_added_today">Сегодня</string>
+    <string name="drawer_date_added_yesterday">Вчера</string>
+    <string name="drawer_date_added_week">Неделя</string>
+    <string name="drawer_date_added_month">Месяц</string>
+    <string name="drawer_date_added_year">Год</string>
+    <string name="tags">Метки</string>
+    <string name="add_tag">Добавить метку</string>
+    <string name="no_tags">Без меток</string>
+    <string name="reset_filter">Сбросить фильтр</string>
+    <string name="ascending_sort">По возрастанию</string>
+    <string name="descending_sort">По убыванию</string>
+    <string name="details">Подробности</string>
+    <string name="torrent_name">Имя</string>
+    <string name="save_path">Путь сохранения</string>
+    <string name="size">Размер</string>
+    <string name="download_speed">Скачивание</string>
+    <string name="upload_speed">Отдача</string>
+    <string name="file_list_empty">Нет файлов</string>
+    <string name="peer_list_empty">Этот торрент ещё не подключился ни к одному пиру</string>
+    <string name="tracker_list_empty">Нет трекеров</string>
+    <string name="change_priority">Приоритет</string>
+    <string name="share_magnet">Поделиться магнит-ссылкой</string>
+    <string name="save_torrent_file">Сохранить файл торрента</string>
+    <string name="add_trackers">Добавить трекеры</string>
+    <string name="torrent_speed_limit">Ограничение скорости</string>
+    <string name="share_tracker_url">Поделиться URL…</string>
+    <string name="port">Порт: %1$d</string>
+    <string name="relevance">Актуальность</string>
+    <string name="connection">Соединение</string>
+    <string name="client">Клиент</string>
+    <string name="free_space">Свободно %1$s</string>
+    <string name="sequential_download_exists">Последовательное скачивание</string>
+    <string name="download_first_last_pieces">Сначала первые и последние части</string>
+    <string name="no_categories">Без категории</string>
+    <string name="add_category">Добавить категорию</string>
+    <string name="session_listen_port">Сервер: %1$s</string>
+    <string name="dht_nodes">Движок: %1$s</string>
+    <string name="about_message">Клиент qBittorrent для Android
+
+Интерфейс — порт LibreTorrent (GPL-3.0)
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">Загрузка…</string>
+    <string name="edit_torrent_name">Изменить имя торрента</string>
+    <string name="dir_chooser_title">Выберите папку загрузок</string>
+    <string name="torrent_size">Размер</string>
+    <string name="torrent_hash_sum">Хеш</string>
+    <string name="torrent_added_date">Дата добавления</string>
+    <string name="torrent_create_date">Дата создания</string>
+    <string name="torrent_created_in_program">Создан в программе</string>
+    <string name="torrent_comment">Комментарий</string>
+    <string name="create_torrent_options">Параметры</string>
+    <string name="upload_torrent_into">Загрузить в…</string>
+    <string name="share_stream_url">Поделиться URL потока</string>
+    <string name="error_no_file_manager">Нет доступного файлового менеджера</string>
+    <string name="add_link_hint">HTTP, магнит или торрент-ссылка</string>
+    <string name="tab_overview">Обзор</string>
+    <string name="tab_files">Файлы</string>
+    <string name="tab_trackers">Трекеры</string>
+    <string name="tab_peers">Пиры</string>
+    <string name="file_priority_skip">Пропустить</string>
+    <string name="file_priority_low">Низкий</string>
+    <string name="file_priority_normal">Обычный</string>
+    <string name="file_priority_high">Высокий</string>
+    <string name="file_priority_max">Максимальный</string>
+    <string name="tracker_disabled">Отключён</string>
+    <string name="tracker_not_contacted">Ещё не опрошен</string>
+    <string name="tracker_working">Работает</string>
+    <string name="tracker_updating">Обновляется…</string>
+    <string name="tracker_not_working">Не работает</string>
+    <string name="share">Поделиться</string>
+    <string name="dht_nodes_stat">Узлы DHT: %1$s</string>
+    <string name="total_torrents_stat">Торренты: %1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">Проверить обновления</string>
+    <string name="update_available_title">Доступно обновление</string>
+    <string name="update_available_message">Доступна версия %1$s.</string>
+    <string name="update_download">Скачать</string>
+    <string name="update_release_page">Страница релиза</string>
+    <string name="update_up_to_date">У вас последняя версия (%1$s)</string>
+    <string name="update_check_failed">Не удалось проверить обновления: %1$s</string>
+    <string name="error_no_browser">Нет доступного браузера</string>
+    <string name="about_version">Версия: %1$s</string>
+</resources>

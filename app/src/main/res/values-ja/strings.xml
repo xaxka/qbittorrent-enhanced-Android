@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">設定</string>
+    <string name="refresh">更新</string>
+    <string name="sort">並べ替え</string>
+    <string name="categories">カテゴリ</string>
+    <string name="speed_limits">速度制限</string>
+    <string name="local_engine">ローカルエンジン</string>
+    <string name="pause">一時停止</string>
+    <string name="resume">再開</string>
+    <string name="force_start">強制開始</string>
+    <string name="recheck">強制再チェック</string>
+    <string name="reannounce">強制アナウンス</string>
+    <string name="sequential_download">順次ダウンロード</string>
+    <string name="super_seeding">スーパーシード</string>
+    <string name="top_priority">優先度を上げる</string>
+    <string name="bottom_priority">優先度を下げる</string>
+    <string name="category">カテゴリ</string>
+    <string name="delete">削除</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">未設定 — 設定を開いてください</string>
+    <string name="status_auth_failed">ログイン失敗 — 認証情報を確認してください</string>
+    <string name="status_offline">オフライン</string>
+    <string name="empty_not_configured">サーバーが設定されていません。\n設定を開いて qBittorrent のアドレスを入力してください。</string>
+    <string name="empty_auth_error">ログインに失敗しました。\n設定でユーザー名とパスワードを確認してください。</string>
+    <string name="empty_offline">サーバーに接続できません。\nアドレス、ポート（デフォルト 8080）、ネットワークを確認してください。</string>
+    <string name="empty_no_torrents">トレントはありません</string>
+    <string name="selected_count">%1$d 件を選択中</string>
+
+    <!-- filters -->
+    <string name="filter_all">すべて</string>
+    <string name="filter_downloading">ダウンロード中</string>
+    <string name="filter_seeding">シード中</string>
+    <string name="filter_completed">完了</string>
+    <string name="filter_paused">一時停止中</string>
+    <string name="filter_active">アクティブ</string>
+    <string name="filter_inactive">非アクティブ</string>
+    <string name="filter_errored">エラー</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">並べ替え</string>
+    <string name="sort_name">名前</string>
+    <string name="sort_size">サイズ</string>
+    <string name="sort_progress">進捗</string>
+    <string name="sort_dlspeed">ダウンロード速度</string>
+    <string name="sort_upspeed">アップロード速度</string>
+    <string name="sort_eta">残り時間</string>
+    <string name="sort_ratio">共有比</string>
+    <string name="sort_added_on">追加日時</string>
+    <string name="sort_reverse">逆順</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">カテゴリ</string>
+    <string name="category_all">すべて</string>
+    <string name="category_none">なし</string>
+    <string name="assign_category_title">カテゴリを割り当て</string>
+    <string name="category_hint">カテゴリ名</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">トレントを削除</string>
+    <string name="delete_files_label">ディスクからファイルも削除する</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">速度制限（KiB/s、−1 = 無制限）</string>
+    <string name="download_limit_hint">ダウンロード制限</string>
+    <string name="upload_limit_hint">アップロード制限</string>
+    <string name="speed_limits_saved">速度制限を適用しました</string>
+    <string name="toggle_alt_limits">代替速度制限の切り替え</string>
+
+    <!-- engine -->
+    <string name="engine_starting">ローカルエンジンを起動中…</string>
+    <string name="engine_channel_name">ローカルエンジン</string>
+    <string name="engine_notification_title">qBittorrent エンジン</string>
+    <string name="engine_notification_text">ローカル qBittorrent-nox エンジンが実行中です</string>
+    <string name="engine_stop">停止</string>
+    <string name="engine_status_stopped">エンジン：停止中</string>
+    <string name="engine_status_running">エンジン：実行中</string>
+    <string name="engine_status_starting">エンジン：起動中…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">エラー</string>
+    <string name="state_missing_files">ファイル不明</string>
+    <string name="state_uploading">アップロード中</string>
+    <string name="state_paused_up">完了</string>
+    <string name="state_queued_up">待機中（アップロード）</string>
+    <string name="state_stalled_up">シード中</string>
+    <string name="state_checking_up">チェック中</string>
+    <string name="state_forced_up">強制アップロード中</string>
+    <string name="state_allocating">領域割り当て中</string>
+    <string name="state_downloading">ダウンロード中</string>
+    <string name="state_meta_dl">メタデータ取得中</string>
+    <string name="state_paused_dl">一時停止中</string>
+    <string name="state_queued_dl">待機中（ダウンロード）</string>
+    <string name="state_stalled_dl">停滞</string>
+    <string name="state_checking_dl">チェック中</string>
+    <string name="state_forced_dl">強制ダウンロード中</string>
+    <string name="state_checking_resume_data">再開データを確認中</string>
+    <string name="state_unknown">不明</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">残り</string>
+    <string name="seeds">S</string>
+    <string name="peers">L</string>
+    <string name="ratio">比</string>
+    <string name="pause_torrent">トレントを一時停止</string>
+    <string name="resume_torrent">トレントを再開</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">無効</string>
+    <string name="tracker_status_not_contacted">未接続</string>
+    <string name="tracker_status_working">動作中</string>
+    <string name="tracker_status_updating">更新中</string>
+    <string name="tracker_status_not_working">動作していません</string>
+    <string name="tracker_status_unreachable">到達できません</string>
+    <string name="tracker_status_banned">禁止済み</string>
+    <string name="tracker_stats">S: %1$d  L: %2$d</string>
+    <string name="add_tracker_title">トラッカーを追加</string>
+    <string name="add_tracker_hint">トラッカー URL</string>
+    <string name="remove_tracker_title">トラッカーを削除しますか？</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">トレントを追加</string>
+    <string name="add_urls_label">マグネット / URL</string>
+    <string name="add_urls_hint">magnet:?xt=… または http(s)://…</string>
+    <string name="add_pick_file">.torrent ファイルを選択</string>
+    <string name="add_save_path_label">保存先</string>
+    <string name="add_save_path_hint">サーバー側のパス（任意）</string>
+    <string name="add_category_label">カテゴリ</string>
+    <string name="add_category_hint">カテゴリ（任意）</string>
+    <string name="add_paused">一時停止で追加</string>
+    <string name="add_sequential">順次ダウンロード</string>
+    <string name="add_button">トレントを追加</string>
+    <string name="add_success">トレントを追加しました</string>
+    <string name="add_failed">トレントを追加できませんでした</string>
+    <string name="add_no_input">マグネット/URL を入力するか .torrent ファイルを選択してください</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">概要</string>
+    <string name="detail_tab_files">ファイル</string>
+    <string name="detail_tab_trackers">トラッカー</string>
+    <string name="detail_tab_peers">ピア</string>
+    <string name="detail_files_empty">ファイルはありません</string>
+    <string name="detail_trackers_empty">トラッカーはありません</string>
+    <string name="detail_peers_empty">接続中のピアはありません</string>
+    <string name="priority_title">ファイルの優先度</string>
+    <string name="priority_skip">スキップ</string>
+    <string name="priority_normal">通常</string>
+    <string name="priority_mixed">混在</string>
+    <string name="priority_high">高</string>
+    <string name="priority_maximum">最高</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">合計サイズ</string>
+    <string name="overview_ratio">共有比</string>
+    <string name="overview_save_path">保存先</string>
+    <string name="overview_pieces">ピース</string>
+    <string name="overview_connected">接続数</string>
+    <string name="overview_added_on">追加日時</string>
+    <string name="overview_completed_on">完了日時</string>
+    <string name="overview_seeding_time">シード時間</string>
+    <string name="overview_time_active">活動時間</string>
+    <string name="overview_downloaded">ダウンロード量</string>
+    <string name="overview_uploaded">アップロード量</string>
+    <string name="overview_wasted">破棄量</string>
+    <string name="overview_dl_limit">ダウンロード制限</string>
+    <string name="overview_up_limit">アップロード制限</string>
+    <string name="overview_tracker">メイントラッカー</string>
+    <string name="overview_comment">コメント</string>
+    <string name="overview_private">プライベート</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">サーバー</string>
+    <string name="settings_host_label">ホスト</string>
+    <string name="settings_host_hint">例： 192.168.1.10</string>
+    <string name="settings_port_label">ポート</string>
+    <string name="settings_username_label">ユーザー名</string>
+    <string name="settings_password_label">パスワード</string>
+    <string name="settings_base_path_label">ベースパス</string>
+    <string name="settings_base_path_hint">リバースプロキシのサブパス（任意）</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">https:// スキームを使用</string>
+    <string name="settings_trust_all_label">すべての証明書を信頼</string>
+    <string name="settings_trust_all_sub">自己署名証明書を許可</string>
+    <string name="settings_test_connection">接続テスト</string>
+    <string name="settings_save">保存</string>
+    <string name="settings_saved">保存しました</string>
+    <string name="settings_connection_ok">接続しました — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">接続に失敗しました：%1$s</string>
+    <string name="settings_engine_section">ローカルエンジン（qBittorrent Enhanced）</string>
+    <string name="settings_engine_port_label">エンジンの WebUI ポート</string>
+    <string name="settings_engine_save_path_label">エンジンの保存先</string>
+    <string name="settings_engine_save_path_hint">サーバー側のダウンロードフォルダー</string>
+    <string name="settings_engine_lan_label">LAN アクセス</string>
+    <string name="settings_engine_lan_sub">ループバックだけでなくすべてのインターフェースで待ち受け</string>
+    <string name="settings_engine_autostart_label">端末起動時に開始</string>
+    <string name="settings_engine_autostart_sub">端末の起動後にエンジンを自動開始</string>
+    <string name="settings_engine_start">エンジンを開始</string>
+    <string name="settings_engine_stop">エンジンを停止</string>
+    <string name="search">検索</string>
+    <string name="torrent_list_empty">トレントはありません</string>
+    <string name="torrents">トレント</string>
+    <string name="pause_all">すべて一時停止</string>
+    <string name="resume_all">すべて再開</string>
+    <string name="about">このアプリについて</string>
+    <string name="add_link">リンクを追加</string>
+    <string name="open_file">ファイルを開く</string>
+    <string name="clipboard">クリップボード</string>
+    <string name="delete_torrent_with_downloaded_files">ダウンロード済みファイルごと削除</string>
+    <string name="force_recheck_torrent">強制再チェック</string>
+    <string name="force_reannounce_torrent">強制アナウンス</string>
+    <string name="force_announce_torrent">強制アナウンス</string>
+    <string name="select_all">すべて選択</string>
+    <string name="stats">統計</string>
+    <string name="filters">フィルター</string>
+    <string name="drawer_status">状態</string>
+    <string name="drawer_status_downloading">ダウンロード中…</string>
+    <string name="drawer_status_downloaded">ダウンロード済み</string>
+    <string name="drawer_status_downloading_metadata">メタデータ取得中…</string>
+    <string name="drawer_status_error">エラー</string>
+    <string name="drawer_sorting">並べ替え</string>
+    <string name="drawer_sorting_name">名前</string>
+    <string name="drawer_sorting_date_added">追加日時</string>
+    <string name="drawer_sorting_size">サイズ</string>
+    <string name="drawer_sorting_progress">進捗</string>
+    <string name="drawer_sorting_ETA">残り時間</string>
+    <string name="drawer_sorting_peers">人気度</string>
+    <string name="drawer_date_added">追加日時</string>
+    <string name="drawer_date_added_today">今日</string>
+    <string name="drawer_date_added_yesterday">昨日</string>
+    <string name="drawer_date_added_week">今週</string>
+    <string name="drawer_date_added_month">今月</string>
+    <string name="drawer_date_added_year">今年</string>
+    <string name="tags">タグ</string>
+    <string name="add_tag">タグを追加</string>
+    <string name="no_tags">タグなし</string>
+    <string name="reset_filter">フィルターをリセット</string>
+    <string name="ascending_sort">昇順</string>
+    <string name="descending_sort">降順</string>
+    <string name="details">詳細</string>
+    <string name="torrent_name">名前</string>
+    <string name="save_path">保存先</string>
+    <string name="size">サイズ</string>
+    <string name="download_speed">ダウンロード</string>
+    <string name="upload_speed">アップロード</string>
+    <string name="file_list_empty">ファイルはありません</string>
+    <string name="peer_list_empty">このトレントはまだ誰とも接続していません</string>
+    <string name="tracker_list_empty">トラッカーはありません</string>
+    <string name="change_priority">優先度</string>
+    <string name="share_magnet">マグネットを共有</string>
+    <string name="save_torrent_file">トレントファイルを保存</string>
+    <string name="add_trackers">トラッカーを追加</string>
+    <string name="torrent_speed_limit">速度制限</string>
+    <string name="share_tracker_url">URL を共有…</string>
+    <string name="port">ポート：%1$d</string>
+    <string name="relevance">関連度</string>
+    <string name="connection">接続</string>
+    <string name="client">クライアント</string>
+    <string name="free_space">空き容量 %1$s</string>
+    <string name="sequential_download_exists">順次ダウンロード</string>
+    <string name="download_first_last_pieces">最初と最後のピースを優先</string>
+    <string name="no_categories">カテゴリなし</string>
+    <string name="add_category">カテゴリを追加</string>
+    <string name="session_listen_port">サーバー：%1$s</string>
+    <string name="dht_nodes">エンジン：%1$s</string>
+    <string name="about_message">Android 向け qBittorrent クライアント
+
+UI は LibreTorrent（GPL-3.0）の移植です
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">読み込み中…</string>
+    <string name="edit_torrent_name">トレント名を編集</string>
+    <string name="dir_chooser_title">ダウンロードディレクトリを選択</string>
+    <string name="torrent_size">サイズ</string>
+    <string name="torrent_hash_sum">ハッシュ値</string>
+    <string name="torrent_added_date">追加日時</string>
+    <string name="torrent_create_date">作成日時</string>
+    <string name="torrent_created_in_program">作成プログラム</string>
+    <string name="torrent_comment">コメント</string>
+    <string name="create_torrent_options">オプション</string>
+    <string name="upload_torrent_into">アップロード先…</string>
+    <string name="share_stream_url">ストリーミング URL を共有</string>
+    <string name="error_no_file_manager">利用できるファイルマネージャーがありません</string>
+    <string name="add_link_hint">HTTP・マグネット・トレントリンク</string>
+    <string name="tab_overview">概要</string>
+    <string name="tab_files">ファイル</string>
+    <string name="tab_trackers">トラッカー</string>
+    <string name="tab_peers">ピア</string>
+    <string name="file_priority_skip">スキップ</string>
+    <string name="file_priority_low">低</string>
+    <string name="file_priority_normal">通常</string>
+    <string name="file_priority_high">高</string>
+    <string name="file_priority_max">最高</string>
+    <string name="tracker_disabled">無効</string>
+    <string name="tracker_not_contacted">未接続</string>
+    <string name="tracker_working">動作中</string>
+    <string name="tracker_updating">更新中…</string>
+    <string name="tracker_not_working">動作していません</string>
+    <string name="share">共有</string>
+    <string name="dht_nodes_stat">DHT ノード：%1$s</string>
+    <string name="total_torrents_stat">トレント：%1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">更新を確認</string>
+    <string name="update_available_title">更新があります</string>
+    <string name="update_available_message">バージョン %1$s が利用可能です。</string>
+    <string name="update_download">ダウンロード</string>
+    <string name="update_release_page">リリースページ</string>
+    <string name="update_up_to_date">最新です（%1$s）</string>
+    <string name="update_check_failed">更新の確認に失敗しました：%1$s</string>
+    <string name="error_no_browser">利用できるブラウザがありません</string>
+    <string name="about_version">バージョン：%1$s</string>
+</resources>

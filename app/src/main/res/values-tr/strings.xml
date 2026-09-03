@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">Ayarlar</string>
+    <string name="refresh">Yenile</string>
+    <string name="sort">Sırala</string>
+    <string name="categories">Kategoriler</string>
+    <string name="speed_limits">Hız limitleri</string>
+    <string name="local_engine">Yerel motor</string>
+    <string name="pause">Duraklat</string>
+    <string name="resume">Devam et</string>
+    <string name="force_start">Zorunlu başlat</string>
+    <string name="recheck">Zorunlu yeniden denetim</string>
+    <string name="reannounce">Zorunlu duyuru</string>
+    <string name="sequential_download">Sıralı indirme</string>
+    <string name="super_seeding">Süper gönderim</string>
+    <string name="top_priority">Önceliği artır</string>
+    <string name="bottom_priority">Önceliği azalt</string>
+    <string name="category">Kategori</string>
+    <string name="delete">Sil</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">Yapılandırılmadı — ayarları açın</string>
+    <string name="status_auth_failed">Oturum hatası — kimlik bilgilerini kontrol edin</string>
+    <string name="status_offline">Çevrimdışı</string>
+    <string name="empty_not_configured">Sunucu yapılandırılmadı.\nAyarları açıp qBittorrent adresinizi girin.</string>
+    <string name="empty_auth_error">Oturum açılamadı.\nAyarlar içinde kullanıcı adını ve parolayı kontrol edin.</string>
+    <string name="empty_offline">Sunucuya ulaşılamıyor.\nAdresi, bağlantı noktasını (varsayılan 8080) ve ağı kontrol edin.</string>
+    <string name="empty_no_torrents">Torrent yok</string>
+    <string name="selected_count">%1$d seçildi</string>
+
+    <!-- filters -->
+    <string name="filter_all">Tümü</string>
+    <string name="filter_downloading">İndiriliyor</string>
+    <string name="filter_seeding">Gönderiliyor</string>
+    <string name="filter_completed">Tamamlandı</string>
+    <string name="filter_paused">Duraklatıldı</string>
+    <string name="filter_active">Etkin</string>
+    <string name="filter_inactive">Etkin değil</string>
+    <string name="filter_errored">Hatalı</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">Sıralama ölçütü</string>
+    <string name="sort_name">Ad</string>
+    <string name="sort_size">Boyut</string>
+    <string name="sort_progress">İlerleme</string>
+    <string name="sort_dlspeed">İndirme hızı</string>
+    <string name="sort_upspeed">Gönderme hızı</string>
+    <string name="sort_eta">Kalan süre</string>
+    <string name="sort_ratio">Oran</string>
+    <string name="sort_added_on">Eklenme tarihi</string>
+    <string name="sort_reverse">Ters sırala</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">Kategori</string>
+    <string name="category_all">Tümü</string>
+    <string name="category_none">Yok</string>
+    <string name="assign_category_title">Kategori ata</string>
+    <string name="category_hint">Kategori adı</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">Torrent(leri) sil</string>
+    <string name="delete_files_label">Diskteki dosyaları da sil</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">Hız limitleri (KiB/s, −1 = sınırsız)</string>
+    <string name="download_limit_hint">İndirme limiti</string>
+    <string name="upload_limit_hint">Gönderme limiti</string>
+    <string name="speed_limits_saved">Hız limitleri uygulandı</string>
+    <string name="toggle_alt_limits">Alternatif limitleri aç/kapat</string>
+
+    <!-- engine -->
+    <string name="engine_starting">Yerel motor başlatılıyor…</string>
+    <string name="engine_channel_name">Yerel motor</string>
+    <string name="engine_notification_title">qBittorrent motoru</string>
+    <string name="engine_notification_text">Yerel qBittorrent-nox motoru çalışıyor</string>
+    <string name="engine_stop">Durdur</string>
+    <string name="engine_status_stopped">Motor: durduruldu</string>
+    <string name="engine_status_running">Motor: çalışıyor</string>
+    <string name="engine_status_starting">Motor: başlatılıyor…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">Hata</string>
+    <string name="state_missing_files">Dosyalar eksik</string>
+    <string name="state_uploading">Gönderiliyor</string>
+    <string name="state_paused_up">Tamamlandı</string>
+    <string name="state_queued_up">Kuyrukta (gönderim)</string>
+    <string name="state_stalled_up">Gönderimde</string>
+    <string name="state_checking_up">Denetleniyor</string>
+    <string name="state_forced_up">Zorunlu gönderim</string>
+    <string name="state_allocating">Alan ayrılıyor</string>
+    <string name="state_downloading">İndiriliyor</string>
+    <string name="state_meta_dl">Üst veri indiriliyor</string>
+    <string name="state_paused_dl">Duraklatıldı</string>
+    <string name="state_queued_dl">Kuyrukta (indirme)</string>
+    <string name="state_stalled_dl">Bekliyor</string>
+    <string name="state_checking_dl">Denetleniyor</string>
+    <string name="state_forced_dl">Zorunlu indirme</string>
+    <string name="state_checking_resume_data">Sürdürme verisi denetleniyor</string>
+    <string name="state_unknown">Bilinmiyor</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">kalan</string>
+    <string name="seeds">S</string>
+    <string name="peers">L</string>
+    <string name="ratio">O</string>
+    <string name="pause_torrent">Torrenti duraklat</string>
+    <string name="resume_torrent">Torrenti sürdür</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">Devre dışı</string>
+    <string name="tracker_status_not_contacted">Henüz bağlanılmadı</string>
+    <string name="tracker_status_working">Çalışıyor</string>
+    <string name="tracker_status_updating">Güncelleniyor</string>
+    <string name="tracker_status_not_working">Çalışmıyor</string>
+    <string name="tracker_status_unreachable">Erişilemiyor</string>
+    <string name="tracker_status_banned">Yasaklandı</string>
+    <string name="tracker_stats">S: %1$d  L: %2$d</string>
+    <string name="add_tracker_title">İzleyici ekle</string>
+    <string name="add_tracker_hint">İzleyici URL’si</string>
+    <string name="remove_tracker_title">İzleyici kaldırılsın mı?</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">Torrent ekle</string>
+    <string name="add_urls_label">Magnet / URL</string>
+    <string name="add_urls_hint">magnet:?xt=… veya http(s)://…</string>
+    <string name="add_pick_file">.torrent dosyası seç</string>
+    <string name="add_save_path_label">Kayıt yolu</string>
+    <string name="add_save_path_hint">Sunucu tarafı yol (isteğe bağlı)</string>
+    <string name="add_category_label">Kategori</string>
+    <string name="add_category_hint">Kategori (isteğe bağlı)</string>
+    <string name="add_paused">Duraklatılmış ekle</string>
+    <string name="add_sequential">Sıralı indirme</string>
+    <string name="add_button">Torrent ekle</string>
+    <string name="add_success">Torrent eklendi</string>
+    <string name="add_failed">Torrent eklenemedi</string>
+    <string name="add_no_input">Bir magnet/URL bağlantısı girin ya da .torrent dosyası seçin</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">Genel bakış</string>
+    <string name="detail_tab_files">Dosyalar</string>
+    <string name="detail_tab_trackers">İzleyiciler</string>
+    <string name="detail_tab_peers">Eşler</string>
+    <string name="detail_files_empty">Dosya yok</string>
+    <string name="detail_trackers_empty">İzleyici yok</string>
+    <string name="detail_peers_empty">Bağlı eş yok</string>
+    <string name="priority_title">Dosya önceliği</string>
+    <string name="priority_skip">Atla</string>
+    <string name="priority_normal">Normal</string>
+    <string name="priority_mixed">Karışık</string>
+    <string name="priority_high">Yüksek</string>
+    <string name="priority_maximum">En yüksek</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">Toplam boyut</string>
+    <string name="overview_ratio">Oran</string>
+    <string name="overview_save_path">Kayıt yolu</string>
+    <string name="overview_pieces">Parçalar</string>
+    <string name="overview_connected">Bağlı</string>
+    <string name="overview_added_on">Eklenme</string>
+    <string name="overview_completed_on">Tamamlanma</string>
+    <string name="overview_seeding_time">Gönderim süresi</string>
+    <string name="overview_time_active">Etkin süre</string>
+    <string name="overview_downloaded">İndirilen</string>
+    <string name="overview_uploaded">Gönderilen</string>
+    <string name="overview_wasted">Boşa giden</string>
+    <string name="overview_dl_limit">İndirme limiti</string>
+    <string name="overview_up_limit">Gönderme limiti</string>
+    <string name="overview_tracker">Ana izleyici</string>
+    <string name="overview_comment">Yorum</string>
+    <string name="overview_private">Özel</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">Sunucu</string>
+    <string name="settings_host_label">Ana makine</string>
+    <string name="settings_host_hint">örn. 192.168.1.10</string>
+    <string name="settings_port_label">Bağlantı noktası</string>
+    <string name="settings_username_label">Kullanıcı adı</string>
+    <string name="settings_password_label">Parola</string>
+    <string name="settings_base_path_label">Temel yol</string>
+    <string name="settings_base_path_hint">Ters vekil alt yolu (isteğe bağlı)</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">https:// şemasını kullan</string>
+    <string name="settings_trust_all_label">Tüm sertifikalara güven</string>
+    <string name="settings_trust_all_sub">Kendi imzalı sertifikaları kabul et</string>
+    <string name="settings_test_connection">Bağlantıyı sına</string>
+    <string name="settings_save">Kaydet</string>
+    <string name="settings_saved">Kaydedildi</string>
+    <string name="settings_connection_ok">Bağlandı — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">Bağlantı başarısız: %1$s</string>
+    <string name="settings_engine_section">Yerel motor (qBittorrent Enhanced)</string>
+    <string name="settings_engine_port_label">Motor WebUI bağlantı noktası</string>
+    <string name="settings_engine_save_path_label">Motor kayıt yolu</string>
+    <string name="settings_engine_save_path_hint">Sunucu tarafı indirme klasörü</string>
+    <string name="settings_engine_lan_label">LAN erişimi</string>
+    <string name="settings_engine_lan_sub">Yalnızca geri döngü yerine tüm arayüzlerde dinle</string>
+    <string name="settings_engine_autostart_label">Açılışta başlat</string>
+    <string name="settings_engine_autostart_sub">Cihaz açıldıktan sonra motoru otomatik başlat</string>
+    <string name="settings_engine_start">Motoru başlat</string>
+    <string name="settings_engine_stop">Motoru durdur</string>
+    <string name="search">Ara</string>
+    <string name="torrent_list_empty">Torrent yok</string>
+    <string name="torrents">Torrentler</string>
+    <string name="pause_all">Tümünü duraklat</string>
+    <string name="resume_all">Tümünü sürdür</string>
+    <string name="about">Hakkında</string>
+    <string name="add_link">Bağlantı ekle</string>
+    <string name="open_file">Dosya aç</string>
+    <string name="clipboard">Pano</string>
+    <string name="delete_torrent_with_downloaded_files">İndirilen dosyalarla birlikte sil</string>
+    <string name="force_recheck_torrent">Zorunlu yeniden denetim</string>
+    <string name="force_reannounce_torrent">Zorunlu duyuru</string>
+    <string name="force_announce_torrent">Zorunlu duyuru</string>
+    <string name="select_all">Tümünü seç</string>
+    <string name="stats">İstatistikler</string>
+    <string name="filters">Filtreler</string>
+    <string name="drawer_status">Durum</string>
+    <string name="drawer_status_downloading">İndiriliyor…</string>
+    <string name="drawer_status_downloaded">İndirildi</string>
+    <string name="drawer_status_downloading_metadata">Üst veri indiriliyor…</string>
+    <string name="drawer_status_error">Hata</string>
+    <string name="drawer_sorting">Sıralama</string>
+    <string name="drawer_sorting_name">Ad</string>
+    <string name="drawer_sorting_date_added">Eklenme tarihi</string>
+    <string name="drawer_sorting_size">Boyut</string>
+    <string name="drawer_sorting_progress">İlerleme</string>
+    <string name="drawer_sorting_ETA">Kalan süre</string>
+    <string name="drawer_sorting_peers">Popülerlik</string>
+    <string name="drawer_date_added">Eklenme tarihi</string>
+    <string name="drawer_date_added_today">Bugün</string>
+    <string name="drawer_date_added_yesterday">Dün</string>
+    <string name="drawer_date_added_week">Hafta</string>
+    <string name="drawer_date_added_month">Ay</string>
+    <string name="drawer_date_added_year">Yıl</string>
+    <string name="tags">Etiketler</string>
+    <string name="add_tag">Etiket ekle</string>
+    <string name="no_tags">Etiket yok</string>
+    <string name="reset_filter">Filtreyi sıfırla</string>
+    <string name="ascending_sort">Artan sıralama</string>
+    <string name="descending_sort">Azalan sıralama</string>
+    <string name="details">Ayrıntılar</string>
+    <string name="torrent_name">Ad</string>
+    <string name="save_path">Kayıt yolu</string>
+    <string name="size">Boyut</string>
+    <string name="download_speed">İndirme</string>
+    <string name="upload_speed">Gönderme</string>
+    <string name="file_list_empty">Dosya yok</string>
+    <string name="peer_list_empty">Bu torrent henüz hiçbir eşe bağlanmadı</string>
+    <string name="tracker_list_empty">İzleyici yok</string>
+    <string name="change_priority">Öncelik</string>
+    <string name="share_magnet">Magnet’i paylaş</string>
+    <string name="save_torrent_file">Torrent dosyasını kaydet</string>
+    <string name="add_trackers">İzleyici ekle</string>
+    <string name="torrent_speed_limit">Hız limiti</string>
+    <string name="share_tracker_url">URL’yi paylaş…</string>
+    <string name="port">Bağlantı noktası: %1$d</string>
+    <string name="relevance">İlgililik</string>
+    <string name="connection">Bağlantı</string>
+    <string name="client">İstemci</string>
+    <string name="free_space">%1$s boş</string>
+    <string name="sequential_download_exists">Sıralı indirme</string>
+    <string name="download_first_last_pieces">Önce ilk ve son parçaları indir</string>
+    <string name="no_categories">Kategori yok</string>
+    <string name="add_category">Kategori ekle</string>
+    <string name="session_listen_port">Sunucu: %1$s</string>
+    <string name="dht_nodes">Motor: %1$s</string>
+    <string name="about_message">Android için qBittorrent istemcisi
+
+Arayüz LibreTorrent’in (GPL-3.0) bir uyarlamasıdır
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">Yükleniyor…</string>
+    <string name="edit_torrent_name">Torrent adını düzenle</string>
+    <string name="dir_chooser_title">İndirme dizinini seçin</string>
+    <string name="torrent_size">Boyut</string>
+    <string name="torrent_hash_sum">Özet değeri</string>
+    <string name="torrent_added_date">Eklenme tarihi</string>
+    <string name="torrent_create_date">Oluşturma tarihi</string>
+    <string name="torrent_created_in_program">Oluşturan program</string>
+    <string name="torrent_comment">Yorum</string>
+    <string name="create_torrent_options">Seçenekler</string>
+    <string name="upload_torrent_into">Şuraya yükle…</string>
+    <string name="share_stream_url">Akış URL’sini paylaş</string>
+    <string name="error_no_file_manager">Kullanılabilir dosya yöneticisi yok</string>
+    <string name="add_link_hint">HTTP, magnet veya torrent bağlantısı</string>
+    <string name="tab_overview">Genel bakış</string>
+    <string name="tab_files">Dosyalar</string>
+    <string name="tab_trackers">İzleyiciler</string>
+    <string name="tab_peers">Eşler</string>
+    <string name="file_priority_skip">Atla</string>
+    <string name="file_priority_low">Düşük</string>
+    <string name="file_priority_normal">Normal</string>
+    <string name="file_priority_high">Yüksek</string>
+    <string name="file_priority_max">En yüksek</string>
+    <string name="tracker_disabled">Devre dışı</string>
+    <string name="tracker_not_contacted">Henüz bağlanılmadı</string>
+    <string name="tracker_working">Çalışıyor</string>
+    <string name="tracker_updating">Güncelleniyor…</string>
+    <string name="tracker_not_working">Çalışmıyor</string>
+    <string name="share">Paylaş</string>
+    <string name="dht_nodes_stat">DHT düğümleri: %1$s</string>
+    <string name="total_torrents_stat">Torrentler: %1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">Güncellemeleri denetle</string>
+    <string name="update_available_title">Güncelleme var</string>
+    <string name="update_available_message">%1$s sürümü kullanılabilir.</string>
+    <string name="update_download">İndir</string>
+    <string name="update_release_page">Sürüm sayfası</string>
+    <string name="update_up_to_date">Güncelsiniz (%1$s)</string>
+    <string name="update_check_failed">Güncelleme denetimi başarısız: %1$s</string>
+    <string name="error_no_browser">Kullanılabilir tarayıcı yok</string>
+    <string name="about_version">Sürüm: %1$s</string>
+</resources>

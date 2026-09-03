@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NOTE: app_name comes from the product flavors (standard / enhanced) -->
+
+    <!-- common actions -->
+    <string name="settings">설정</string>
+    <string name="refresh">새로 고침</string>
+    <string name="sort">정렬</string>
+    <string name="categories">카테고리</string>
+    <string name="speed_limits">속도 제한</string>
+    <string name="local_engine">로컬 엔진</string>
+    <string name="pause">일시정지</string>
+    <string name="resume">재개</string>
+    <string name="force_start">강제 시작</string>
+    <string name="recheck">강제 재검사</string>
+    <string name="reannounce">강제 어나운스</string>
+    <string name="sequential_download">순차 다운로드</string>
+    <string name="super_seeding">슈퍼 시딩</string>
+    <string name="top_priority">우선순위 높이기</string>
+    <string name="bottom_priority">우선순위 낮추기</string>
+    <string name="category">카테고리</string>
+    <string name="delete">삭제</string>
+
+    <!-- status line / empty states -->
+    <string name="status_not_configured">설정되지 않음 — 설정을 여세요</string>
+    <string name="status_auth_failed">로그인 실패 — 자격 증명을 확인하세요</string>
+    <string name="status_offline">오프라인</string>
+    <string name="empty_not_configured">서버가 설정되지 않았습니다.\n설정을 열고 qBittorrent 주소를 입력하세요.</string>
+    <string name="empty_auth_error">로그인에 실패했습니다.\n설정에서 사용자 이름과 비밀번호를 확인하세요.</string>
+    <string name="empty_offline">서버에 연결할 수 없습니다.\n주소, 포트(기본 8080), 네트워크를 확인하세요.</string>
+    <string name="empty_no_torrents">토렌트 없음</string>
+    <string name="selected_count">%1$d개 선택됨</string>
+
+    <!-- filters -->
+    <string name="filter_all">전체</string>
+    <string name="filter_downloading">다운로드 중</string>
+    <string name="filter_seeding">시딩 중</string>
+    <string name="filter_completed">완료됨</string>
+    <string name="filter_paused">일시정지됨</string>
+    <string name="filter_active">활성</string>
+    <string name="filter_inactive">비활성</string>
+    <string name="filter_errored">오류</string>
+
+    <!-- sorting -->
+    <string name="sort_dialog_title">정렬 기준</string>
+    <string name="sort_name">이름</string>
+    <string name="sort_size">크기</string>
+    <string name="sort_progress">진행률</string>
+    <string name="sort_dlspeed">다운로드 속도</string>
+    <string name="sort_upspeed">업로드 속도</string>
+    <string name="sort_eta">남은 시간</string>
+    <string name="sort_ratio">공유 비율</string>
+    <string name="sort_added_on">추가한 날짜</string>
+    <string name="sort_reverse">역순</string>
+
+    <!-- categories -->
+    <string name="category_dialog_title">카테고리</string>
+    <string name="category_all">전체</string>
+    <string name="category_none">없음</string>
+    <string name="assign_category_title">카테고리 지정</string>
+    <string name="category_hint">카테고리 이름</string>
+
+    <!-- delete -->
+    <string name="delete_dialog_title">토렌트 삭제</string>
+    <string name="delete_files_label">디스크의 파일도 함께 삭제</string>
+
+    <!-- speed limits -->
+    <string name="speed_limits_title">속도 제한 (KiB/s, −1 = 무제한)</string>
+    <string name="download_limit_hint">다운로드 제한</string>
+    <string name="upload_limit_hint">업로드 제한</string>
+    <string name="speed_limits_saved">속도 제한이 적용됨</string>
+    <string name="toggle_alt_limits">대체 제한 전환</string>
+
+    <!-- engine -->
+    <string name="engine_starting">로컬 엔진 시작 중…</string>
+    <string name="engine_channel_name">로컬 엔진</string>
+    <string name="engine_notification_title">qBittorrent 엔진</string>
+    <string name="engine_notification_text">로컬 qBittorrent-nox 엔진이 실행 중입니다</string>
+    <string name="engine_stop">중지</string>
+    <string name="engine_status_stopped">엔진: 중지됨</string>
+    <string name="engine_status_running">엔진: 실행 중</string>
+    <string name="engine_status_starting">엔진: 시작 중…</string>
+
+    <!-- torrent states (upstream state enum) -->
+    <string name="state_error">오류</string>
+    <string name="state_missing_files">파일 없음</string>
+    <string name="state_uploading">업로드 중</string>
+    <string name="state_paused_up">완료됨</string>
+    <string name="state_queued_up">대기 중(업로드)</string>
+    <string name="state_stalled_up">시딩 중</string>
+    <string name="state_checking_up">검사 중</string>
+    <string name="state_forced_up">강제 업로드 중</string>
+    <string name="state_allocating">공간 할당 중</string>
+    <string name="state_downloading">다운로드 중</string>
+    <string name="state_meta_dl">메타데이터 받는 중</string>
+    <string name="state_paused_dl">일시정지됨</string>
+    <string name="state_queued_dl">대기 중(다운로드)</string>
+    <string name="state_stalled_dl">정체됨</string>
+    <string name="state_checking_dl">검사 중</string>
+    <string name="state_forced_dl">강제 다운로드 중</string>
+    <string name="state_checking_resume_data">재개 데이터 검사 중</string>
+    <string name="state_unknown">알 수 없음</string>
+
+    <!-- torrent list item -->
+    <string name="eta_remaining">남음</string>
+    <string name="seeds">S</string>
+    <string name="peers">L</string>
+    <string name="ratio">비</string>
+    <string name="pause_torrent">토렌트 일시정지</string>
+    <string name="resume_torrent">토렌트 재개</string>
+
+    <!-- trackers -->
+    <string name="tracker_status_disabled">비활성화됨</string>
+    <string name="tracker_status_not_contacted">아직 연결 안 됨</string>
+    <string name="tracker_status_working">정상</string>
+    <string name="tracker_status_updating">업데이트 중</string>
+    <string name="tracker_status_not_working">작동 안 함</string>
+    <string name="tracker_status_unreachable">접근 불가</string>
+    <string name="tracker_status_banned">차단됨</string>
+    <string name="tracker_stats">S: %1$d  L: %2$d</string>
+    <string name="add_tracker_title">트래커 추가</string>
+    <string name="add_tracker_hint">트래커 URL</string>
+    <string name="remove_tracker_title">트래커를 제거할까요?</string>
+
+    <!-- add torrent -->
+    <string name="add_torrent_title">토렌트 추가</string>
+    <string name="add_urls_label">마그넷 / URL</string>
+    <string name="add_urls_hint">magnet:?xt=… 또는 http(s)://…</string>
+    <string name="add_pick_file">.torrent 파일 선택</string>
+    <string name="add_save_path_label">저장 경로</string>
+    <string name="add_save_path_hint">서버 쪽 경로(선택)</string>
+    <string name="add_category_label">카테고리</string>
+    <string name="add_category_hint">카테고리(선택)</string>
+    <string name="add_paused">일시정지한 상태로 추가</string>
+    <string name="add_sequential">순차 다운로드</string>
+    <string name="add_button">토렌트 추가</string>
+    <string name="add_success">토렌트가 추가됨</string>
+    <string name="add_failed">토렌트를 추가하지 못했습니다</string>
+    <string name="add_no_input">마그넷/URL을 입력하거나 .torrent 파일을 선택하세요</string>
+
+    <!-- detail -->
+    <string name="detail_tab_overview">개요</string>
+    <string name="detail_tab_files">파일</string>
+    <string name="detail_tab_trackers">트래커</string>
+    <string name="detail_tab_peers">피어</string>
+    <string name="detail_files_empty">파일 없음</string>
+    <string name="detail_trackers_empty">트래커 없음</string>
+    <string name="detail_peers_empty">연결된 피어 없음</string>
+    <string name="priority_title">파일 우선순위</string>
+    <string name="priority_skip">건너뛰기</string>
+    <string name="priority_normal">보통</string>
+    <string name="priority_mixed">혼합</string>
+    <string name="priority_high">높음</string>
+    <string name="priority_maximum">최대</string>
+
+    <!-- overview rows -->
+    <string name="overview_total_size">전체 크기</string>
+    <string name="overview_ratio">공유 비율</string>
+    <string name="overview_save_path">저장 경로</string>
+    <string name="overview_pieces">피스</string>
+    <string name="overview_connected">연결됨</string>
+    <string name="overview_added_on">추가한 날짜</string>
+    <string name="overview_completed_on">완료한 날짜</string>
+    <string name="overview_seeding_time">시딩 시간</string>
+    <string name="overview_time_active">활동 시간</string>
+    <string name="overview_downloaded">다운로드함</string>
+    <string name="overview_uploaded">업로드함</string>
+    <string name="overview_wasted">버려짐</string>
+    <string name="overview_dl_limit">다운로드 제한</string>
+    <string name="overview_up_limit">업로드 제한</string>
+    <string name="overview_tracker">메인 트래커</string>
+    <string name="overview_comment">코멘트</string>
+    <string name="overview_private">비공개</string>
+    <string name="overview_infohash_v1">Info hash v1</string>
+    <string name="overview_infohash_v2">Info hash v2</string>
+
+    <!-- settings -->
+    <string name="settings_server_section">서버</string>
+    <string name="settings_host_label">호스트</string>
+    <string name="settings_host_hint">예: 192.168.1.10</string>
+    <string name="settings_port_label">포트</string>
+    <string name="settings_username_label">사용자 이름</string>
+    <string name="settings_password_label">비밀번호</string>
+    <string name="settings_base_path_label">기본 경로</string>
+    <string name="settings_base_path_hint">리버스 프록시 하위 경로(선택)</string>
+    <string name="settings_https_label">HTTPS</string>
+    <string name="settings_https_sub">https:// 스킴 사용</string>
+    <string name="settings_trust_all_label">모든 인증서 신뢰</string>
+    <string name="settings_trust_all_sub">자체 서명 인증서 허용</string>
+    <string name="settings_test_connection">연결 테스트</string>
+    <string name="settings_save">저장</string>
+    <string name="settings_saved">저장됨</string>
+    <string name="settings_connection_ok">연결됨 — qBittorrent %1$s</string>
+    <string name="settings_connection_failed">연결 실패: %1$s</string>
+    <string name="settings_engine_section">로컬 엔진(qBittorrent Enhanced)</string>
+    <string name="settings_engine_port_label">엔진 WebUI 포트</string>
+    <string name="settings_engine_save_path_label">엔진 저장 경로</string>
+    <string name="settings_engine_save_path_hint">서버 쪽 다운로드 폴더</string>
+    <string name="settings_engine_lan_label">LAN 접근</string>
+    <string name="settings_engine_lan_sub">루프백뿐 아니라 모든 인터페이스에서 수신</string>
+    <string name="settings_engine_autostart_label">부팅 시 시작</string>
+    <string name="settings_engine_autostart_sub">기기 부팅 후 엔진 자동 시작</string>
+    <string name="settings_engine_start">엔진 시작</string>
+    <string name="settings_engine_stop">엔진 중지</string>
+    <string name="search">검색</string>
+    <string name="torrent_list_empty">토렌트 없음</string>
+    <string name="torrents">토렌트</string>
+    <string name="pause_all">모두 일시정지</string>
+    <string name="resume_all">모두 재개</string>
+    <string name="about">정보</string>
+    <string name="add_link">링크 추가</string>
+    <string name="open_file">파일 열기</string>
+    <string name="clipboard">클립보드</string>
+    <string name="delete_torrent_with_downloaded_files">다운로드한 파일과 함께 삭제</string>
+    <string name="force_recheck_torrent">강제 재검사</string>
+    <string name="force_reannounce_torrent">강제 어나운스</string>
+    <string name="force_announce_torrent">강제 어나운스</string>
+    <string name="select_all">모두 선택</string>
+    <string name="stats">통계</string>
+    <string name="filters">필터</string>
+    <string name="drawer_status">상태</string>
+    <string name="drawer_status_downloading">다운로드 중…</string>
+    <string name="drawer_status_downloaded">다운로드됨</string>
+    <string name="drawer_status_downloading_metadata">메타데이터 받는 중…</string>
+    <string name="drawer_status_error">오류</string>
+    <string name="drawer_sorting">정렬</string>
+    <string name="drawer_sorting_name">이름</string>
+    <string name="drawer_sorting_date_added">추가한 날짜</string>
+    <string name="drawer_sorting_size">크기</string>
+    <string name="drawer_sorting_progress">진행률</string>
+    <string name="drawer_sorting_ETA">남은 시간</string>
+    <string name="drawer_sorting_peers">인기도</string>
+    <string name="drawer_date_added">추가한 날짜</string>
+    <string name="drawer_date_added_today">오늘</string>
+    <string name="drawer_date_added_yesterday">어제</string>
+    <string name="drawer_date_added_week">이번 주</string>
+    <string name="drawer_date_added_month">이번 달</string>
+    <string name="drawer_date_added_year">올해</string>
+    <string name="tags">태그</string>
+    <string name="add_tag">태그 추가</string>
+    <string name="no_tags">태그 없음</string>
+    <string name="reset_filter">필터 초기화</string>
+    <string name="ascending_sort">오름차순</string>
+    <string name="descending_sort">내림차순</string>
+    <string name="details">세부 정보</string>
+    <string name="torrent_name">이름</string>
+    <string name="save_path">저장 경로</string>
+    <string name="size">크기</string>
+    <string name="download_speed">다운로드</string>
+    <string name="upload_speed">업로드</string>
+    <string name="file_list_empty">파일 없음</string>
+    <string name="peer_list_empty">이 토렌트는 아직 아무와도 연결되지 않았습니다</string>
+    <string name="tracker_list_empty">트래커 없음</string>
+    <string name="change_priority">우선순위</string>
+    <string name="share_magnet">마그넷 공유</string>
+    <string name="save_torrent_file">토렌트 파일 저장</string>
+    <string name="add_trackers">트래커 추가</string>
+    <string name="torrent_speed_limit">속도 제한</string>
+    <string name="share_tracker_url">URL 공유…</string>
+    <string name="port">포트: %1$d</string>
+    <string name="relevance">관련성</string>
+    <string name="connection">연결</string>
+    <string name="client">클라이언트</string>
+    <string name="free_space">여유 공간 %1$s</string>
+    <string name="sequential_download_exists">순차 다운로드</string>
+    <string name="download_first_last_pieces">첫 번째와 마지막 피스 먼저 받기</string>
+    <string name="no_categories">카테고리 없음</string>
+    <string name="add_category">카테고리 추가</string>
+    <string name="session_listen_port">서버: %1$s</string>
+    <string name="dht_nodes">엔진: %1$s</string>
+    <string name="about_message">Android용 qBittorrent 클라이언트
+
+UI는 LibreTorrent(GPL-3.0)의 포트입니다
+https://github.com/proninyaroslav/libretorrent</string>
+    <string name="load_message">불러오는 중…</string>
+    <string name="edit_torrent_name">토렌트 이름 편집</string>
+    <string name="dir_chooser_title">다운로드 디렉터리 선택</string>
+    <string name="torrent_size">크기</string>
+    <string name="torrent_hash_sum">해시 값</string>
+    <string name="torrent_added_date">추가한 날짜</string>
+    <string name="torrent_create_date">생성한 날짜</string>
+    <string name="torrent_created_in_program">생성한 프로그램</string>
+    <string name="torrent_comment">코멘트</string>
+    <string name="create_torrent_options">옵션</string>
+    <string name="upload_torrent_into">업로드 위치…</string>
+    <string name="share_stream_url">스트리밍 URL 공유</string>
+    <string name="error_no_file_manager">사용 가능한 파일 관리자가 없습니다</string>
+    <string name="add_link_hint">HTTP, 마그넷 또는 토렌트 링크</string>
+    <string name="tab_overview">개요</string>
+    <string name="tab_files">파일</string>
+    <string name="tab_trackers">트래커</string>
+    <string name="tab_peers">피어</string>
+    <string name="file_priority_skip">건너뛰기</string>
+    <string name="file_priority_low">낮음</string>
+    <string name="file_priority_normal">보통</string>
+    <string name="file_priority_high">높음</string>
+    <string name="file_priority_max">최대</string>
+    <string name="tracker_disabled">비활성화됨</string>
+    <string name="tracker_not_contacted">아직 연결 안 됨</string>
+    <string name="tracker_working">정상</string>
+    <string name="tracker_updating">업데이트 중…</string>
+    <string name="tracker_not_working">작동 안 함</string>
+    <string name="share">공유</string>
+    <string name="dht_nodes_stat">DHT 노드: %1$s</string>
+    <string name="total_torrents_stat">토렌트: %1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">업데이트 확인</string>
+    <string name="update_available_title">업데이트 있음</string>
+    <string name="update_available_message">버전 %1$s을(를) 사용할 수 있습니다.</string>
+    <string name="update_download">다운로드</string>
+    <string name="update_release_page">릴리스 페이지</string>
+    <string name="update_up_to_date">최신 버전입니다(%1$s)</string>
+    <string name="update_check_failed">업데이트 확인 실패: %1$s</string>
+    <string name="error_no_browser">사용 가능한 브라우저가 없습니다</string>
+    <string name="about_version">버전: %1$s</string>
+</resources>
