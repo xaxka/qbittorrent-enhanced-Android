@@ -1,0 +1,156 @@
+package io.github.xixka.qbittorrent.util
+
+import android.os.Build
+import io.github.xixka.qbittorrent.BuildConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import java.util.concurrent.TimeUnit
+
+/**
+ * Checks for app updates via the GitHub Releases published by CI.
+ *
+ * The Android CI workflow builds every push with
+ * versionName = YY.MM.DD / versionCode = YYMMDDHHt and publishes the APKs to
+ * the rolling `dev` release, recording the build info in the release body
+ * ("Version: 25.09.04 (versionCode 250904115)") and in the asset names
+ * ("qBittorrent-Enhanced-25.09.04-arm64-v8a.apk"). This checker downloads the
+ * release list, picks the newest published build and compares it against
+ * BuildConfig.VERSION_CODE (falling back to versionName comparison).
+ */
+object UpdateChecker {
+
+    private const val REPO_API = "https://api.github.com/repos/xixka/qbittorrentAndroid"
+
+    private val http: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
+    }
+
+    data class Update(
+        /** versionName of the newest build, e.g. "25.09.04". */
+        val version: String,
+        /** versionCode of the newest build (YYMMDDHHt). */
+        val versionCode: Long,
+        /** Human release page URL. */
+        val htmlUrl: String,
+        /** Release notes (markdown body, may be empty). */
+        val notes: String,
+        /** Direct APK download URL matching the current edition + device ABI. */
+        val apkUrl: String?,
+        /** Size of the matched APK in bytes (0 when unknown). */
+        val apkSize: Long,
+    )
+
+    /**
+     * Fetches the newest published release and returns an [Update] when it is
+     * newer than the running build, `null` when up-to-date.
+     * @throws java.io.IOException on network / API failures
+     */
+    suspend fun check(): Update? = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url("$REPO_API/releases?per_page=20")
+            .header("Accept", "application/vnd.github+json")
+            .build()
+        http.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw java.io.IOException("GitHub API HTTP ${response.code}")
+            }
+            val body = response.body?.string() ?: throw java.io.IOException("Empty response")
+            val releases = org.json.JSONArray(body)
+            var best: Update? = null
+            for (i in 0 until releases.length()) {
+                val rel = releases.optJSONObject(i) ?: continue
+                if (rel.optBoolean("draft")) continue
+                val candidate = parseRelease(rel) ?: continue
+                if (best == null || candidate.versionCode > best.versionCode) best = candidate
+            }
+            // only report when strictly newer than the running build:
+            // compare the date-style versionName (YY.MM.DD); BuildConfig names
+            // carry flavor suffixes ("-enhanced", "-debug"), so extract the
+            // numeric part first. Fall back to versionCode comparison.
+            if (best != null && isNewer(best)) best else null
+        }
+    }
+
+    private fun isNewer(candidate: Update): Boolean {
+        val remote = parseVersion(candidate.version)
+        val local = parseVersion(BuildConfig.VERSION_NAME)
+        if (remote != null && local != null) return remote > local
+        return candidate.versionCode > BuildConfig.VERSION_CODE.toLong()
+    }
+
+    /** "25.09.04" (or "25.09.04-enhanced") -> 250904, component-packed. */
+    private fun parseVersion(version: String): Long? {
+        val m = Regex("(\\d+)\\.(\\d+)\\.(\\d+)").find(version) ?: return null
+        val (a, b, c) = m.destructured
+        return (a.toLong() * 100 + b.toLong()) * 100 + c.toLong()
+    }
+
+    private fun parseRelease(rel: JSONObject): Update? {
+        val versionCodeFromBody = Regex(
+            "versionCode\\s+(\\d+)", RegexOption.IGNORE_CASE
+        ).find(rel.optString("body"))?.groupValues?.get(1)?.toLongOrNull()
+
+        val assets = rel.optJSONArray("assets") ?: org.json.JSONArray()
+        var versionFromBody: String? = Regex(
+            "Version:\\s*([0-9]+\\.[0-9]+\\.[0-9]+)", RegexOption.IGNORE_CASE
+        ).find(rel.optString("body"))?.groupValues?.get(1)
+
+        // Fallback: newest version embedded in the asset names
+        if (versionFromBody == null) {
+            for (i in 0 until assets.length()) {
+                val m = Regex("([0-9]+\\.[0-9]+\\.[0-9]+)").find(assets.optJSONObject(i)?.optString("name") ?: "")
+                if (m != null) versionFromBody = m.groupValues[1]
+            }
+        }
+        val version = versionFromBody ?: return null
+        val versionCode = versionCodeFromBody ?: parseVersion(version) ?: return null
+
+        val apk = pickApk(assets)
+        return Update(
+            version = version,
+            versionCode = versionCode,
+            htmlUrl = rel.optString("html_url"),
+            notes = rel.optString("body").trim(),
+            apkUrl = apk?.first,
+            apkSize = apk?.second ?: 0L,
+        )
+    }
+
+    /** Finds the APK asset matching the running edition and the primary device ABI. */
+    private fun pickApk(assets: org.json.JSONArray): Pair<String, Long>? {
+        val prefix = if (BuildConfig.IS_ENHANCED) "qBittorrent-Enhanced-" else "qBittorrent-Remote-"
+        var universal: Pair<String, Long>? = null
+        var primary: Pair<String, Long>? = null
+        val primaryAbi = Build.SUPPORTED_ABIS.firstOrNull()
+        for (i in 0 until assets.length()) {
+            val a = assets.optJSONObject(i) ?: continue
+            val name = a.optString("name")
+            if (!name.startsWith(prefix) || !name.endsWith(".apk")) continue
+            val pair = a.optString("browser_download_url") to a.optLong("size")
+            val abiTag = Regex("-(arm64-v8a|armeabi-v7a|x86_64|x86)\\.apk$").find(name)?.groupValues?.get(1)
+            when {
+                abiTag == null -> universal = pair
+                abiTag == primaryAbi -> primary = pair
+                // 32-bit x86 devices can also run under x86_64 builds — not
+                // preferred, kept as a last-resort fallback below
+            }
+        }
+        // 32-bit x86 fallback: use the x86_64 build
+        if (primary == null && primaryAbi == "x86") {
+            for (i in 0 until assets.length()) {
+                val a = assets.optJSONObject(i) ?: continue
+                val name = a.optString("name")
+                if (name.startsWith(prefix) && name.endsWith("-x86_64.apk")) {
+                    primary = a.optString("browser_download_url") to a.optLong("size")
+                }
+            }
+        }
+        return primary ?: universal
+    }
+}

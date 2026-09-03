@@ -3,6 +3,7 @@ package io.github.xixka.qbittorrent.ui.main
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
@@ -12,8 +13,7 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.ActionMode
-import androidx.core.view.children
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -22,6 +22,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
@@ -36,13 +37,20 @@ import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
 import io.github.xixka.qbittorrent.ui.detail.DetailActivity
 import io.github.xixka.qbittorrent.ui.settings.SettingsActivity
 import io.github.xixka.qbittorrent.util.Format
-import io.github.xixka.qbittorrent.util.TorrentStates
+import io.github.xixka.qbittorrent.util.UpdateChecker
+import io.github.xixka.qbittorrent.util.WindowInsetsSide
+import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
 
 /**
  * Pixel-perfect port of LibreTorrent's home screen: navigation drawer with
  * stats + filter chips, search bar, contextual toolbar, FAB popup menu and
  * a search view over the torrent list.
+ *
+ * Like LibreTorrent (Utils.enableEdgeToEdge), the window is laid out
+ * edge-to-edge so the app bar's 48dp search-bar margin — measured from the
+ * top of the screen — matches the original design instead of stacking on
+ * top of the status bar reservation and leaving a blank strip.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -55,11 +63,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-edge, exactly like LibreTorrent's Utils.enableEdgeToEdge():
+        // the AppBarLayout consumes the status bar inset (fitsSystemWindows +
+        // statusBarForeground), see fragment_home.xml.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Navigation drawer content (stats + filters), LibreTorrent style
         drawerBinding = HomeDrawerContentBinding.inflate(layoutInflater, binding.navigationView, true)
+        // Drawer content starts below the status bar (LibreTorrent parity)
+        applyWindowInsets(binding.navigationView, drawerBinding.root)
 
         adapter = TorrentListAdapter(
             onClick = { openDetail(it) },
@@ -77,6 +91,15 @@ class MainActivity : AppCompatActivity() {
         binding.homeContent.torrentList.adapter = adapter
         binding.homeContent.torrentList.setEmptyView(binding.homeContent.emptyViewTorrentList)
         binding.homeContent.torrentList.setLoadingView(binding.homeContent.loadingViewTorrentList)
+        // Inset-aware list decoration, LibreTorrent style (Utils.buildListDivider)
+        binding.homeContent.torrentList.addItemDecoration(
+            MaterialDividerItemDecoration(this, LinearLayoutManager.VERTICAL).apply {
+                dividerInsetStart = 32
+                dividerInsetEnd = 32
+                isLastItemDecorated = false
+            }
+        )
+        applyWindowInsets(binding.homeContent.torrentList, WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT)
 
         searchAdapter = TorrentListAdapter(
             onClick = { openDetail(it) },
@@ -131,6 +154,12 @@ class MainActivity : AppCompatActivity() {
         setupDrawer()
 
         observeState()
+
+        // Load the bundled engine together with the app — no manual step.
+        maybeAutoStartEngine()
+
+        // Non-intrusive daily update check against GitHub Releases.
+        maybeAutoCheckUpdate()
     }
 
     private fun onHomeMenuItem(itemId: Int): Boolean {
@@ -140,6 +169,7 @@ class MainActivity : AppCompatActivity() {
             R.id.resume_all_menu -> lifecycleScope.launch { runCatching { repo.resumeAll() } }
             R.id.about_menu -> showAboutDialog()
             R.id.settings_menu -> startActivity(Intent(this, SettingsActivity::class.java))
+            R.id.check_update_menu -> checkUpdate(manual = true)
             R.id.action_local_engine -> toggleLocalEngine()
             else -> return false
         }
@@ -155,10 +185,78 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Starts the bundled engine once per process (Enhanced edition only). */
+    private fun maybeAutoStartEngine() {
+        if (engineAutoStarted) return
+        engineAutoStarted = true
+        if (!BuildConfig.IS_ENHANCED) return
+        if (LocalEngineManager.isSupported(this) && !LocalEngineManager.isRunning()) {
+            runCatching { LocalEngineService.start(this) }
+        }
+    }
+
+    // ---------------- update check (GitHub Releases) ----------------
+
+    private fun maybeAutoCheckUpdate() {
+        val prefs = ServiceLocator.prefs(this)
+        if (System.currentTimeMillis() - prefs.lastUpdateCheck < UPDATE_CHECK_INTERVAL_MS) return
+        checkUpdate(manual = false)
+    }
+
+    private fun checkUpdate(manual: Boolean) {
+        ServiceLocator.prefs(this).lastUpdateCheck = System.currentTimeMillis()
+        lifecycleScope.launch {
+            val result = runCatching { UpdateChecker.check() }
+            val alive = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+            result
+                .onSuccess { update ->
+                    when {
+                        update != null && alive -> showUpdateDialog(update)
+                        manual -> Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.update_up_to_date, BuildConfig.VERSION_NAME),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                }
+                .onFailure {
+                    if (manual) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.update_check_failed, it.message ?: ""),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
+        }
+    }
+
+    private fun showUpdateDialog(update: UpdateChecker.Update) {
+        val notes = if (update.notes.isBlank()) "" else "\n\n" + update.notes.take(600)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.update_available_title))
+            .setMessage(getString(R.string.update_available_message, update.version) + notes)
+            .setPositiveButton(R.string.update_download) { _, _ -> openUrl(update.apkUrl ?: update.htmlUrl) }
+            .setNeutralButton(R.string.update_release_page) { _, _ -> openUrl(update.htmlUrl) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun openUrl(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.error_no_browser, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun showAboutDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about)
-            .setMessage(R.string.about_message)
+            .setMessage(
+                getString(R.string.about_message) +
+                    "\n\n" + getString(R.string.about_version, BuildConfig.VERSION_NAME)
+            )
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }
@@ -408,5 +506,12 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val PICK_TORRENT_FILE = 42
+
+        /** Auto update check frequency. */
+        private const val UPDATE_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
+
+        /** Per-process guard so stopping the engine is respected until relaunch. */
+        @Volatile
+        private var engineAutoStarted = false
     }
 }

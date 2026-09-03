@@ -303,4 +303,15 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share">Share</string>
     <string name="dht_nodes_stat">DHT nodes: %1$s</string>
     <string name="total_torrents_stat">Torrents: %1$d</string>
+
+    <!-- update check (GitHub Releases) -->
+    <string name="check_for_updates">Check for updates</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_message">Version %1$s is available.</string>
+    <string name="update_download">Download</string>
+    <string name="update_release_page">Release page</string>
+    <string name="update_up_to_date">You are up to date (%1$s)</string>
+    <string name="update_check_failed">Update check failed: %1$s</string>
+    <string name="error_no_browser">No browser available</string>
+    <string name="about_version">Version: %1$s</string>
 </resources>
