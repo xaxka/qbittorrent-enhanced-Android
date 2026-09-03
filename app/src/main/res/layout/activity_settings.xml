@@ -15,8 +15,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorSurface"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="@string/settings"
-            app:popupTheme="@style/ThemeOverlay.Material3.DayNight" />
+            app:title="@string/settings" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView

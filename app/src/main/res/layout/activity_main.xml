@@ -20,8 +20,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorSurface"
-                app:title="@string/app_name"
-                app:popupTheme="@style/ThemeOverlay.Material3.DayNight" />
+                app:title="@string/app_name" />
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/filterTabs"

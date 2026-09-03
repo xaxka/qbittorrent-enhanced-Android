@@ -15,8 +15,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorSurface"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="@string/add_torrent_title"
-            app:popupTheme="@style/ThemeOverlay.Material3.DayNight" />
+            app:title="@string/add_torrent_title" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
