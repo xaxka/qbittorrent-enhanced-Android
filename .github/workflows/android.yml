@@ -160,6 +160,8 @@ jobs:
 
       - name: Accept Android SDK licenses
         run: |
+          # belt-and-suspenders: the exec bit is also tracked in git (100755)
+          chmod +x ./gradlew
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
 
