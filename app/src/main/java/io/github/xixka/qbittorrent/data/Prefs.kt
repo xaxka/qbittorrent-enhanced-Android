@@ -2,13 +2,20 @@ package io.github.xixka.qbittorrent.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.api.QBApiClient
+import io.github.xixka.qbittorrent.qbt.NoxConfig
 
 /**
  * Application preferences: remote server profile + local engine settings.
  *
  * Never stores anything else than what the user explicitly typed;
  * no tokens or secrets beyond the WebUI password the user chose to store.
+ *
+ * In the Enhanced edition the defaults point at the bundled local engine
+ * (127.0.0.1 + the seeded WebUI credentials), so the app is usable out of
+ * the box — the engine auto-starts with the app and the client connects to
+ * it without any manual setup.
  */
 class Prefs(context: Context) {
 
@@ -16,7 +23,7 @@ class Prefs(context: Context) {
         context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
 
     var serverHost: String
-        get() = sp.getString(KEY_HOST, "") ?: ""
+        get() = sp.getString(KEY_HOST, if (BuildConfig.IS_ENHANCED) LOCAL_ENGINE_HOST else "") ?: ""
         set(value) = sp.edit().putString(KEY_HOST, value.trim()).apply()
 
     var serverPort: Int
@@ -40,7 +47,10 @@ class Prefs(context: Context) {
         set(value) = sp.edit().putString(KEY_USERNAME, value).apply()
 
     var password: String
-        get() = sp.getString(KEY_PASSWORD, "") ?: ""
+        get() = sp.getString(
+            KEY_PASSWORD,
+            if (BuildConfig.IS_ENHANCED) NoxConfig.WEBUI_DEFAULT_PASSWORD else ""
+        ) ?: ""
         set(value) = sp.edit().putString(KEY_PASSWORD, value).apply()
 
     var pollIntervalSec: Int
@@ -66,8 +76,13 @@ class Prefs(context: Context) {
         set(value) = sp.edit().putBoolean(KEY_ENGINE_LAN, value).apply()
 
     var engineAutoStart: Boolean
-        get() = sp.getBoolean(KEY_ENGINE_AUTOSTART, false)
+        get() = sp.getBoolean(KEY_ENGINE_AUTOSTART, BuildConfig.IS_ENHANCED)
         set(value) = sp.edit().putBoolean(KEY_ENGINE_AUTOSTART, value).apply()
+
+    /** Epoch millis of the last automatic update check (GitHub Releases). */
+    var lastUpdateCheck: Long
+        get() = sp.getLong(KEY_UPDATE_CHECK_LAST, 0L)
+        set(value) = sp.edit().putLong(KEY_UPDATE_CHECK_LAST, value).apply()
 
     fun serverConfig(): ServerConfig = ServerConfig(
         host = serverHost,
@@ -90,6 +105,9 @@ class Prefs(context: Context) {
     companion object {
         private const val FILE_NAME = "app_prefs"
 
+        /** Default endpoint of the bundled local engine (Enhanced edition). */
+        const val LOCAL_ENGINE_HOST = "127.0.0.1"
+
         const val KEY_HOST = "server_host"
         const val KEY_PORT = "server_port"
         const val KEY_HTTPS = "server_https"
@@ -103,6 +121,7 @@ class Prefs(context: Context) {
         const val KEY_ENGINE_SAVE_PATH = "engine_save_path"
         const val KEY_ENGINE_LAN = "engine_lan"
         const val KEY_ENGINE_AUTOSTART = "engine_autostart"
+        const val KEY_UPDATE_CHECK_LAST = "update_check_last"
     }
 }
 
