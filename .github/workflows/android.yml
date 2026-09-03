@@ -108,9 +108,26 @@ jobs:
             armeabi-v7a) TRIPLE=armv7a-linux-androideabi ;;
             x86_64)      TRIPLE=x86_64-linux-android ;;
           esac
+          SYSROOT="$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib"
+          SRC=""
+          # NDK r27c: 32-bit ARM only ships API-suffixed dirs; 64-bit has plain dirs too
+          for cand in \
+            "$SYSROOT/$TRIPLE/libc++_shared.so" \
+            "$SYSROOT/${TRIPLE}24/libc++_shared.so" \
+            "$SYSROOT/${TRIPLE}28/libc++_shared.so" ; do
+            if [ -f "$cand" ]; then SRC="$cand"; break; fi
+          done
+          if [ -z "$SRC" ]; then
+            SRC=$(find "$SYSROOT" -path "*${TRIPLE}*/libc++_shared.so" 2>/dev/null | sort | head -1)
+          fi
+          if [ -z "$SRC" ] || [ ! -f "$SRC" ]; then
+            echo "ERROR: libc++_shared.so not found under $SYSROOT for $TRIPLE"
+            exit 1
+          fi
+          echo "libc++_shared.so source: $SRC"
           mkdir -p "qbt-out/${{ matrix.ABI }}"
-          cp "$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$TRIPLE/libc++_shared.so" \
-             "qbt-out/${{ matrix.ABI }}/libc++_shared.so"
+          cp "$SRC" "qbt-out/${{ matrix.ABI }}/libc++_shared.so"
+          ls -la "qbt-out/${{ matrix.ABI }}/"
 
       - name: Save dependency prefix
         if: steps.nox-cache.outputs.cache-hit != 'true'
