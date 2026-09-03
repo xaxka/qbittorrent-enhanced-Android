@@ -84,7 +84,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun refreshOnce() {
-        if (!prefs.isConfigured()) {
+        if (!prefs.serverConfig().isConfigured) {
             _state.update { it.copy(configured = false, connected = false, loading = false) }
             return
         }
