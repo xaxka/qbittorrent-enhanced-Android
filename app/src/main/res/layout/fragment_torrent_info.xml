@@ -160,14 +160,14 @@
                             android:id="@+id/sequential_download"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="@={viewModel.mutableParams.sequentialDownload}"
+                            android:checked="false"
                             android:text="@string/sequential_download" />
 
                         <CheckBox
                             android:id="@+id/download_first_last_pieces"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="@={viewModel.mutableParams.firstLastPiecePriority}"
+                            android:checked="false"
                             android:text="@string/download_first_last_pieces" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
