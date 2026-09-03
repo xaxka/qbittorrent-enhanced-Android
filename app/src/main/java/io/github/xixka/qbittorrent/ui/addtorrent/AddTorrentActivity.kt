@@ -140,4 +140,16 @@ class AddTorrentActivity : AppCompatActivity() {
         finish()
         return true
     }
+
+    companion object {
+        /** Opens the add-torrent screen with a link or a picked .torrent file. */
+        fun start(context: android.content.Context, url: String? = null, uri: android.net.Uri? = null) {
+            val intent = android.content.Intent(context, AddTorrentActivity::class.java)
+                .setAction(android.content.Intent.ACTION_SEND)
+                .setType("text/plain")
+            if (url != null) intent.putExtra(android.content.Intent.EXTRA_TEXT, url)
+            if (uri != null) intent.putExtra(android.content.Intent.EXTRA_STREAM, uri)
+            context.startActivity(intent)
+        }
+    }
 }

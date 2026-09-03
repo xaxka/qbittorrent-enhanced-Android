@@ -1,22 +1,19 @@
 package io.github.xixka.qbittorrent.ui.main
 
-import android.annotation.SuppressLint
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.github.xixka.qbittorrent.R
-import io.github.xixka.qbittorrent.databinding.ItemTorrentBinding
+import io.github.xixka.qbittorrent.databinding.ItemTorrentListBinding
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.util.Format
 import io.github.xixka.qbittorrent.util.TorrentStates
 
 /**
- * Torrent cards in LibreTorrent style: name, progress bar, status line with
- * speeds, counters, and an inline pause/resume button.
+ * LibreTorrent-style torrent list card: tonal pause/play button, name,
+ * linear progress, status + speed line, counters + peers, error chip.
  */
 class TorrentListAdapter(
     private val onClick: (TorrentInfo) -> Unit,
@@ -26,11 +23,14 @@ class TorrentListAdapter(
 
     private val selected = HashSet<String>()
 
-    fun toggleSelection(hash: String) {
+    fun isSelected(hash: String) = hash in selected
+    fun selectedHashes() = selected.toList()
+    fun selectedCount() = selected.size
+
+    fun toggleSelection(hash: String): Int {
         if (!selected.add(hash)) selected.remove(hash)
-        currentList.indexOfFirst { it.hash == hash }.takeIf { it >= 0 }?.let {
-            notifyItemChanged(it)
-        }
+        notifyDataSetChanged()
+        return selected.size
     }
 
     fun clearSelection() {
@@ -38,100 +38,72 @@ class TorrentListAdapter(
         notifyDataSetChanged()
     }
 
-    fun selectedHashes(): List<String> = selected.toList()
-
-    val selectedCount: () -> Int = { selected.size }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemTorrentBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return ViewHolder(binding)
+    fun selectAll(all: List<TorrentInfo>) {
+        selected.clear()
+        all.forEach { selected.add(it.hash) }
+        notifyDataSetChanged()
     }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(ItemTorrentListBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    inner class ViewHolder(private val binding: ItemTorrentBinding) :
+    inner class ViewHolder(private val binding: ItemTorrentListBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        @SuppressLint("SetTextI18n")
+        private val isPaused: (String) -> Boolean = { st ->
+            listOf("pauseddl", "pausedup", "stoppeddl", "stoppedup").any { st.startsWith(it) }
+        }
+
         fun bind(t: TorrentInfo) {
-            val context = binding.root.context
-            val paused = t.state.endsWith("pauseddl") || t.state.endsWith("pausedup") ||
-                t.state == "pausedup" || t.state == "pauseddl"
+            binding.name.text = t.name
+            binding.progress.progress = (t.progress * 100).toInt()
+            binding.status.text = binding.root.context.getString(TorrentStates.labelRes(t.state))
 
-            binding.torrentName.text = t.name
-            binding.progress.max = 1000
-            binding.progress.progress = (t.progress.coerceIn(0.0, 1.0) * 1000).toInt()
-            binding.progressPercent.text = Format.progress(t.progress)
-            binding.progressPercent.isVisible(t.progress >= 1.0)
+            binding.downloadUploadSpeed.text = buildString {
+                append("↓ ${Format.speed(t.dlSpeed)} | ↑ ${Format.speed(t.upSpeed)}")
+            }
+            binding.downloadCounter.text = buildString {
+                append("${Format.size(t.completed)} / ${Format.size(t.size)}")
+                if (t.progress < 1.0 && t.eta in 1..8639999) append(" • ${Format.duration(t.eta)}")
+            }
+            binding.peers.text = "${t.numSeeds}/${t.numLeechsTotal}"
 
-            binding.state.text = context.getString(TorrentStates.labelRes(t.state))
-            binding.sizes.text = buildString {
-                append(Format.size(t.completed))
-                append(" / ")
-                append(Format.size(t.size))
-                if (t.eta in 1 until 8640000) {
-                    append("  •  ")
-                    append(context.getString(R.string.eta_remaining))
-                    append(" ")
-                    append(Format.eta(t.eta))
+            binding.pauseButton.isChecked = !isPaused(t.state)
+            binding.pauseButton.setOnClickListener {
+                onTogglePause(t, isPaused(t.state))
+            }
+
+            val error = t.state.startsWith("error") || t.state.startsWith("missing")
+            binding.errorContainer.visibility = if (error) android.view.View.VISIBLE else android.view.View.GONE
+            if (error) {
+                binding.error.text = if (t.state.startsWith("missing")) {
+                    binding.root.context.getString(R.string.state_missing_files)
+                } else {
+                    binding.root.context.getString(R.string.state_error)
                 }
             }
-            binding.speeds.isVisible(!paused)
-            binding.speeds.text = "↓ ${Format.speed(t.dlSpeed)}   ↑ ${Format.speed(t.upSpeed)}"
-            binding.counters.text = buildString {
-                append(context.getString(R.string.seeds))
-                append(" ")
-                append(t.numSeeds)
-                append(" (")
-                append(t.numSeedsTotal)
-                append(")   ")
-                append(context.getString(R.string.peers))
-                append(" ")
-                append(t.numLeechs)
-                append(" (")
-                append(t.numLeechsTotal)
-                append(")")
-            }
-            binding.ratio.text = buildString {
-                append(context.getString(R.string.ratio))
-                append(" ")
-                append(Format.ratio(t.ratio))
-            }
 
-            binding.pauseButton.setIconResource(if (paused) R.drawable.ic_play else R.drawable.ic_pause)
-            binding.pauseButton.setOnClickListener {
-                onTogglePause(t, paused)
-            }
-            binding.progress.setIndicatorColor(
-                ContextCompat.getColor(
-                    context,
-                    if (t.progress >= 1.0) R.color.torrent_done else R.color.torrent_active,
-                )
-            )
-
-            val isSel = t.hash in selected
-            binding.root.isChecked = isSel
-
-            binding.root.setOnClickListener {
+            binding.card.isChecked = t.hash in selected
+            binding.card.setOnClickListener {
                 if (selected.isNotEmpty()) {
+                    toggleSelection(t.hash)
                     onLongClick(t)
+                    binding.card.isChecked = t.hash in selected
                 } else {
                     onClick(t)
                 }
             }
-            binding.root.setOnLongClickListener {
+            binding.card.setOnLongClickListener {
+                toggleSelection(t.hash)
                 onLongClick(t)
+                binding.card.isChecked = t.hash in selected
                 true
             }
         }
-    }
-
-    private fun View.isVisible(visible: Boolean) {
-        visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     companion object {

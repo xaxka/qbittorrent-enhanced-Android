@@ -2,8 +2,11 @@ package io.github.xixka.qbittorrent.ui.detail
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -13,23 +16,21 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.FragmentFilesBinding
+import io.github.xixka.qbittorrent.model.TorrentFile
 import kotlinx.coroutines.launch
 
 /**
- * Content files of the torrent; tapping a file opens the priority picker
- * (skip / normal / high / maximum) mapped to /api/v2/torrents/filePrio.
+ * Files tab, ported from LibreTorrent's DetailTorrentFilesFragment (GPL-3.0):
+ * EmptyRecyclerView list + action mode with priority change / select all.
  */
 class FilesFragment : Fragment() {
 
     private var _binding: FragmentFilesBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: DetailViewModel by activityViewModels {
-        DetailViewModel.factory(requireActivity().application, detailHash)
-    }
-
-    private val detailHash: String
-        get() = (activity as? DetailActivity)?.torrentHash ?: ""
+    private val viewModel: DetailViewModel by activityViewModels()
+    private lateinit var adapter: FilesAdapter
+    private var actionMode: androidx.appcompat.view.ActionMode? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,42 +42,113 @@ class FilesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.filesList.layoutManager = LinearLayoutManager(requireContext())
-        val adapter = FilesAdapter { file -> showPriorityDialog(file.index, file.priority) }
-        binding.filesList.adapter = adapter
+        super.onViewCreated(view, savedInstanceState)
 
+        adapter = FilesAdapter(
+            onSelect = { file ->
+                adapter.toggleSelection(file.index)
+                onSelectionChanged()
+            },
+            onClick = { file -> changePriority(listOf(file)) },
+        )
+        binding.fileList.layoutManager = LinearLayoutManager(requireContext())
+        binding.fileList.adapter = adapter
+        binding.fileList.setEmptyView(binding.emptyViewFileList)
+        binding.fileList.setLoadingView(null)
+
+        observeState()
+    }
+
+    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     adapter.submitList(state.files)
-                    binding.emptyView.visibility =
-                        if (state.files.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
         }
     }
 
-    private fun showPriorityDialog(index: Int, current: Int) {
-        val options = listOf(
-            R.string.priority_skip to 0,
-            R.string.priority_normal to 1,
-            R.string.priority_high to 6,
-            R.string.priority_maximum to 7,
+    private fun onSelectionChanged() {
+        if (adapter.selectedCount() > 0) {
+            if (actionMode == null) {
+                actionMode = (requireActivity() as AppCompatActivity)
+                    .startSupportActionMode(actionModeCallback)
+            }
+            actionMode?.title = getString(R.string.selected_count, adapter.selectedCount())
+        } else {
+            actionMode?.finish()
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    private val actionModeCallback = object : androidx.appcompat.view.ActionMode.Callback {
+        override fun onCreateActionMode(mode: androidx.appcompat.view.ActionMode, menu: Menu): Boolean {
+            mode.menuInflater.inflate(R.menu.torrent_details_files_action_mode, menu)
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: androidx.appcompat.view.ActionMode, menu: Menu) = false
+
+        override fun onActionItemClicked(
+            mode: androidx.appcompat.view.ActionMode,
+            item: MenuItem,
+        ): Boolean = when (item.itemId) {
+            R.id.select_all_files_menu -> {
+                adapter.selectAll()
+                onSelectionChanged()
+                true
+            }
+
+            R.id.change_priority_menu -> {
+                val indexes = adapter.selectedIndexes()
+                if (indexes.isNotEmpty()) {
+                    changePriority(indexes.map { viewModel.state.value.files[it] })
+                }
+                true
+            }
+
+            else -> false
+        }
+
+        override fun onDestroyActionMode(mode: androidx.appcompat.view.ActionMode) {
+            adapter.clearSelection()
+            actionMode = null
+        }
+    }
+
+    /**
+     * Priority dialog: qBittorrent priorities — skip(0), low(1), normal(4),
+     * high(7), maximal(8)? The API accepts 0..7: 0 skip, 1 low, 2..6 vary,
+     * 7 max. Present the same four-choice UI as LibreTorrent.
+     */
+    private fun changePriority(files: List<TorrentFile>) {
+        val labels = arrayOf(
+            getString(R.string.file_priority_skip),
+            getString(R.string.file_priority_low),
+            getString(R.string.file_priority_normal),
+            getString(R.string.file_priority_high),
+            getString(R.string.file_priority_max),
         )
-        val labels = options.map { getString(it.first) }.toTypedArray()
-        val checked = options.indexOfFirst { it.second == current }.coerceAtLeast(0)
+        val values = intArrayOf(0, 1, 4, 6, 7)
+        val current = files.firstOrNull()?.priority ?: 1
+        val checked = values.indexOfFirst { it == current }.coerceAtLeast(0)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.priority_title)
+            .setTitle(R.string.change_priority)
             .setSingleChoiceItems(labels, checked) { dialog, which ->
-                viewModel.setFilePriority(listOf(index), options[which].second)
+                viewModel.setFilePriority(
+                    files.map { it.index },
+                    values[which],
+                )
                 dialog.dismiss()
+                actionMode?.finish()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
         _binding = null
+        super.onDestroyView()
     }
 }

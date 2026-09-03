@@ -1,35 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/ThemeOverlay.App.Surface"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/trackersList"
+    <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+        android:id="@+id/tracker_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false" />
+        android:layout_height="match_parent"
+        android:paddingVertical="8dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="4dp"
+        tools:listitem="@layout/item_trackers_list" />
 
-    <TextView
-        android:id="@+id/emptyView"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:text="@string/detail_trackers_empty"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:visibility="gone" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/addTrackerButton"
-        style="?attr/borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_margin="8dp"
-        android:text="@string/add_tracker_title" />
-</LinearLayout>
+    <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
+        android:id="@+id/empty_view_tracker_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="?attr/actionBarSize"
+        app:icon="@drawable/ic_lists_24px"
+        app:text="@string/tracker_list_empty"
+        tools:visibility="gone" />
+</RelativeLayout>

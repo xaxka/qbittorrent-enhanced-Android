@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.model.Peer
+import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentFile
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 data class DetailUiState(
     val loading: Boolean = true,
     val error: String? = null,
+    val categories: List<QBCategory> = emptyList(),
     val info: TorrentInfo? = null,
     val properties: TorrentProperties? = null,
     val files: List<TorrentFile> = emptyList(),
@@ -60,6 +62,11 @@ class DetailViewModel(app: Application, private val initialHash: String) :
             while (isActive) {
                 try {
                     val props = repository.properties(hash)
+                    val info = runCatching {
+                        repository.torrents().firstOrNull { it.hash == hash }
+                    }.getOrNull() ?: _state.value.info
+                    val cats = runCatching { repository.categories().values.toList() }
+                        .getOrDefault(_state.value.categories)
                     val tab = _state.value.activeTab
                     val (files, trackers, peers) = when (tab) {
                         FILES_TAB -> Triple(repository.files(hash), _state.value.trackers, emptyList())
@@ -71,6 +78,8 @@ class DetailViewModel(app: Application, private val initialHash: String) :
                         it.copy(
                             loading = false,
                             error = null,
+                            info = info,
+                            categories = cats,
                             properties = props,
                             files = files,
                             trackers = trackers,
@@ -93,6 +102,10 @@ class DetailViewModel(app: Application, private val initialHash: String) :
     fun reannounce() = launchAction { repository.reannounce(listOf(hash)) }
     fun toggleSequential() = launchAction { repository.toggleSequential(listOf(hash)) }
     fun toggleSuperSeeding() = launchAction { repository.toggleSuperSeeding(listOf(hash)) }
+    fun toggleFirstLast() = launchAction { repository.toggleFirstLastPiecePriority(listOf(hash)) }
+    fun setCategory(name: String) = launchAction { repository.setCategory(listOf(hash), name) }
+    suspend fun categories(): Map<String, io.github.xixka.qbittorrent.model.QBCategory> =
+        runCatching { repository.categories() }.getOrDefault(emptyMap())
 
     fun delete(deleteFiles: Boolean, onDone: () -> Unit) = viewModelScope.launch {
         runCatching { repository.delete(listOf(hash), deleteFiles) }

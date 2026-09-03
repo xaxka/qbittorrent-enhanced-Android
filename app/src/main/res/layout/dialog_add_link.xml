@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Port of LibreTorrent dialog_add_link.xml (GPL-3.0), data binding stripped -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minWidth="@dimen/min_width_dialog"
+    android:padding="@dimen/dialog_padding">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layout_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_toStartOf="@id/clipboard_button"
+        android:hint="@string/add_link_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textNoSuggestions" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/clipboard_button"
+        style="?attr/materialIconButtonFilledTonalStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_centerInParent="true"
+        android:contentDescription="@string/clipboard"
+        app:icon="@drawable/ic_content_copy_24px" />
+</RelativeLayout>

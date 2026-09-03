@@ -43,6 +43,13 @@ class TorrentRepository(private val client: QBApiClient) {
 
     suspend fun categories(): Map<String, QBCategory> = client.withAuth { it.categories() }
 
+
+    suspend fun toggleFirstLastPiecePriority(hashes: List<String>) =
+        client.withAuth { it.toggleFirstLastPiecePriority(hashes.joinToString("|")) }
+
+    suspend fun pauseAll() = client.withAuth { it.pause("all") }
+    suspend fun resumeAll() = client.withAuth { it.resume("all") }
+
     // ---------- actions ----------
 
     suspend fun addTorrent(

@@ -145,6 +145,8 @@ jobs:
     name: Build qBittorrent / qBittorrent Enhanced
     runs-on: ubuntu-latest
     needs: qbt-nox
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -165,6 +167,12 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
 
+      - name: Compute version (YY.MM.DD / YYMMDDHHt, Asia/Shanghai)
+        run: |
+          echo "VERSION_NAME=$(TZ=Asia/Shanghai date +%y.%m.%d)" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(TZ=Asia/Shanghai date +%y%m%d%H)$(($(TZ=Asia/Shanghai date +%M) / 10))" >> "$GITHUB_ENV"
+          echo "versionName=$VERSION_NAME versionCode=$VERSION_CODE"
+
       - name: Download nox libs into enhanced jniLibs
         uses: actions/download-artifact@v4
         with:
@@ -181,10 +189,12 @@ jobs:
           done
 
       - name: Build qBittorrent (standard edition)
-        run: ./gradlew assembleStandardDebug assembleStandardRelease --stacktrace
+        run: ./gradlew assembleStandardDebug assembleStandardRelease
+          -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE" --stacktrace
 
       - name: Build qBittorrent Enhanced
-        run: ./gradlew assembleEnhancedDebug assembleEnhancedRelease --stacktrace
+        run: ./gradlew assembleEnhancedDebug assembleEnhancedRelease
+          -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE" --stacktrace
 
       - name: List APK outputs
         run: find app/build/outputs/apk -name '*.apk' -exec ls -la {} \;
@@ -195,6 +205,25 @@ jobs:
             echo "== $apk =="
             unzip -l "$apk" | grep -E 'libqbittorrent-nox.so|libc\+\+_shared.so' || { echo "ERROR: nox engine missing in $apk"; exit 1; }
           done
+
+      - name: Verify standard APKs contain no engine
+        run: |
+          for apk in app/build/outputs/apk/standard/*/*.apk; do
+            echo "== $apk =="
+            if unzip -l "$apk" | grep -q 'libqbittorrent-nox.so'; then
+              echo "ERROR: engine found in remote-only standard APK $apk"; exit 1
+            fi
+          done
+
+      - name: Stage APKs for release
+        run: |
+          V="$VERSION_NAME"
+          mkdir -p release-out
+          cp app/build/outputs/apk/standard/debug/app-standard-debug.apk "release-out/qBittorrent-Remote-$V-debug.apk"
+          cp app/build/outputs/apk/standard/release/app-standard-release-unsigned.apk "release-out/qBittorrent-Remote-$V-release-unsigned.apk"
+          cp app/build/outputs/apk/enhanced/debug/app-enhanced-debug.apk "release-out/qBittorrent-Enhanced-$V-debug.apk"
+          cp app/build/outputs/apk/enhanced/release/app-enhanced-release-unsigned.apk "release-out/qBittorrent-Enhanced-$V-release-unsigned.apk"
+          ls -la release-out
 
       - name: Upload qBittorrent (standard) APKs
         uses: actions/upload-artifact@v4
@@ -209,3 +238,23 @@ jobs:
           name: qbittorrent-enhanced-apks
           path: app/build/outputs/apk/enhanced/**/*.apk
           if-no-files-found: error
+
+      - name: Publish dev build to GitHub Releases
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: dev
+          name: dev
+          body: |
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            - Built at: ${{ github.event.head_commit.timestamp }}
+            - Version: ${{ env.VERSION_NAME }} (versionCode ${{ env.VERSION_CODE }})
+
+            | APK | 引擎 | 说明 |
+            |---|---|---|
+            | qBittorrent-Remote-*.apk | 无内置引擎 | 纯远程控制版：连接并控制 qBittorrent / qBittorrent-nox 服务器 |
+            | qBittorrent-Enhanced-*.apk | 内置 qbittorrent-enhanced-nox | 本地引擎版：内置 qBittorrent Enhanced（3 ABI），也可远程连接 |
+
+            release APK 未签名，debug APK 可直接安装。
+          prerelease: true
+          files: release-out/*.apk

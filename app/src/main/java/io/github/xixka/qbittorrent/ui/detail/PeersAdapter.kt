@@ -6,42 +6,54 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import io.github.xixka.qbittorrent.databinding.ItemPeerBinding
+import io.github.xixka.qbittorrent.databinding.ItemPeersListBinding
 import io.github.xixka.qbittorrent.model.Peer
 import io.github.xixka.qbittorrent.util.Format
+import java.util.Locale
 
+/**
+ * Peers list, ported from LibreTorrent's PeerListAdapter (GPL-3.0).
+ */
 class PeersAdapter : ListAdapter<Peer, PeersAdapter.ViewHolder>(DIFF) {
 
-    class ViewHolder(val binding: ItemPeerBinding) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(
+        private val binding: ItemPeersListBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(ItemPeerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val peer = getItem(position)
-        val binding = holder.binding
-
-        binding.peerEndpoint.text = peer.endpoint
-        binding.peerClient.text = peer.client
-        binding.peerCountry.text = peer.country.orEmpty()
-        binding.peerCountry.visibility =
-            if (peer.country.isNullOrBlank()) View.GONE else View.VISIBLE
-        binding.peerProgress.max = 1000
-        binding.peerProgress.progress = (peer.progressFraction * 1000).toInt()
-        binding.peerPercent.text = Format.progress(peer.progressFraction)
-        binding.peerSpeeds.text = "↓ ${Format.speed(peer.downSpeed)}  ↑ ${Format.speed(peer.upSpeed)}"
-        binding.peerFlags.text = peer.flags
-        binding.peerFlags.visibility =
-            if (peer.flags.isBlank()) View.GONE else View.VISIBLE
+        fun bind(peer: Peer) {
+            binding.ip.text = peer.ip
+            binding.port.text = String.format(Locale.ROOT, "Port: %d", peer.port)
+            binding.progress.text = Format.progress(peer.progress)
+            binding.relevance.text = String.format(
+                Locale.ROOT,
+                "%s %.1f%%",
+                itemView.context.getString(io.github.xixka.qbittorrent.R.string.relevance),
+                peer.relevance * 100,
+            )
+            binding.connectionType.text =
+                "Connection: ${peer.connectionStatus.ifEmpty { "BT" }}"
+            binding.upDownSpeed.text =
+                "↓ ${Format.speed(peer.downSpeed)} • ↑ ${Format.speed(peer.upSpeed)}"
+            binding.totalDownloadUpload.text =
+                "↓ ${Format.size(peer.downloaded)} • ↑ ${Format.size(peer.uploaded)}"
+            binding.client.text = "Client: ${peer.client}"
+            binding.progress.visibility = View.VISIBLE
+        }
     }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        ViewHolder(
+            ItemPeersListBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+        )
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(getItem(position))
 
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<Peer>() {
             override fun areItemsTheSame(oldItem: Peer, newItem: Peer) =
-                oldItem.endpoint == newItem.endpoint
+                oldItem.ip == newItem.ip && oldItem.port == newItem.port
 
-            override fun areContentsTheSame(oldItem: Peer, newItem: Peer) =
-                oldItem == newItem
+            override fun areContentsTheSame(oldItem: Peer, newItem: Peer) = oldItem == newItem
         }
     }
 }

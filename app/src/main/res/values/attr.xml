@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorOk" format="color" />
+    <attr name="colorOnOk" format="color" />
+    <attr name="colorOkContainer" format="color" />
+    <attr name="colorOnOkContainer" format="color" />
+
+    <attr name="navEnterAnim" format="reference" />
+    <attr name="navExitAnim" format="reference" />
+    <attr name="navPopEnterAnim" format="reference" />
+    <attr name="navPopExitAnim" format="reference" />
+
+    <declare-styleable name="ExpansionHeader">
+        <attr name="expansion_text" format="string" />
+        <attr name="expansion_expanded" format="boolean" />
+        <attr name="expansion_textAppearance" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="EmptyListPlaceholder">
+        <attr name="text" format="reference|string" />
+        <attr name="icon" format="reference" />
+        <attr name="placeholderIconSize" format="enum">
+            <enum name="big" value="0" />
+            <enum name="small" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="ColorView">
+        <attr name="color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="MaxWidthLinearLayout">
+        <attr name="maxWidth" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="SliderPreference">
+        <attr name="sliderMin" format="float" />
+        <attr name="sliderMax" format="float" />
+        <attr name="sliderStep" format="float" />
+        <attr name="sliderAdjustable" format="boolean" />
+        <attr name="sliderUpdatesContinuously" format="boolean" />
+        <attr name="sliderLabelBehavior">
+            <!-- Mode that draws the label floating above the bounds of this view. -->
+            <enum name="floating" value="0"/>
+            <!-- Mode that draws the label within the bounds of the view. -->
+            <enum name="withinBounds" value="1"/>
+            <!-- Mode that prevents the label from being drawn. -->
+            <enum name="gone" value="2"/>
+            <!-- Mode that always draws the label. -->
+            <enum name="visible" value="3"/>
+        </attr>
+    </declare-styleable>
+</resources>

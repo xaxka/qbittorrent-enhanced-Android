@@ -1,61 +1,101 @@
 package io.github.xixka.qbittorrent.ui.detail
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.github.xixka.qbittorrent.R
-import io.github.xixka.qbittorrent.databinding.ItemFileBinding
+import io.github.xixka.qbittorrent.databinding.ItemTorrentDownloadableFileBinding
 import io.github.xixka.qbittorrent.model.TorrentFile
 import io.github.xixka.qbittorrent.util.Format
 
+/**
+ * File list, ported from LibreTorrent's FileListAdapter (GPL-3.0):
+ * selectable rows with a folder/file icon, name, path and size.
+ */
 class FilesAdapter(
+    private val onSelect: (TorrentFile) -> Unit,
     private val onClick: (TorrentFile) -> Unit,
 ) : ListAdapter<TorrentFile, FilesAdapter.ViewHolder>(DIFF) {
 
-    class ViewHolder(val binding: ItemFileBinding) : RecyclerView.ViewHolder(binding.root)
+    private val selected = HashSet<Int>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(ItemFileBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+    fun isSelected(index: Int) = index in selected
+
+    fun toggleSelection(index: Int) {
+        if (!selected.add(index)) selected.remove(index)
+    }
+
+    fun selectAll() {
+        selected.clear()
+        currentList.forEach { selected.add(it.index) }
+        notifyDataSetChanged()
+    }
+
+    fun clearSelection() {
+        selected.clear()
+        notifyDataSetChanged()
+    }
+
+    fun selectedIndexes(): List<Int> = selected.toList()
+
+    fun selectedCount() = selected.size
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val binding = ItemTorrentDownloadableFileBinding
+            .inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val file = getItem(position)
-        val binding = holder.binding
-
-        binding.fileName.text = file.name
-        binding.fileSize.text = Format.size(file.size)
-        binding.fileProgress.max = 1000
-        binding.fileProgress.progress = (file.progressFraction * 1000).toInt()
-        binding.filePercent.text = Format.progress(file.progressFraction)
-        binding.filePriority.text = priorityLabel(binding.root.context, file.priority)
-        if (file.isSkipped) {
-            binding.fileName.setTextColor(
-                ContextCompat.getColor(binding.root.context, R.color.md_theme_onSurfaceVariant)
-            )
-        } else {
-            binding.fileName.setTextColor(
-                ContextCompat.getColor(binding.root.context, R.color.md_theme_onSurface)
-            )
-        }
-
-        binding.root.setOnClickListener { onClick(file) }
+        holder.bind(file)
     }
 
-    private fun priorityLabel(context: android.content.Context, priority: Int): String = when {
-        priority <= 0 -> context.getString(R.string.priority_skip)
-        priority in 2..5 -> context.getString(R.string.priority_mixed)
-        priority == 6 -> context.getString(R.string.priority_high)
-        priority >= 7 -> context.getString(R.string.priority_maximum)
-        else -> context.getString(R.string.priority_normal)
+    inner class ViewHolder(
+        private val binding: ItemTorrentDownloadableFileBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(file: TorrentFile) {
+            binding.name.text = file.name.substringAfterLast('/')
+            binding.path.visibility = if (file.name.contains('/')) {
+                binding.path.text = file.name.substringBeforeLast('/') + "/"
+                android.view.View.VISIBLE
+            } else {
+                android.view.View.GONE
+            }
+            binding.size.text = Format.size(file.size)
+            val isFolder = file.name.endsWith("/")
+            binding.icon.setImageResource(
+                if (isFolder) R.drawable.ic_folder_24px else R.drawable.ic_file_24px,
+            )
+            binding.selected.isChecked = file.index in selected
+
+            binding.card.setOnClickListener {
+                if (selected.isNotEmpty()) {
+                    onSelect(file)
+                    binding.selected.isChecked = file.index in selected
+                } else {
+                    onClick(file)
+                }
+            }
+            binding.card.setOnLongClickListener {
+                onSelect(file)
+                binding.selected.isChecked = file.index in selected
+                true
+            }
+            binding.selected.setOnClickListener {
+                onSelect(file)
+                binding.selected.isChecked = file.index in selected
+            }
+        }
     }
 
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<TorrentFile>() {
             override fun areItemsTheSame(oldItem: TorrentFile, newItem: TorrentFile) =
-                oldItem.index == newItem.index && oldItem.name == newItem.name
+                oldItem.index == newItem.index
 
             override fun areContentsTheSame(oldItem: TorrentFile, newItem: TorrentFile) =
                 oldItem == newItem

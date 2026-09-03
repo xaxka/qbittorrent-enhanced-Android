@@ -1,0 +1,21 @@
+<resources>
+
+    <!-- LibreTorrent overlays (GPL-3.0), preference-specific styles removed -->
+
+    <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered">
+        <item name="materialAlertDialogBodyTextStyle">@style/MaterialAlertDialog.App.Body.Text
+        </item>
+    </style>
+
+    <style name="ThemeOverlay.App.Surface" parent="">
+        <item name="android:background">?attr/colorSurface</item>
+    </style>
+
+    <style name="ThemeOverlay.App.TextInputLayout.OnSurfaceContainer" parent="">
+        <item name="boxBackgroundColor">?attr/colorSurfaceContainerLow</item>
+    </style>
+
+    <style name="ThemeOverlay.App.TextInputLayout.ExposedDropdownMenu.OnSurfaceContainer" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxBackgroundColor">?attr/colorSurfaceContainerLow</item>
+    </style>
+</resources>

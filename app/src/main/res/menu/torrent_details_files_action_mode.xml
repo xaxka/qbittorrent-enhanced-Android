@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/change_priority_menu"
+        android:title="@string/change_priority"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/select_all_files_menu"
+        android:icon="@drawable/ic_select_all_24px"
+        app:showAsAction="ifRoom"
+        android:title="@string/select_all" />
+</menu>

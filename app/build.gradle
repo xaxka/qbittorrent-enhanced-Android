@@ -3,6 +3,12 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// Version scheme: versionName = YY.MM.DD, versionCode = YYMMDDHHt (9 digits,
+// t = ten-minute digit 0-5). CI passes them via -PversionName / -PversionCode;
+// local builds fall back to 1.0.0 / 1.
+def appVersionName = (project.findProperty('versionName') ?: '1.0.0').toString()
+def appVersionCode = Integer.parseInt((project.findProperty('versionCode') ?: '1').toString())
+
 android {
     namespace 'io.github.xixka.qbittorrent'
     compileSdk 34
@@ -11,8 +17,8 @@ android {
         applicationId "io.github.xixka.qbittorrent"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        versionCode appVersionCode
+        versionName appVersionName
         vectorDrawables {
             useSupportLibrary true
         }
@@ -26,7 +32,7 @@ android {
         standard {
             dimension "edition"
             applicationId "io.github.xixka.qbittorrent"
-            resValue "string", "app_name", "qBittorrent"
+            resValue "string", "app_name", "qBittorrent Remote"
             buildConfigField "boolean", "IS_ENHANCED", "false"
         }
         enhanced {
@@ -72,7 +78,7 @@ android {
 dependencies {
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'

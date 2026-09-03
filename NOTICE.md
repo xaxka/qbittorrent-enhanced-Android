@@ -5,9 +5,12 @@ This project is licensed under the GNU AGPL-3.0 (see `LICENSE`).
 ## Third-party components
 
 * **LibreTorrent** — https://github.com/proninyaroslav/libretorrent (GPL-3.0)
-  UI/UX inspiration: Material 3 torrent-list card design, status filter tabs,
-  detail pages layout and the default theme palette. No source files were copied;
-  the Gradle wrapper is the standard Gradle distribution wrapper.
+  The UI is a port of LibreTorrent's Material 3 interface: theme system,
+  component styles, drawable icons, list/card/dialog/menu layouts and the
+  EmptyRecyclerView/EmptyListPlaceholder custom views are copied (GPL-3.0,
+  compatible with this project's AGPL-3.0 one-way) from the source above and
+  adapted to the qBittorrent Web API data layer. Original copyright belongs to
+  Yaroslav Pronin and LibreTorrent contributors.
 
 * **OpenListAndroid** — https://github.com/xaxka/OpenListAndroid (AGPL-3.0)
   `.github/scripts/build-qbt-nox-bionic.sh` is derived from OpenListAndroid's

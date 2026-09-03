@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- LibreTorrent component styles (GPL-3.0), preference-specific styles removed -->
+
+    <style name="App.Components.FloatingActionButton.Menu" parent="Widget.Material3.PopupMenu">
+        <item name="popupMenuBackground">@drawable/fab_menu_background</item>
+        <item name="textAppearanceSmallPopupMenu">
+            @style/App.Components.FloatingActionButton.Menu.Text
+        </item>
+        <item name="textAppearanceLargePopupMenu">
+            @style/App.Components.FloatingActionButton.Menu.Text
+        </item>
+        <item name="iconTint">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="App.Components.ListItem" parent="Widget.Material3.CardView.Outlined">
+        <item name="strokeWidth">0dp</item>
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+        <item name="checkedIcon">@null</item>
+    </style>
+
+    <style name="App.Components.ListItem.Label" parent="TextAppearance.Material3.BodyLarge" />
+
+    <style name="App.Components.ListItem.SupportingText" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <style name="App.Components.FloatingActionButton.Menu.Text" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="App.Components.ErrorReportDialog.StackTrace" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:typeface">monospace</item>
+    </style>
+
+    <style name="App.Components.MaterialCard.Filled.SurfaceVariant" parent="Widget.Material3.CardView.Filled">
+        <item name="android:backgroundTint">?attr/colorSurfaceContainer</item>
+    </style>
+
+    <style name="MaterialAlertDialog.App.Body.Text" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+    </style>
+
+    <style name="Widget.App.SearchBar" parent="Widget.Material3.SearchBar">
+        <item name="elevation">0dp</item>
+    </style>
+
+    <style name="Widget.App.AppBarLayout" parent="Widget.Material3.AppBarLayout">
+        <item name="elevation">0dp</item>
+    </style>
+
+    <style name="App.Components.SwitchBar" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="android:padding">24dp</item>
+    </style>
+
+    <style name="TextAppearance.App.Components.SwitchBar" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">?attr/colorOnPrimaryContainer</item>
+    </style>
+
+    <style name="TextAppearance.App.SectionTitle" parent="TextAppearance.Material3.TitleSmall" />
+</resources>

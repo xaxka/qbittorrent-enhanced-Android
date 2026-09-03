@@ -172,6 +172,10 @@ interface QBApiService {
     ): Response<ResponseBody>
 
     @FormUrlEncoded
+
+    @POST("api/v2/torrents/toggleFirstLastPiecePrio")
+    suspend fun toggleFirstLastPiecePriority(@Field("hashes") hashes: String): Response<ResponseBody>
+
     @POST("api/v2/torrents/toggleSequentialDownload")
     suspend fun toggleSequentialDownload(@Field("hashes") hashes: String): Response<ResponseBody>
 
