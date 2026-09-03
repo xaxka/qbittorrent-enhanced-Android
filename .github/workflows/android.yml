@@ -1,0 +1,210 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+  workflow_dispatch:
+
+env:
+  QT_VER: 6.8.3
+  OPENSSL_VER: 3.5.1
+  BOOST_VER: 1.86.0
+  ZLIB_NG_VER: 2.3.3
+  # qBittorrent-Enhanced-Edition release-5.2.3.10 (pinned commit)
+  QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+  # libtorrent RC_1_2 (pinned commit, matches upstream cross_build.sh recipe)
+  LT_REF: c5ff6c3186a92ddec01f6f0a8146aaedb4a1c3f9
+  ANDROID_PLATFORM: android-24
+  NDK_CCACHE: ccache
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Cross-compile qbittorrent-enhanced-nox from source for Android
+  # (bionic dynamic-linked build, per the OpenListAndroid pipeline:
+  #  Qt6 static + openssl-linked + libtorrent 1.2 + zlib-ng compat).
+  # The resulting binary is packaged as libqbittorrent-nox.so into the
+  # `enhanced` flavor jniLibs.
+  # ---------------------------------------------------------------------
+  qbt-nox:
+    name: Build qbittorrent-enhanced-nox (${{ matrix.ABI }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ABI: arm64-v8a
+            OPENSSL_TARGET: android-arm64
+          - ABI: armeabi-v7a
+            OPENSSL_TARGET: android-arm
+          - ABI: x86_64
+            OPENSSL_TARGET: android-x86_64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache nox output
+        id: nox-cache
+        uses: actions/cache@v4
+        with:
+          path: qbt-out
+          key: qbt-nox-bionic-${{ matrix.ABI }}-qbt${{ env.QBT_REF }}-lt${{ env.LT_REF }}-qt${{ env.QT_VER }}-ssl${{ env.OPENSSL_VER }}-v1
+
+      - name: Set up NDK r27c
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+
+      # qtbase's QtPlatformAndroid.cmake requires find_package(Java REQUIRED)
+      - name: Set up JDK 17 (temurin)
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Dependency prefix cache: reusable across runs (Qt/OpenSSL/zlib-ng/Boost installs)
+      - name: Restore dependency prefix
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: qbt-prefix
+          key: qbt-prefix-${{ matrix.ABI }}-gen1-${{ github.run_id }}
+          restore-keys: |
+            qbt-prefix-${{ matrix.ABI }}-gen1-
+
+      - name: Restore ccache
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ccache
+          key: qbt-ccache-${{ matrix.ABI }}-v1-${{ github.run_id }}
+          restore-keys: |
+            qbt-ccache-${{ matrix.ABI }}-v1-
+
+      - name: Build qbittorrent-enhanced-nox (bionic)
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+        run: |
+          ccache --zero-stats 2>/dev/null || true
+          bash .github/scripts/build-qbt-nox-bionic.sh \
+            "${{ matrix.ABI }}" "${{ matrix.OPENSSL_TARGET }}" \
+            "$GITHUB_WORKSPACE/qbt-out" "$GITHUB_WORKSPACE/qbt-prefix"
+
+      - name: Copy libc++_shared.so from NDK sysroot
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        run: |
+          NDK="${{ steps.setup-ndk.outputs.ndk-path }}"
+          case "${{ matrix.ABI }}" in
+            arm64-v8a)   TRIPLE=aarch64-linux-android ;;
+            armeabi-v7a) TRIPLE=armv7a-linux-androideabi ;;
+            x86_64)      TRIPLE=x86_64-linux-android ;;
+          esac
+          mkdir -p "qbt-out/${{ matrix.ABI }}"
+          cp "$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$TRIPLE/libc++_shared.so" \
+             "qbt-out/${{ matrix.ABI }}/libc++_shared.so"
+
+      - name: Save dependency prefix
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: qbt-prefix
+          key: qbt-prefix-${{ matrix.ABI }}-gen1-${{ github.run_id }}
+
+      - name: Save ccache
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/ccache
+          key: qbt-ccache-${{ matrix.ABI }}-v1-${{ github.run_id }}
+
+      - name: Verify nox artifacts
+        run: |
+          ls -laR qbt-out
+          test -s "qbt-out/${{ matrix.ABI }}/libqbittorrent-nox.so" || { echo "missing libqbittorrent-nox.so"; exit 1; }
+          test -s "qbt-out/${{ matrix.ABI }}/libc++_shared.so" || { echo "missing libc++_shared.so"; exit 1; }
+
+      - name: Upload nox libs
+        uses: actions/upload-artifact@v4
+        with:
+          name: qbt-nox-${{ matrix.ABI }}
+          path: qbt-out
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # Build both Android editions from the shared code base.
+  # ---------------------------------------------------------------------
+  build:
+    name: Build qBittorrent / qBittorrent Enhanced
+    runs-on: ubuntu-latest
+    needs: qbt-nox
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
+
+      - name: Download nox libs into enhanced jniLibs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: qbt-nox-*
+          path: app/src/enhanced/jniLibs
+          merge-multiple: true
+
+      - name: Verify jniLibs
+        run: |
+          ls -laR app/src/enhanced/jniLibs
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            test -s "app/src/enhanced/jniLibs/$abi/libqbittorrent-nox.so" || { echo "ERROR: missing libqbittorrent-nox.so for $abi"; exit 1; }
+            test -s "app/src/enhanced/jniLibs/$abi/libc++_shared.so" || { echo "ERROR: missing libc++_shared.so for $abi"; exit 1; }
+          done
+
+      - name: Build qBittorrent (standard edition)
+        run: ./gradlew assembleStandardDebug assembleStandardRelease --stacktrace
+
+      - name: Build qBittorrent Enhanced
+        run: ./gradlew assembleEnhancedDebug assembleEnhancedRelease --stacktrace
+
+      - name: List APK outputs
+        run: find app/build/outputs/apk -name '*.apk' -exec ls -la {} \;
+
+      - name: Verify enhanced APKs contain the nox engine
+        run: |
+          for apk in app/build/outputs/apk/enhanced/*/*.apk; do
+            echo "== $apk =="
+            unzip -l "$apk" | grep -E 'libqbittorrent-nox.so|libc\+\+_shared.so' || { echo "ERROR: nox engine missing in $apk"; exit 1; }
+          done
+
+      - name: Upload qBittorrent (standard) APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: qbittorrent-standard-apks
+          path: app/build/outputs/apk/standard/**/*.apk
+          if-no-files-found: error
+
+      - name: Upload qBittorrent Enhanced APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: qbittorrent-enhanced-apks
+          path: app/build/outputs/apk/enhanced/**/*.apk
+          if-no-files-found: error

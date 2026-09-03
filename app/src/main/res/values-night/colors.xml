@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="md_theme_primary">#CFBCFF</color>
+    <color name="md_theme_onPrimary">#381E72</color>
+    <color name="md_theme_primaryContainer">#4F3D74</color>
+    <color name="md_theme_onPrimaryContainer">#EBDDFF</color>
+    <color name="md_theme_secondary">#CBC2DB</color>
+    <color name="md_theme_onSecondary">#332B41</color>
+    <color name="md_theme_secondaryContainer">#4A4458</color>
+    <color name="md_theme_onSecondaryContainer">#E9DEF8</color>
+    <color name="md_theme_tertiary">#EFB8C8</color>
+    <color name="md_theme_onTertiary">#492532</color>
+    <color name="md_theme_tertiaryContainer">#633B46</color>
+    <color name="md_theme_onTertiaryContainer">#FFD9E1</color>
+    <color name="md_theme_error">#FFB4AB</color>
+    <color name="md_theme_onError">#690005</color>
+    <color name="md_theme_errorContainer">#93000A</color>
+    <color name="md_theme_onErrorContainer">#FFDAD6</color>
+    <color name="md_theme_background">#141218</color>
+    <color name="md_theme_onBackground">#E6E0E9</color>
+    <color name="md_theme_surface">#141218</color>
+    <color name="md_theme_onSurface">#E6E0E9</color>
+    <color name="md_theme_surfaceVariant">#49454E</color>
+    <color name="md_theme_onSurfaceVariant">#CAC4CE</color>
+    <color name="md_theme_outline">#948F99</color>
+    <color name="md_theme_surfaceContainer">#211F26</color>
+    <color name="colorOk">#8CD5A6</color>
+    <color name="colorOnOk">#00391F</color>
+    <color name="colorOkContainer">#12512E</color>
+    <color name="colorOnOkContainer">#B1F1C1</color>
+    <color name="torrent_active">#CFBCFF</color>
+    <color name="torrent_done">#8CD5A6</color>
+</resources>
