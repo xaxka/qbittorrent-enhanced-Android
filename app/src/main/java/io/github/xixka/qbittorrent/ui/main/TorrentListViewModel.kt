@@ -230,8 +230,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     private fun isPaused(t: TorrentInfo) =
         t.state.lowercase() in setOf("pauseddl", "pausedup", "stoppeddl", "stoppedup")
 
-    }
-
     fun pauseAll() = viewModelScope.launch { runCatching { repository.pauseAll() } }
     fun resumeAll() = viewModelScope.launch { runCatching { repository.resumeAll() } }
 

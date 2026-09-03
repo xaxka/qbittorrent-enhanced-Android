@@ -23,7 +23,7 @@ class PeersAdapter : ListAdapter<Peer, PeersAdapter.ViewHolder>(DIFF) {
         fun bind(peer: Peer) {
             binding.ip.text = peer.ip
             binding.port.text = String.format(Locale.ROOT, "Port: %d", peer.port)
-            binding.progress.text = Format.progress(peer.progress)
+            binding.progress.setProgress((peer.progress * 100).toInt())
             binding.relevance.text = String.format(
                 Locale.ROOT,
                 "%s %.1f%%",

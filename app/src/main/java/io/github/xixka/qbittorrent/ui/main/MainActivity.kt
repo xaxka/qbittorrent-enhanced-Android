@@ -360,7 +360,7 @@ class MainActivity : AppCompatActivity() {
         binding.homeContent.torrentList.setLoading(state.loading)
         adapter.submitList(state.torrents)
         searchAdapter.submitList(
-            if (state.searchQuery.isBlank()) emptyList() else state.torrents
+            if (viewModel.searchQuery.isBlank()) emptyList() else state.torrents
         )
 
         val emptyText = when {
@@ -378,7 +378,6 @@ class MainActivity : AppCompatActivity() {
             d.sessionDhtNodesStat.text = getString(R.string.dht_nodes_stat, it.dhtNodes.toString())
         }
         d.sessionListenPortStat.text = getString(R.string.session_listen_port, state.serverVersion)
-        d.freeSpace.text = getString(R.string.total_torrents_stat, state.allCount)
 
         updateDrawerCategories(state.categories)
     }

@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ItemTorrentListBinding
 import io.github.xixka.qbittorrent.model.TorrentInfo
@@ -72,7 +73,7 @@ class TorrentListAdapter(
             }
             binding.peers.text = "${t.numSeeds}/${t.numLeechsTotal}"
 
-            binding.pauseButton.isChecked = !isPaused(t.state)
+            (binding.pauseButton as MaterialButton).isChecked = !isPaused(t.state)
             binding.pauseButton.setOnClickListener {
                 onTogglePause(t, isPaused(t.state))
             }

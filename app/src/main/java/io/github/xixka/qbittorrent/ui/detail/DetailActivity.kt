@@ -52,8 +52,6 @@ class DetailActivity : AppCompatActivity() {
 
         binding.appBar.setNavigationOnClickListener { finishAfterTransition() }
         binding.appBar.setOnMenuItemClickListener { item -> onMenuItem(item.itemId) }
-
-        observeState()
     }
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
@@ -89,7 +87,7 @@ class DetailActivity : AppCompatActivity() {
             true
         }
 
-        else -> super.onOptionsItemSelected(item)
+        else -> false
     }
 
     private fun confirmDelete() {

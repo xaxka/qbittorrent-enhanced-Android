@@ -73,9 +73,9 @@ class InfoFragment : Fragment() {
         binding.savePath.text = state.properties?.savePath ?: info.savePath
         binding.size.text = Format.size(info.size)
         binding.hashSum.text = info.hash
-        binding.dateAdded.text = Format.date(info.addedOn)
+        binding.dateAdded.text = Format.epochDate(info.addedOn)
         binding.createDate.text =
-            state.properties?.creationDate?.takeIf { it > 0 }?.let { Format.date(it) } ?: "—"
+            state.properties?.creationDate?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"
         binding.torrentCreatedInProgram.text =
             state.properties?.createdBy?.takeIf { it.isNotBlank() } ?: "—"
         binding.comment.text =
