@@ -59,6 +59,12 @@ jobs:
         with:
           ndk-version: r27c
 
+      # ccache acceleration for reruns (script passes it to the NDK toolchain
+      # via -DNDK_CCACHE); mirrors the upstream OpenListAndroid job
+      - name: Ensure ccache
+        if: steps.nox-cache.outputs.cache-hit != 'true'
+        run: command -v ccache >/dev/null 2>&1 || { sudo apt-get update -q; sudo apt-get install -yq ccache; }
+
       # qtbase's QtPlatformAndroid.cmake requires find_package(Java REQUIRED)
       - name: Set up JDK 17 (temurin)
         if: steps.nox-cache.outputs.cache-hit != 'true'
@@ -86,6 +92,11 @@ jobs:
           restore-keys: |
             qbt-ccache-${{ matrix.ABI }}-v1-
 
+      # Full bionic cross-compile pipeline from OpenListAndroid: zlib-ng → OpenSSL
+      # → Boost headers → host Qt (aqt) → android Qt (static) → libtorrent RC_1_2
+      # → qBittorrent-Enhanced-nox. install_output() in the script also bundles
+      # libc++_shared.so (32-bit ARM sysroot dir is "arm-linux-androideabi")
+      # and validates e_type=DYN + PT_INTERP + bionic-only NEEDED deps.
       - name: Build qbittorrent-enhanced-nox (bionic)
         if: steps.nox-cache.outputs.cache-hit != 'true'
         env:
@@ -98,36 +109,7 @@ jobs:
           bash .github/scripts/build-qbt-nox-bionic.sh \
             "${{ matrix.ABI }}" "${{ matrix.OPENSSL_TARGET }}" \
             "$GITHUB_WORKSPACE/qbt-out" "$GITHUB_WORKSPACE/qbt-prefix"
-
-      - name: Copy libc++_shared.so from NDK sysroot
-        if: steps.nox-cache.outputs.cache-hit != 'true'
-        run: |
-          NDK="${{ steps.setup-ndk.outputs.ndk-path }}"
-          # sysroot lib dir: 64-bit matches the compiler triple, 32-bit ARM is
-          # "arm-linux-androideabi" while the clang target is armv7a-...
-          case "${{ matrix.ABI }}" in
-            arm64-v8a)    LIBDIR="aarch64-linux-android" ;;
-            armeabi-v7a)  LIBDIR="arm-linux-androideabi" ;;
-            x86_64)       LIBDIR="x86_64-linux-android" ;;
-          esac
-          SYSROOT="$NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib"
-          SRC=""
-          for cand in "$SYSROOT/$LIBDIR" "$SYSROOT"/"$LIBDIR"* ; do
-            if [ -f "$cand/libc++_shared.so" ]; then SRC="$cand/libc++_shared.so"; break; fi
-          done
-          if [ -z "$SRC" ]; then
-            SRC=$(find "$SYSROOT" -name libc++_shared.so -path "*$LIBDIR*" 2>/dev/null | sort | head -1)
-          fi
-          if [ -z "$SRC" ] || [ ! -f "$SRC" ]; then
-            echo "ERROR: libc++_shared.so not found under $SYSROOT for $LIBDIR"
-            ls -la "$SYSROOT" || true
-            find "$NDK" -name libc++_shared.so 2>/dev/null | head -20 || true
-            exit 1
-          fi
-          echo "libc++_shared.so source: $SRC"
-          mkdir -p "qbt-out/${{ matrix.ABI }}"
-          cp "$SRC" "qbt-out/${{ matrix.ABI }}/libc++_shared.so"
-          ls -la "qbt-out/${{ matrix.ABI }}/"
+          ccache --show-stats 2>/dev/null || true
 
       - name: Save dependency prefix
         if: ${{ always() && steps.nox-cache.outputs.cache-hit != 'true' }}
