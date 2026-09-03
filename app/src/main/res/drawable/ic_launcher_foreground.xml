@@ -1,14 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Official qBittorrent logo (launcher foreground, safe-zone sized).
+     Source: qbittorrent/qBittorrent src/icons/qbittorrent-tray.svg (GPL). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,54m-30,0a30,30 0,1 1,60 0a30,30 0,1 1,-60 0"
-        android:fillAlpha="0.15" />
+        android:strokeColor="#DAEFFF"
+        android:strokeWidth="19.097"
+        android:pathData="M 215.993 512 A 296.007 296.007 0 1 0 808.007 512 A 296.007 296.007 0 1 0 215.993 512 Z">
+    <aapt:attr name="android:fillColor">
+        <gradient
+            android:type="linear"
+            android:startX="414.295"
+            android:startY="206.445"
+            android:endX="673.168"
+            android:endY="675.808">
+            <item
+                android:offset="0.0"
+                android:color="#72B4F5" />
+            <item
+                android:offset="1.0"
+                android:color="#356EBF" />
+        </gradient>
+    </aapt:attr>
+    </path>
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M50,38h8v22h10l-14,14 -14,-14h10z" />
+        android:fillColor="#FFF"
+        android:pathData="M 631.893 404.816 Q 671.674 404.816 693.589 432.072 Q 715.689 459.145 715.689 508.869 Q 715.689 558.594 693.404 586.219 Q 671.305 613.659 631.893 613.659 Q 612.188 613.659 595.797 606.477 Q 579.591 599.11 568.541 584.009 L 566.331 584.009 L 559.886 609.976 L 537.969 609.976 L 537.969 323.415 L 568.541 323.415 L 568.541 393.03 Q 568.541 416.419 567.067 435.02 L 568.541 435.02 Q 589.904 404.816 631.893 404.816 Z M 627.474 430.415 Q 596.166 430.415 582.354 448.463 Q 568.541 466.327 568.541 508.869 Q 568.541 551.411 582.722 569.828 Q 596.902 588.06 628.21 588.06 Q 656.387 588.06 670.2 567.618 Q 684.012 546.992 684.012 508.501 Q 684.012 469.089 670.2 449.752 Q 656.387 430.415 627.474 430.415 Z" />
+    <path
+        android:fillColor="#C8E8FF"
+        android:pathData="M 395.789 588.061 Q 426.361 588.061 440.357 571.669 Q 454.354 555.279 455.275 516.42 L 455.275 509.606 Q 455.275 467.248 440.91 448.647 Q 426.545 430.047 395.421 430.047 Q 368.533 430.047 354.168 451.042 Q 339.987 471.852 339.987 509.975 Q 339.987 548.097 353.984 568.17 Q 368.164 588.06 395.789 588.06 Z M 391.185 613.659 Q 352.142 613.659 330.227 586.219 Q 308.311 558.778 308.311 509.606 Q 308.311 460.066 330.411 432.257 Q 352.51 404.447 391.922 404.447 Q 433.359 404.447 455.643 435.756 L 457.301 435.756 L 461.721 408.131 L 485.846 408.131 L 485.846 700.585 L 455.275 700.585 L 455.275 614.212 Q 455.275 595.795 457.301 582.904 L 454.906 582.904 Q 433.728 613.659 391.185 613.659 Z" />
 </vector>

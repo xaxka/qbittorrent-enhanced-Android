@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Official qBittorrent logo. Source: qbittorrent/qBittorrent
+     src/icons/qbittorrent-tray.svg (GPL). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <path
+        android:strokeColor="#DAEFFF"
+        android:strokeWidth="31.25"
+        android:pathData="M 27.625 512 A 484.375 484.375 0 1 0 996.375 512 A 484.375 484.375 0 1 0 27.625 512 Z">
+    <aapt:attr name="android:fillColor">
+        <gradient
+            android:type="linear"
+            android:startX="352.12"
+            android:startY="12"
+            android:endX="775.73"
+            android:endY="780.05">
+            <item
+                android:offset="0.0"
+                android:color="#72B4F5" />
+            <item
+                android:offset="1.0"
+                android:color="#356EBF" />
+        </gradient>
+    </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFF"
+        android:pathData="M 708.189 336.608 Q 773.284 336.608 809.146 381.209 Q 845.309 425.51 845.309 506.877 Q 845.309 588.244 808.844 633.449 Q 772.682 678.352 708.189 678.352 Q 675.943 678.352 649.123 666.599 Q 622.603 654.544 604.521 629.832 L 600.905 629.832 L 590.358 672.324 L 554.495 672.324 L 554.495 203.406 L 604.521 203.406 L 604.521 317.322 Q 604.521 355.595 602.11 386.032 L 604.522 386.032 Q 639.479 336.608 708.189 336.608 Z M 700.957 378.497 Q 649.726 378.497 627.124 408.03 Q 604.521 437.263 604.521 506.877 Q 604.521 576.491 627.726 606.628 Q 650.931 636.462 702.162 636.462 Q 748.27 636.462 770.873 603.011 Q 793.475 569.259 793.475 506.274 Q 793.475 441.782 770.873 410.14 Q 748.27 378.497 700.957 378.497 Z" />
+    <path
+        android:fillColor="#C8E8FF"
+        android:pathData="M 321.837 636.463 Q 371.863 636.463 394.767 609.641 Q 417.67 582.82 419.177 519.232 L 419.177 508.082 Q 419.177 438.77 395.671 408.332 Q 372.165 377.895 321.234 377.895 Q 277.235 377.895 253.729 412.25 Q 230.524 446.303 230.524 508.686 Q 230.524 571.067 253.429 603.915 Q 276.633 636.462 321.837 636.462 Z M 314.303 678.352 Q 250.415 678.352 214.553 633.449 Q 178.69 588.546 178.69 508.082 Q 178.69 427.017 214.854 381.511 Q 251.017 336.005 315.509 336.005 Q 383.314 336.005 419.779 387.236 L 422.492 387.236 L 429.725 342.032 L 469.203 342.032 L 469.203 820.594 L 419.177 820.594 L 419.177 679.256 Q 419.177 649.119 422.492 628.024 L 418.574 628.024 Q 383.918 678.352 314.303 678.352 Z" />
+</vector>
