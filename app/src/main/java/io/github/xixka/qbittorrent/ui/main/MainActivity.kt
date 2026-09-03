@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val viewModel: TorrentListViewModel by viewModels { TorrentListViewModel.factory(this) }
+    private val viewModel: TorrentListViewModel by viewModels { TorrentListViewModel.factory(application) }
 
     private lateinit var adapter: TorrentListAdapter
     private var actionMode: ActionMode? = null

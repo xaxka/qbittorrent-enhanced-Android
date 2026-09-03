@@ -39,7 +39,7 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun trackers(hash: String): List<Tracker> = client.withAuth { it.torrentTrackers(hash) }
 
     suspend fun peers(hash: String): List<Peer> =
-        client.withAuth { it.torrentPeers(hash).peers?.values.orEmpty().toList() }
+        client.withAuth { it.torrentPeers(hash).peers?.values?.toList() ?: emptyList() }
 
     suspend fun categories(): Map<String, QBCategory> = client.withAuth { it.categories() }
 
