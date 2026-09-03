@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
@@ -12,6 +13,8 @@ import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivitySettingsBinding
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.qbt.LocalEngineService
+import io.github.xixka.qbittorrent.util.WindowInsetsSide
+import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,8 +29,11 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // keep the form clear of the navigation bar in the edge-to-edge layout
+        applyWindowInsets(binding.settingsScroll, WindowInsetsSide.BOTTOM)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -53,14 +59,17 @@ class SettingsActivity : AppCompatActivity() {
         val prefs = ServiceLocator.prefs(this)
         val cfg = prefs.serverConfig()
         binding.hostInput.setText(cfg.host)
-        binding.portInput.setText(if (cfg.port <= 0) ServerConfig.DEFAULT_PORT else cfg.port)
+        // NB: TextView.setText(Int) resolves a resource ID, NOT a number —
+        // passing the port directly crashed with Resources$NotFoundException.
+        val portValue = if (cfg.port <= 0) ServerConfig.DEFAULT_PORT else cfg.port
+        binding.portInput.setText(portValue.toString())
         binding.usernameInput.setText(cfg.username)
         binding.passwordInput.setText(prefs.password)
         binding.basePathInput.setText(cfg.basePath)
         binding.httpsSwitch.isChecked = cfg.https
         binding.trustAllSwitch.isChecked = cfg.trustAllCerts
 
-        binding.enginePortInput.setText(prefs.enginePort)
+        binding.enginePortInput.setText(prefs.enginePort.toString())
         binding.engineSavePathInput.setText(prefs.engineSavePath)
         binding.engineLanSwitch.isChecked = prefs.engineLanAccess
         binding.engineAutoStartSwitch.isChecked = prefs.engineAutoStart

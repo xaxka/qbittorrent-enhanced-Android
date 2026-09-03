@@ -13,6 +13,8 @@ import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityAddTorrentBinding
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.WindowInsetsSide
+import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,8 +37,11 @@ class AddTorrentActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityAddTorrentBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // keep the form clear of the navigation bar in the edge-to-edge layout
+        applyWindowInsets(binding.addScroll, WindowInsetsSide.BOTTOM)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 

@@ -16,6 +16,8 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ActivityDetailBinding
+import io.github.xixka.qbittorrent.util.WindowInsetsSide
+import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
 
 /**
@@ -33,8 +35,11 @@ class DetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // keep list pages clear of the navigation bar / display cutouts
+        applyWindowInsets(binding.viewPager, WindowInsetsSide.BOTTOM)
 
         // LibreTorrent-style: plain MaterialToolbar with app:menu, no setSupportActionBar
         binding.appBar.title = title
