@@ -36,7 +36,7 @@ class LocalEngineService : Service() {
 
     private var watchdogJob: kotlinx.coroutines.Job? = null
 
-    override fun onBind(intent: IBinder?): IBinder? = null
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()

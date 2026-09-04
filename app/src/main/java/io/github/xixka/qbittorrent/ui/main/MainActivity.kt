@@ -573,7 +573,7 @@ class MainActivity : AppCompatActivity() {
                 val picked = options[which]
                 when {
                     picked == getString(R.string.category_new) ->
-                        promptCategoryName { name -> applyCategory(hashes, name) }
+                        promptCategoryName { name, _ -> applyCategory(hashes, name) }
 
                     picked == getString(R.string.category_remove) ->
                         applyCategory(hashes, "")

@@ -290,7 +290,7 @@ class RssActivity : AppCompatActivity() {
         addPaused?.isChecked = rule?.addPaused ?: false
         category?.setText(rule?.assignedCategory.orEmpty())
         savePath?.setText(rule?.savePath.orEmpty())
-        affectedFeeds?.setText(rule?.affectedFeeds.joinToString("\n"))
+        affectedFeeds?.setText(rule?.affectedFeeds.orEmpty().joinToString("\n"))
 
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(if (name == null) getString(R.string.rss_add_rule) else name)

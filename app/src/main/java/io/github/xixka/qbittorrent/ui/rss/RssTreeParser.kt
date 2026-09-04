@@ -23,12 +23,13 @@ object RssTreeParser {
             val uid = child.get("uid")?.takeIf { it.isJsonPrimitive }?.asString
             if (uid != null) {
                 val url = child.get("url")?.takeIf { it.isJsonPrimitive }?.asString ?: ""
-                val articles = child.get("articles")?.takeIf { it.isJsonArray }?.let { arr ->
-                    arr.mapNotNull { el ->
-                        val a = el as? JsonObject ?: return@mapNotNull null
-                        runCatching { parseArticle(a) }.getOrNull()
-                    }
-                } ?: emptyList()
+                val articles: List<RssArticle> =
+                    child.get("articles")?.takeIf { it.isJsonArray }?.asJsonArray
+                        ?.mapNotNull { el ->
+                            val a = el as? JsonObject ?: return@mapNotNull null
+                            runCatching { parseArticle(a) }.getOrNull()
+                        }
+                        ?: emptyList()
                 result.add(
                     RssFeedNode(
                         name = key,
