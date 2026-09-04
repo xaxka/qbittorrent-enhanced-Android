@@ -1,5 +1,6 @@
 package io.github.xixka.qbittorrent.data
 
+import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.model.Peer
 import io.github.xixka.qbittorrent.model.QBCategory
@@ -21,6 +22,13 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun appVersion(): String = client.withAuth { it.appVersion() }
 
     suspend fun webApiVersion(): String = client.withAuth { it.webApiVersion() }
+
+    /** Full preference snapshot (`GET /api/v2/app/preferences`). */
+    suspend fun appPreferences(): JsonObject = client.withAuth { it.appPreferences() }
+
+    /** Partial preference update (`POST /api/v2/app/setPreferences`). */
+    suspend fun setPreferences(diff: JsonObject) =
+        client.withAuth { it.setPreferences(diff.toString()) }
 
     suspend fun transferInfo(): TransferInfo = client.withAuth { it.transferInfo() }
 

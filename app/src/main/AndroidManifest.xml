@@ -73,6 +73,18 @@
             android:exported="false"
             android:label="@string/settings" />
 
+        <!--
+            Form-heavy preferences editor: surviving rotations without
+            recreating the views keeps the user's in-progress edits intact.
+        -->
+        <activity
+            android:name=".ui.qbsettings.QBSettingsActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="false"
+            android:label="@string/qbt_settings_title"
+            android:parentActivityName=".ui.settings.SettingsActivity"
+            android:windowSoftInputMode="adjustResize" />
+
         <service
             android:name=".qbt.LocalEngineService"
             android:exported="false"

@@ -7,15 +7,15 @@ import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.qbt.NoxConfig
 
 /**
- * Application preferences: remote server profile + local engine settings.
+ * Application preferences: server connection profile + local engine settings.
  *
  * Never stores anything else than what the user explicitly typed;
  * no tokens or secrets beyond the WebUI password the user chose to store.
  *
- * In the Enhanced edition the defaults point at the bundled local engine
- * (127.0.0.1 + the seeded WebUI credentials), so the app is usable out of
- * the box — the engine auto-starts with the app and the client connects to
- * it without any manual setup.
+ * In the Enhanced edition the default client endpoint is derived from the
+ * bundled engine (see [serverConfig]) — the app is usable out of the box and
+ * never asks for server configuration unless the user opts in to a remote
+ * server. In the standard edition the remote profile is always used.
  */
 class Prefs(context: Context) {
 
@@ -46,16 +46,25 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_USERNAME, "admin") ?: "admin"
         set(value) = sp.edit().putString(KEY_USERNAME, value).apply()
 
+    // Remote-server credentials (used when useRemoteServer is on).
+    // The bundled engine keeps its own credentials (engineUsername/…Password).
     var password: String
-        get() = sp.getString(
-            KEY_PASSWORD,
-            if (BuildConfig.IS_ENHANCED) NoxConfig.WEBUI_DEFAULT_PASSWORD else ""
-        ) ?: ""
+        get() = sp.getString(KEY_PASSWORD, "") ?: ""
         set(value) = sp.edit().putString(KEY_PASSWORD, value).apply()
 
     var pollIntervalSec: Int
         get() = sp.getInt(KEY_POLL, 2).coerceIn(1, 60)
         set(value) = sp.edit().putInt(KEY_POLL, value).apply()
+
+    /**
+     * Whether the app talks to a remote server instead of the bundled
+     * engine. The standard (remote-control) edition always answers true;
+     * the Enhanced edition defaults to the bundled engine and only asks
+     * for server configuration when the user explicitly opts in.
+     */
+    var useRemoteServer: Boolean
+        get() = if (BuildConfig.IS_ENHANCED) sp.getBoolean(KEY_USE_REMOTE, false) else true
+        set(value) = sp.edit().putBoolean(KEY_USE_REMOTE, value).apply()
 
     // ---- local engine (qBittorrent Enhanced flavor only) ----
 
@@ -71,28 +80,61 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_ENGINE_SAVE_PATH, "") ?: ""
         set(value) = sp.edit().putString(KEY_ENGINE_SAVE_PATH, value).apply()
 
+    // LAN access is on by default: the WebUI listens on every interface (with
+    // authentication), so other devices in the network can reach it without
+    // digging through settings. Setting it off binds to loopback only.
     var engineLanAccess: Boolean
-        get() = sp.getBoolean(KEY_ENGINE_LAN, false)
+        get() = sp.getBoolean(KEY_ENGINE_LAN, true)
         set(value) = sp.edit().putBoolean(KEY_ENGINE_LAN, value).apply()
 
     var engineAutoStart: Boolean
         get() = sp.getBoolean(KEY_ENGINE_AUTOSTART, BuildConfig.IS_ENHANCED)
         set(value) = sp.edit().putBoolean(KEY_ENGINE_AUTOSTART, value).apply()
 
+    // Credentials of the bundled engine's WebUI. Kept separate from the
+    // remote-server credentials so switching between engine and remote
+    // never overwrites either profile.
+    var engineUsername: String
+        get() = sp.getString(KEY_ENGINE_USERNAME, NoxConfig.WEBUI_USERNAME) ?: NoxConfig.WEBUI_USERNAME
+        set(value) = sp.edit().putString(KEY_ENGINE_USERNAME, value).apply()
+
+    var enginePassword: String
+        get() = sp.getString(KEY_ENGINE_PASSWORD, NoxConfig.WEBUI_DEFAULT_PASSWORD) ?: NoxConfig.WEBUI_DEFAULT_PASSWORD
+        set(value) = sp.edit().putString(KEY_ENGINE_PASSWORD, value).apply()
+
+    /** True when the app is currently driven by the bundled engine. */
+    val usingLocalEngine: Boolean
+        get() = BuildConfig.IS_ENHANCED && !useRemoteServer
+
     /** Epoch millis of the last automatic update check (GitHub Releases). */
     var lastUpdateCheck: Long
         get() = sp.getLong(KEY_UPDATE_CHECK_LAST, 0L)
         set(value) = sp.edit().putLong(KEY_UPDATE_CHECK_LAST, value).apply()
 
-    fun serverConfig(): ServerConfig = ServerConfig(
-        host = serverHost,
-        port = serverPort,
-        https = serverHttps,
-        basePath = serverBasePath,
-        username = username,
-        password = password,
-        trustAllCerts = serverTrustAll,
-    )
+    fun serverConfig(): ServerConfig =
+        if (usingLocalEngine) {
+            // Derived endpoint: always points at the bundled engine, so the
+            // client follows engine port/credential changes automatically.
+            ServerConfig(
+                host = LOCAL_ENGINE_HOST,
+                port = enginePort,
+                https = false,
+                basePath = "",
+                username = engineUsername,
+                password = enginePassword,
+                trustAllCerts = false,
+            )
+        } else {
+            ServerConfig(
+                host = serverHost,
+                port = serverPort,
+                https = serverHttps,
+                basePath = serverBasePath,
+                username = username,
+                password = password,
+                trustAllCerts = serverTrustAll,
+            )
+        }
 
     fun registerChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         sp.registerOnSharedPreferenceChangeListener(listener)
@@ -121,6 +163,9 @@ class Prefs(context: Context) {
         const val KEY_ENGINE_SAVE_PATH = "engine_save_path"
         const val KEY_ENGINE_LAN = "engine_lan"
         const val KEY_ENGINE_AUTOSTART = "engine_autostart"
+        const val KEY_USE_REMOTE = "use_remote_server"
+        const val KEY_ENGINE_USERNAME = "engine_username"
+        const val KEY_ENGINE_PASSWORD = "engine_password"
         const val KEY_UPDATE_CHECK_LAST = "update_check_last"
     }
 }

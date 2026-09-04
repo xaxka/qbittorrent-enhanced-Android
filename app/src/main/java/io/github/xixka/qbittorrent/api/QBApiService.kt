@@ -1,5 +1,6 @@
 package io.github.xixka.qbittorrent.api
 
+import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.model.PeerSyncResponse
 import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentFile
@@ -40,6 +41,22 @@ interface QBApiService {
 
     @GET("api/v2/app/webapiVersion")
     suspend fun webApiVersion(): String
+
+    /**
+     * Full preference snapshot of the connected qBittorrent instance
+     * (the same object the WebUI's Tools-Options dialog reads).
+     */
+    @GET("api/v2/app/preferences")
+    suspend fun appPreferences(): JsonObject
+
+    /**
+     * Applies a partial preference update. `json` is a URL-encoded JSON
+     * object holding only the keys that should change — exactly how the
+     * official WebUI saves the Options dialog.
+     */
+    @FormUrlEncoded
+    @POST("api/v2/app/setPreferences")
+    suspend fun setPreferences(@Field("json") json: String): Response<ResponseBody>
 
     // ---------- transfer ----------
 

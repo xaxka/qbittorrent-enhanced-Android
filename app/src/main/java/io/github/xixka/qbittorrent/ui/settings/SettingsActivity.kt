@@ -1,5 +1,6 @@
 package io.github.xixka.qbittorrent.ui.settings
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -13,6 +14,7 @@ import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivitySettingsBinding
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.qbt.LocalEngineService
+import io.github.xixka.qbittorrent.ui.qbsettings.QBSettingsActivity
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +22,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Server connection settings (address / port / credentials, default port 8080)
- * plus local engine controls for the Enhanced edition.
+ * Settings hub.
+ *
+ * The Enhanced edition behaves like a native qBittorrent app: the bundled
+ * engine is the default and the full parameter editor is one tap away — no
+ * engine URLs or ports to fill in. Server-connection fields exist too, but
+ * stay hidden until the user explicitly switches to a remote server. The
+ * standard (remote-control) edition shows the connection form up front.
  */
 class SettingsActivity : AppCompatActivity() {
 
@@ -37,17 +44,48 @@ class SettingsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        load()
+        // ---- qBittorrent preferences (live engine/server settings) ----
+        binding.qbSettingsCard.setOnClickListener {
+            startActivity(Intent(this, QBSettingsActivity::class.java))
+        }
 
-        binding.testButton.setOnClickListener { testConnection() }
-        binding.saveButton.setOnClickListener { save() }
+        // ---- app settings ----
+        val prefs = ServiceLocator.prefs(this)
+        binding.pollInput.setText(prefs.pollIntervalSec.toString())
 
+        // ---- engine group (Enhanced edition only) ----
         if (BuildConfig.IS_ENHANCED && LocalEngineManager.isSupported(this)) {
             binding.engineSection.visibility = View.VISIBLE
+            binding.engineAutoStartSwitch.isChecked = prefs.engineAutoStart
+            binding.engineAutoStartSwitch.setOnCheckedChangeListener { _, checked ->
+                prefs.engineAutoStart = checked
+            }
             binding.engineToggleButton.setOnClickListener { toggleEngine() }
         } else {
             binding.engineSection.visibility = View.GONE
         }
+
+        // ---- server connection ----
+        if (BuildConfig.IS_ENHANCED) {
+            binding.remoteSwitch.visibility = View.VISIBLE
+            binding.remoteSwitchSub.visibility = View.VISIBLE
+            binding.remoteSwitch.isChecked = prefs.useRemoteServer
+            binding.remoteSwitch.setOnCheckedChangeListener { _, checked ->
+                prefs.useRemoteServer = checked
+                binding.remoteForm.visibility = if (checked) View.VISIBLE else View.GONE
+                ServiceLocator.resetClient()
+            }
+            binding.remoteForm.visibility = if (prefs.useRemoteServer) View.VISIBLE else View.GONE
+        } else {
+            binding.remoteSwitch.visibility = View.GONE
+            binding.remoteSwitchSub.visibility = View.GONE
+            binding.remoteForm.visibility = View.VISIBLE
+        }
+
+        loadRemoteForm()
+
+        binding.testButton.setOnClickListener { testConnection() }
+        binding.saveButton.setOnClickListener { save() }
     }
 
     override fun onResume() {
@@ -55,43 +93,29 @@ class SettingsActivity : AppCompatActivity() {
         updateEngineStatus()
     }
 
-    private fun load() {
+    private fun loadRemoteForm() {
         val prefs = ServiceLocator.prefs(this)
-        val cfg = prefs.serverConfig()
-        binding.hostInput.setText(cfg.host)
+        binding.hostInput.setText(prefs.serverHost)
         // NB: TextView.setText(Int) resolves a resource ID, NOT a number —
         // passing the port directly crashed with Resources$NotFoundException.
-        val portValue = if (cfg.port <= 0) ServerConfig.DEFAULT_PORT else cfg.port
+        val portValue = if (prefs.serverPort <= 0) ServerConfig.DEFAULT_PORT else prefs.serverPort
         binding.portInput.setText(portValue.toString())
-        binding.usernameInput.setText(cfg.username)
+        binding.usernameInput.setText(prefs.username)
         binding.passwordInput.setText(prefs.password)
-        binding.basePathInput.setText(cfg.basePath)
-        binding.httpsSwitch.isChecked = cfg.https
-        binding.trustAllSwitch.isChecked = cfg.trustAllCerts
-
-        binding.enginePortInput.setText(prefs.enginePort.toString())
-        binding.engineSavePathInput.setText(prefs.engineSavePath)
-        binding.engineLanSwitch.isChecked = prefs.engineLanAccess
-        binding.engineAutoStartSwitch.isChecked = prefs.engineAutoStart
+        binding.basePathInput.setText(prefs.serverBasePath)
+        binding.httpsSwitch.isChecked = prefs.serverHttps
+        binding.trustAllSwitch.isChecked = prefs.serverTrustAll
     }
 
     private fun save() {
         val prefs = ServiceLocator.prefs(this)
-        prefs.serverHost = binding.hostInput.text?.toString().orEmpty()
-        prefs.serverPort = binding.portInput.text?.toString()?.toIntOrNull()
-            ?: ServerConfig.DEFAULT_PORT
-        prefs.username = binding.usernameInput.text?.toString()?.trim().orEmpty()
-        prefs.password = binding.passwordInput.text?.toString().orEmpty()
-        prefs.serverBasePath = binding.basePathInput.text?.toString()?.trim().orEmpty()
-        prefs.serverHttps = binding.httpsSwitch.isChecked
-        prefs.serverTrustAll = binding.trustAllSwitch.isChecked
-        prefs.pollIntervalSec = 2
+        binding.pollInput.text?.toString()?.trim()?.toIntOrNull()?.let {
+            prefs.pollIntervalSec = it.coerceIn(1, 60)
+        }
 
-        prefs.enginePort = binding.enginePortInput.text?.toString()?.toIntOrNull()
-            ?: ServerConfig.DEFAULT_PORT
-        prefs.engineSavePath = binding.engineSavePathInput.text?.toString()?.trim().orEmpty()
-        prefs.engineLanAccess = binding.engineLanSwitch.isChecked
-        prefs.engineAutoStart = binding.engineAutoStartSwitch.isChecked
+        if (binding.remoteForm.visibility == View.VISIBLE) {
+            saveRemoteForm(prefs)
+        }
 
         ServiceLocator.resetClient()
         Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show()
@@ -124,9 +148,13 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /** Persist values without finishing the screen (used by “test”). */
+    /** Persist connection values without finishing the screen (used by "test"). */
     private fun saveQuietly() {
-        val prefs = ServiceLocator.prefs(this)
+        saveRemoteForm(ServiceLocator.prefs(this))
+        ServiceLocator.resetClient()
+    }
+
+    private fun saveRemoteForm(prefs: io.github.xixka.qbittorrent.data.Prefs) {
         prefs.serverHost = binding.hostInput.text?.toString().orEmpty()
         prefs.serverPort = binding.portInput.text?.toString()?.toIntOrNull()
             ?: ServerConfig.DEFAULT_PORT
@@ -135,7 +163,6 @@ class SettingsActivity : AppCompatActivity() {
         prefs.serverBasePath = binding.basePathInput.text?.toString()?.trim().orEmpty()
         prefs.serverHttps = binding.httpsSwitch.isChecked
         prefs.serverTrustAll = binding.trustAllSwitch.isChecked
-        ServiceLocator.resetClient()
     }
 
     private fun toggleEngine() {
@@ -148,13 +175,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateEngineStatus() {
-        if (!BuildConfig.IS_ENHANCED) return
+        if (!BuildConfig.IS_ENHANCED || binding.engineSection.visibility != View.VISIBLE) return
         binding.engineStatusText.setText(
             when (LocalEngineManager.state) {
                 LocalEngineManager.State.RUNNING -> R.string.engine_status_running
                 LocalEngineManager.State.STARTING -> R.string.engine_status_starting
                 else -> R.string.engine_status_stopped
             }
+        )
+        binding.engineToggleButton.setText(
+            if (LocalEngineManager.isRunning()) R.string.settings_engine_stop
+            else R.string.settings_engine_start
         )
     }
 

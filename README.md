@@ -23,10 +23,16 @@ WebUI embedding.
 * File priorities (skip / normal / high / maximum), sequential download, super seeding
 * Torrent details: overview properties, content files, trackers (add/remove), peers
 * Global speed limits, alternative speed limits toggle
+* **Full qBittorrent preferences editor** (Settings → *Open qBittorrent settings*):
+  reads the live configuration of the connected qBittorrent instance and writes
+  edits back through the exact WebUI Options API — speed limits & scheduler,
+  queueing, seeding limits, connection/proxy settings, WebUI binding &
+  credentials, key libtorrent tunables — with 13 languages
 * Multi-select bulk actions with a contextual action bar
 * Enhanced edition: local engine management (start/stop, run at boot, LAN access mode)
 * Enhanced edition: the bundled engine **starts together with the app** and the client
-  auto-connects to it (127.0.0.1 + seeded WebUI credentials) — zero manual setup
+  auto-connects to it (127.0.0.1 + seeded WebUI credentials) — zero manual setup,
+  and no engine-URL questions at all unless the user opts into a remote server
 * Edge-to-edge Material 3 layout, LibreTorrent-parity (inset-aware list, drawer, dividers)
 * **In-app update check** against the GitHub Releases published by CI
   (menu → *Check for updates*, plus a non-intrusive daily automatic check)
@@ -43,6 +49,7 @@ The client implements the upstream Web API v2 unchanged, e.g.:
 * `GET  /api/v2/torrents/info`, `properties`, `files`, `trackers`, `peers`
 * `POST /api/v2/torrents/add|pause|resume|delete|recheck|reannounce|filePrio|…`
 * `GET  /api/v2/transfer/info`, `POST /api/v2/transfer/setDownloadLimit|…`
+* `GET  /api/v2/app/preferences`, `POST /api/v2/app/setPreferences` (live options editor)
 
 Server address, port (default 8080), base path, username and password are configured
 in **Settings**; nothing is hard-coded and no credentials are stored in the repository.

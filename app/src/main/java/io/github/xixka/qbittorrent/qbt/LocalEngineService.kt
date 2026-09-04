@@ -54,26 +54,14 @@ class LocalEngineService : Service() {
             if (LocalEngineManager.state == LocalEngineManager.State.FAILED) {
                 stopSelf()
             } else {
-                ensureClientPointsAtEngine(prefs)
+                // the client endpoint is derived from the engine settings
+                // (see Prefs.serverConfig); drop cached connections so the
+                // client binds to the freshly started engine
+                ServiceLocator.resetClient()
                 startForegroundCompat()
             }
         }
         return START_STICKY
-    }
-
-    /**
-     * Once the local engine is up, make sure the app client connects to it
-     * when no remote server has been configured (first run / blank profile).
-     */
-    private fun ensureClientPointsAtEngine(prefs: io.github.xixka.qbittorrent.data.Prefs) {
-        if (prefs.serverConfig().isConfigured) return
-        prefs.serverHost = io.github.xixka.qbittorrent.data.Prefs.LOCAL_ENGINE_HOST
-        prefs.serverPort = prefs.enginePort
-        prefs.username = NoxConfig.WEBUI_USERNAME
-        if (prefs.password.isBlank()) {
-            prefs.password = NoxConfig.WEBUI_DEFAULT_PASSWORD
-        }
-        ServiceLocator.resetClient()
     }
 
     override fun onDestroy() {
