@@ -450,6 +450,11 @@ build_libtorrent() {
     git -C "$src" checkout -q FETCH_HEAD
     git -C "$src" log -1 --oneline >&2 || true
   fi
+  # libtorrent 2.x 的源码树含 git 子模块（deps/try_signal 等被
+  # CMakeLists 直接 add_library），浅 fetch 检出不会带上它们，
+  # 缺失时 configure 即报 "Cannot find source file: deps/try_signal/…"
+  git -C "$src" submodule update --init --depth 1 -- deps/try_signal deps/asio-gnutls >&2 || \
+    git -C "$src" submodule update --init --depth 1 >&2
   # Android 假「监听 IP 失败」告警抑制（enum_routes 存根，见函数头注释）
   patch_libtorrent_android "$src"
   rm -rf "$WORK_DIR/libtorrent"
