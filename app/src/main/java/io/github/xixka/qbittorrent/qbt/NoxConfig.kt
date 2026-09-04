@@ -48,6 +48,7 @@ object NoxConfig {
     private const val KEY_WEBUI_PORT = "WebUI\\Port"
     private const val KEY_WEBUI_USERNAME = "WebUI\\Username"
     private const val KEY_WEBUI_LOCAL_AUTH = "WebUI\\LocalHostAuth"
+    private const val KEY_WEBUI_HOST_VALIDATION = "WebUI\\HostHeaderValidation"
     private const val KEY_WEBUI_PASSWORD = "WebUI\\Password_PBKDF2"
     private const val KEY_SAVE_PATH = "Session\\DefaultSavePath"
 
@@ -83,7 +84,7 @@ object NoxConfig {
     }
 
     private fun writeDefaultConfig(conf: File, webUiPort: Int, lanAccess: Boolean, savePath: String, password: String) {
-        val address = if (lanAccess) "0.0.0.0" else "127.0.0.1"
+        val address = if (lanAccess) "*" else "127.0.0.1"
         conf.writeText(
             buildString {
                 append("[AutoRun]\nenabled=false\n\n")
@@ -97,13 +98,20 @@ object NoxConfig {
                 append("Cookies=\"\"\n\n")
                 append("[Preferences]\n")
                 append("WebUI\\Address=").append(address).append('\n')
+                append("WebUI\\HostHeaderValidation=false\n")
                 append("WebUI\\LocalHostAuth=false\n")
+                // QSettings serializes QByteArray values as
+                // `@ByteArray(<base64 of the raw bytes>)` — the raw bytes here
+                // are the ASCII `salt_b64:key_b64` digest string. Writing the
+                // digest directly (as an earlier version did) makes the ':'
+                // an invalid base64 char: the engine then reads a garbled hash
+                // and NO password ever validates, locking out LAN browsers.
                 append("WebUI\\Password_PBKDF2=\"@ByteArray(")
-                append(pbkdf2String(password))
+                append(java.util.Base64.getEncoder().encodeToString(pbkdf2String(password).toByteArray(Charsets.US_ASCII)))
                 append(")\"\n")
                 append("WebUI\\Port=").append(webUiPort).append('\n')
-                append("WebUI\\Username=").append(WEBUI_USERNAME).append('\n')
                 append("WebUI\\ServerDomains=*\n")
+                append("WebUI\\Username=").append(WEBUI_USERNAME).append('\n')
                 append("Connection\\PortRangeMin=6881\n")
                 append("Connection\\GlobalDLLimit=-1\n")
                 append("Connection\\GlobalUPLimit=-1\n")
@@ -120,12 +128,13 @@ object NoxConfig {
      * line-level rewrite is sufficient. Missing keys/sections are appended.
      */
     private fun patchConfig(conf: File, webUiPort: Int, lanAccess: Boolean, savePath: String) {
-        val address = if (lanAccess) "0.0.0.0" else "127.0.0.1"
+        val address = if (lanAccess) "*" else "127.0.0.1"
         val desired = mapOf(
             KEY_WEBUI_ADDRESS to address,
             KEY_WEBUI_PORT to webUiPort.toString(),
             KEY_WEBUI_USERNAME to WEBUI_USERNAME,
             KEY_WEBUI_LOCAL_AUTH to "false",
+            KEY_WEBUI_HOST_VALIDATION to "false",
             KEY_SAVE_PATH to escapePath(savePath),
         )
         val remaining = desired.toMutableMap()

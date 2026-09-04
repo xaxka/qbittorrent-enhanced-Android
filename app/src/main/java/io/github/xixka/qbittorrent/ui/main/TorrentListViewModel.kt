@@ -72,23 +72,36 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     fun restart() {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
+            var first = true
             while (isActive) {
-                refreshOnce()
-                delay(3000)
+                refreshOnce(showLoading = first)
+                first = false
+                // keep the poll cadence quiet: no loading indicator on
+                // background refreshes, the list just updates in place
+                delay(prefs.pollIntervalSec.coerceIn(1, 60) * 1000L)
             }
         }
     }
 
+    /** Explicit (user-initiated) refresh: allowed to show the loading view. */
     fun refresh() {
-        viewModelScope.launch { refreshOnce() }
+        viewModelScope.launch { refreshOnce(showLoading = _state.value.torrents.isEmpty()) }
     }
 
-    private suspend fun refreshOnce() {
+    private suspend fun refreshOnce(showLoading: Boolean = false) {
         if (!prefs.serverConfig().isConfigured) {
             _state.update { it.copy(configured = false, connected = false, loading = false) }
             return
         }
-        _state.update { it.copy(loading = true, configured = true) }
+        // The full-screen loading indicator only appears while there is
+        // nothing to show yet (initial load / manual refresh on an empty
+        // list). Background polls update the data silently — a spinner
+        // flashing over the list every few seconds looks broken.
+        if (showLoading) {
+            _state.update { it.copy(loading = true, configured = true) }
+        } else {
+            _state.update { it.copy(configured = true) }
+        }
         try {
             val torrents = repository.torrents(filter = null)
             val transfer = runCatching { repository.transferInfo() }.getOrNull()
