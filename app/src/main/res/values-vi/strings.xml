@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">Giới hạn thời gian seed (phút)</string>
     <string name="inactive_seeding_time_limit">Giới hạn thời gian seed không hoạt động (phút)</string>
     <string name="limit_helper_unlimited">0 = không giới hạn</string>
-    <string name="limit_helper_global">-1 = mặc định chung, -2 = không giới hạn</string>
-    <string name="limit_helper_global_minutes">-1 = mặc định chung</string>
+    <string name="limit_helper_global">-2 = mặc định chung, -1 = không giới hạn</string>
+    <string name="limit_helper_global_minutes">-2 = mặc định chung, -1 = không giới hạn</string>
+    <string name="share_limit_action_default">Dùng cài đặt chung</string>
+    <string name="share_limit_action">Khi đạt giới hạn chia sẻ</string>
     <string name="edit_tracker_url">Sửa URL tracker</string>
     <string name="tab_pieces">Mảnh</string>
     <string name="pieces_map">Bản đồ mảnh</string>

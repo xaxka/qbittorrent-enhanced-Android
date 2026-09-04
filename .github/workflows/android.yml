@@ -8,6 +8,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Rapid successive pushes cancel the obsolete in-flight run instead of
+# queueing another full cross-compile (the nox builds are the expensive part).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   QT_VER: 6.8.3
   OPENSSL_VER: 3.5.1

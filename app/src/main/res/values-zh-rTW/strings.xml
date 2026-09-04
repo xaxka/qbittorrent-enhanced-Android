@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">做種時間限制（分鐘）</string>
     <string name="inactive_seeding_time_limit">非活動做種時間限制（分鐘）</string>
     <string name="limit_helper_unlimited">0 為不限制</string>
-    <string name="limit_helper_global">-1 為全域預設，-2 為不限制</string>
-    <string name="limit_helper_global_minutes">-1 為全域預設</string>
+    <string name="limit_helper_global">-2 為全域預設，-1 為不限制</string>
+    <string name="limit_helper_global_minutes">-2 為全域預設，-1 為不限制</string>
+    <string name="share_limit_action_default">使用全域設定</string>
+    <string name="share_limit_action">達到分享限制時</string>
     <string name="edit_tracker_url">編輯 Tracker 網址</string>
     <string name="tab_pieces">區塊</string>
     <string name="pieces_map">區塊狀態圖</string>

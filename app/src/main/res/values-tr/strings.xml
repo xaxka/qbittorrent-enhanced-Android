@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">Seed süresi limiti (dakika)</string>
     <string name="inactive_seeding_time_limit">Etkin olmayan seed süresi limiti (dakika)</string>
     <string name="limit_helper_unlimited">0 = sınırsız</string>
-    <string name="limit_helper_global">-1 = genel varsayılan, -2 = sınırsız</string>
-    <string name="limit_helper_global_minutes">-1 = genel varsayılan</string>
+    <string name="limit_helper_global">-2 = genel varsayılan, -1 = sınırsız</string>
+    <string name="limit_helper_global_minutes">-2 = genel varsayılan, -1 = sınırsız</string>
+    <string name="share_limit_action_default">Genel ayarı kullan</string>
+    <string name="share_limit_action">Paylaşım limitine ulaşınca</string>
     <string name="edit_tracker_url">Tracker URL\'sini düzenle</string>
     <string name="tab_pieces">Parçalar</string>
     <string name="pieces_map">Parça haritası</string>

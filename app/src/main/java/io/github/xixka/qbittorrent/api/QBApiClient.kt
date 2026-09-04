@@ -12,6 +12,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import retrofit2.HttpException
+import retrofit2.Response as RetrofitResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -99,21 +100,43 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
 
     /**
      * Executes an API call, logging in first if needed and retrying exactly once
-     * after a session expiry.
+     * after a session expiry. Unsuccessful responses are surfaced as
+     * [QBApiException]: the action endpoints are declared as
+     * `Response<ResponseBody>` (Retrofit only throws for plain return types),
+     * so without this check a rejected call — e.g. a missing required qB 5.x
+     * parameter — would fail silently and the UI would believe it succeeded.
      */
     suspend fun <T> withAuth(block: suspend (QBApiService) -> T): T = withContext(Dispatchers.IO) {
         if (!loggedIn) login()
         try {
-            block(currentService())
+            val result = block(currentService())
+            if (result.isAuthExpired()) {
+                // the session cookie expired mid-call: re-login and retry once
+                login()
+                checked(block(currentService()))
+            } else {
+                checked(result)
+            }
         } catch (e: HttpException) {
             if (e.code() == 403 || e.code() == 401) {
                 login()
-                block(currentService())
+                checked(block(currentService()))
             } else {
                 throw QBApiException("Server error HTTP ${e.code()}")
             }
         }
     }
+
+    /** Fails the call when a Response-typed endpoint answered non-2xx. */
+    private fun <T> checked(result: T): T {
+        if (result is RetrofitResponse<*> && !result.isSuccessful) {
+            throw QBApiException("Server error HTTP ${result.code()}")
+        }
+        return result
+    }
+
+    private fun Any?.isAuthExpired(): Boolean =
+        this is RetrofitResponse<*> && (code() == 401 || code() == 403)
 
     private suspend fun login() = withContext(Dispatchers.IO) {
         val cfg = configProvider()

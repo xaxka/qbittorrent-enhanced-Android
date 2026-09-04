@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">Лимит времени раздачи (мин)</string>
     <string name="inactive_seeding_time_limit">Лимит времени неактивной раздачи (мин)</string>
     <string name="limit_helper_unlimited">0 = без ограничений</string>
-    <string name="limit_helper_global">-1 = глобальное значение, -2 = без ограничений</string>
-    <string name="limit_helper_global_minutes">-1 = глобальное значение</string>
+    <string name="limit_helper_global">-2 = глобальное значение, -1 = без ограничений</string>
+    <string name="limit_helper_global_minutes">-2 = глобальное значение, -1 = без ограничений</string>
+    <string name="share_limit_action_default">Использовать глобальный параметр</string>
+    <string name="share_limit_action">При достижении лимита раздачи</string>
     <string name="edit_tracker_url">Изменить URL трекера</string>
     <string name="tab_pieces">Куски</string>
     <string name="pieces_map">Карта кусков</string>

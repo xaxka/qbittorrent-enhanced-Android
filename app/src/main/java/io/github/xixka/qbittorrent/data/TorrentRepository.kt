@@ -233,12 +233,14 @@ class TorrentRepository(private val client: QBApiClient) {
         ratioLimit: Double,
         seedingTimeLimit: Int,
         inactiveSeedingTimeLimit: Int,
+        shareLimitAction: String = "Default",
     ) = client.withAuth {
         it.setShareLimits(
             hashes.joinToString("|"),
             ratioLimit.toString(),
             seedingTimeLimit.toString(),
             inactiveSeedingTimeLimit.toString(),
+            shareLimitAction,
         )
     }
 

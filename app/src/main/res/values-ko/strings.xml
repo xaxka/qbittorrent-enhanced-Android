@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">시딩 시간 제한 (분)</string>
     <string name="inactive_seeding_time_limit">비활동 시딩 시간 제한 (분)</string>
     <string name="limit_helper_unlimited">0=무제한</string>
-    <string name="limit_helper_global">-1=전역 기본값, -2=무제한</string>
-    <string name="limit_helper_global_minutes">-1=전역 기본값</string>
+    <string name="limit_helper_global">-2=전역 기본값, -1=무제한</string>
+    <string name="limit_helper_global_minutes">-2=전역 기본값, -1=무제한</string>
+    <string name="share_limit_action_default">전역 설정 사용</string>
+    <string name="share_limit_action">공유 제한 도달 시</string>
     <string name="edit_tracker_url">트래커 URL 편집</string>
     <string name="tab_pieces">피스</string>
     <string name="pieces_map">피스 맵</string>

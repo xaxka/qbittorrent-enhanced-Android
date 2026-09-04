@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -19,6 +21,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
@@ -186,47 +189,83 @@ class DetailActivity : AppCompatActivity() {
     /**
      * Per-torrent speed + share limits, qBitController TorrentLimitsDialog
      * parity: download/upload limits (KiB/s, 0 = unlimited) and share ratio /
-     * seeding time / inactive seeding time limits (-2 = global default).
+     * seeding time / inactive seeding time limits (-2 = global default,
+     * -1 = no limit) plus the action taken when a limit is reached — all
+     * prefilled from the torrent's current state so a plain OK never
+     * silently resets custom limits.
      */
     private fun showLimitsDialog() {
-        val props = viewModel.state.value.properties
+        val info = viewModel.state.value.info
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_torrent_limits, null)
         val dl = view.findViewById<TextInputEditText>(R.id.torrent_download_limit)
         val ul = view.findViewById<TextInputEditText>(R.id.torrent_upload_limit)
         val ratio = view.findViewById<TextInputEditText>(R.id.torrent_ratio_limit)
         val seedTime = view.findViewById<TextInputEditText>(R.id.torrent_seeding_time_limit)
         val inactiveSeed = view.findViewById<TextInputEditText>(R.id.torrent_inactive_seeding_time_limit)
+        val action = view.findViewById<MaterialAutoCompleteTextView>(R.id.share_limit_action_dropdown)
 
+        val props = viewModel.state.value.properties
         val dlLimit = (props?.dlLimit ?: -1L).coerceAtLeast(-1L)
         val upLimit = (props?.upLimit ?: -1L).coerceAtLeast(-1L)
         dl?.setText(limitToText(dlLimit))
         ul?.setText(limitToText(upLimit))
 
-        ratio?.setText("-2")
-        seedTime?.setText("-2")
-        inactiveSeed?.setText("-2")
+        // -2 = global default, -1 = no limit, n > 0 = the limit itself
+        ratio?.setText(
+            info?.ratioLimit?.let { if (it <= 0) it.toInt().toString() else formatLimit(it) } ?: "-2"
+        )
+        seedTime?.setText(info?.seedingTimeLimit?.toString() ?: "-2")
+        inactiveSeed?.setText(info?.inactiveSeedingTimeLimit?.toString() ?: "-2")
+
+        // Action taken when a limit is reached (qB 5.x requires it on save)
+        val actions = listOf(
+            getString(R.string.share_limit_action_default) to "Default",
+            getString(R.string.qbt_ratio_act_stop) to "Stop",
+            getString(R.string.qbt_ratio_act_remove) to "Remove",
+            getString(R.string.qbt_ratio_act_superseeding) to "EnableSuperSeeding",
+            getString(R.string.qbt_ratio_act_remove_content) to "RemoveWithContent",
+        )
+        val currentAction = actions.firstOrNull { it.second == info?.shareLimitAction }
+            ?: actions.first()
+        action?.setText(currentAction.first, false)
+        action?.setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_list_item_1, actions.map { it.first })
+        )
+        var selectedAction = currentAction.second
+        action?.setOnItemClickListener { _, _, position, _ ->
+            selectedAction = actions[position].second
+        }
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.torrent_limits_title)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
+                val ratioValue = ratio?.text?.toString()?.trim()?.toDoubleOrNull() ?: -2.0
+                val seedValue = seedTime?.text?.toString()?.trim()?.toIntOrNull() ?: -2
+                val inactiveValue = inactiveSeed?.text?.toString()?.trim()?.toIntOrNull() ?: -2
+                viewModel.setShareLimits(ratioValue, seedValue, inactiveValue, selectedAction) { e ->
+                    Toast.makeText(
+                        this,
+                        getString(R.string.qbt_save_failed_fmt, e.message ?: ""),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
                 lifecycleScope.launch {
                     runCatching {
                         val dlBytes = textToLimit(dl?.text?.toString()) * 1024
                         val ulBytes = textToLimit(ul?.text?.toString()) * 1024
                         viewModel.setDownloadLimit(dlBytes)
                         viewModel.setUploadLimit(ulBytes)
-                        viewModel.setShareLimits(
-                            ratio?.text?.toString()?.trim()?.toDoubleOrNull() ?: -2.0,
-                            seedTime?.text?.toString()?.trim()?.toIntOrNull() ?: -2,
-                            inactiveSeed?.text?.toString()?.trim()?.toIntOrNull() ?: -2,
-                        )
                     }
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
+
+    /** Compact number rendering for prefilled share limits (2.5 not 2.5000001). */
+    private fun formatLimit(v: Double): String =
+        if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
 
     /** KiB/s text: -1 = unlimited, 0 = unlimited, n = n KiB/s. */
     private fun limitToText(bytesPerSec: Long): String =

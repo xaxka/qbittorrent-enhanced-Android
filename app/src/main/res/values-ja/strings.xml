@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">シード時間の上限（分）</string>
     <string name="inactive_seeding_time_limit">非アクティブ時のシード時間上限（分）</string>
     <string name="limit_helper_unlimited">0=無制限</string>
-    <string name="limit_helper_global">-1=グローバル設定、-2=無制限</string>
-    <string name="limit_helper_global_minutes">-1=グローバル設定</string>
+    <string name="limit_helper_global">-2=グローバル設定、-1=無制限</string>
+    <string name="limit_helper_global_minutes">-2=グローバル設定、-1=無制限</string>
+    <string name="share_limit_action_default">グローバル設定を使用</string>
+    <string name="share_limit_action">共有制限に達したとき</string>
     <string name="edit_tracker_url">トラッカーURLを編集</string>
     <string name="tab_pieces">ピース</string>
     <string name="pieces_map">ピースマップ</string>

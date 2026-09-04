@@ -79,17 +79,11 @@ class LocalEngineService : Service() {
     private fun startWatchdog() {
         if (watchdogJob?.isActive == true) return
         watchdogJob = scope.launch {
-            var failures = 0
             while (isActive) {
                 delay(WATCHDOG_INTERVAL_MS)
                 val prefs = ServiceLocator.prefs(this@LocalEngineService)
                 if (prefs.useRemoteServer) continue
-                val alive = LocalEngineManager.isRunning()
-                if (!alive) {
-                    // capped backoff: reset the counter after a long streak so
-                    // the watchdog never gives up entirely
-                    if (failures >= MAX_WATCHDOG_FAILURES) failures = 0
-                    failures++
+                if (!LocalEngineManager.isRunning()) {
                     runCatching {
                         LocalEngineManager.start(
                             context = this@LocalEngineService,
@@ -99,8 +93,6 @@ class LocalEngineService : Service() {
                         )
                         ServiceLocator.resetClient()
                     }
-                } else {
-                    failures = 0
                 }
             }
         }
@@ -158,9 +150,6 @@ class LocalEngineService : Service() {
 
         /** Watchdog probe cadence (30 s). */
         private const val WATCHDOG_INTERVAL_MS = 30_000L
-
-        /** After this many consecutive failed restarts, restart the counter. */
-        private const val MAX_WATCHDOG_FAILURES = 20
 
         fun start(context: Context) {
             context.startForegroundService(

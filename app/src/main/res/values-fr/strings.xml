@@ -666,8 +666,10 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="seeding_time_limit">Limite de temps de partage (minutes)</string>
     <string name="inactive_seeding_time_limit">Limite de temps de partage inactif (minutes)</string>
     <string name="limit_helper_unlimited">0 = illimité</string>
-    <string name="limit_helper_global">-1 = valeur globale, -2 = illimité</string>
-    <string name="limit_helper_global_minutes">-1 = valeur globale</string>
+    <string name="limit_helper_global">-2 = valeur globale, -1 = illimité</string>
+    <string name="limit_helper_global_minutes">-2 = valeur globale, -1 = illimité</string>
+    <string name="share_limit_action_default">Utiliser le paramètre global</string>
+    <string name="share_limit_action">À l’atteinte de la limite de partage</string>
     <string name="edit_tracker_url">Modifier l\'URL du tracker</string>
     <string name="tab_pieces">Pièces</string>
     <string name="pieces_map">Carte des pièces</string>

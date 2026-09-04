@@ -32,8 +32,12 @@ class PieceHeatmapView(context: Context, attrs: AttributeSet?) : View(context, a
     private val rect = RectF()
 
     fun submit(newStates: List<Int>) {
+        val layoutNeeded = newStates.size != states.size
         states = newStates
-        requestLayout()
+        // The grid geometry only depends on the piece COUNT: while the count
+        // is stable (the common case during 3s-interval polling) a re-layout
+        // of the whole view tree is wasted work — repaint suffices.
+        if (layoutNeeded) requestLayout()
         invalidate()
     }
 

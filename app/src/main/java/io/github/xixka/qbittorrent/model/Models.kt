@@ -37,6 +37,16 @@ data class TorrentInfo(
     @SerializedName("f_l_piece_prio") val firstLastPiecePrio: Boolean = false,
     @SerializedName("force_start") val forceStart: Boolean = false,
     @SerializedName("super_seeding") val superSeeding: Boolean = false,
+    /**
+     * Per-torrent share limits (engine semantics: -2 = follow the global
+     * default, -1 = no limit, positive = the limit itself) and the action
+     * taken when a limit is reached (enum name: Default / Stop / Remove /
+     * EnableSuperSeeding / RemoveWithContent).
+     */
+    @SerializedName("ratio_limit") val ratioLimit: Double = -2.0,
+    @SerializedName("seeding_time_limit") val seedingTimeLimit: Long = -2L,
+    @SerializedName("inactive_seeding_time_limit") val inactiveSeedingTimeLimit: Long = -2L,
+    @SerializedName("share_limit_action") val shareLimitAction: String = "Default",
     /** The engine answers null while metadata is not fetched yet. */
     @SerializedName("private") val isPrivate: Boolean? = false,
 ) {

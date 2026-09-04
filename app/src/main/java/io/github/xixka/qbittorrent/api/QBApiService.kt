@@ -308,6 +308,8 @@ interface QBApiService {
         @Field("ratioLimit") ratioLimit: String,
         @Field("seedingTimeLimit") seedingTimeLimit: String,
         @Field("inactiveSeedingTimeLimit") inactiveSeedingTimeLimit: String,
+        /** Required since qBittorrent 5.x (engine enum name, e.g. "Default"). */
+        @Field("shareLimitAction") shareLimitAction: String,
     ): Response<ResponseBody>
 
     /** Direct super-seeding switch (the toggle variant cannot show state). */

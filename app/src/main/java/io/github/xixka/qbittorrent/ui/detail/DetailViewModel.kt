@@ -141,11 +141,28 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         repository.setTorrentUploadLimit(listOf(hash), bytesPerSec)
     }
 
-    /** Share limits: ratio, seeding time (minutes), inactive seeding time (minutes). */
-    fun setShareLimits(ratioLimit: Double, seedingTimeLimit: Int, inactiveSeedingTimeLimit: Int) =
-        launchAction {
-            repository.setShareLimits(listOf(hash), ratioLimit, seedingTimeLimit, inactiveSeedingTimeLimit)
+    /**
+     * Share limits: ratio, seeding time (minutes), inactive seeding time
+     * (minutes) plus the action taken when a limit is reached (engine enum
+     * name, required by qBittorrent 5.x). [onError] runs when the server
+     * rejects the request so the dialog can surface the failure.
+     */
+    fun setShareLimits(
+        ratioLimit: Double,
+        seedingTimeLimit: Int,
+        inactiveSeedingTimeLimit: Int,
+        shareLimitAction: String,
+        onError: (Exception) -> Unit = {},
+    ) = viewModelScope.launch {
+        try {
+            repository.setShareLimits(
+                listOf(hash), ratioLimit, seedingTimeLimit,
+                inactiveSeedingTimeLimit, shareLimitAction,
+            )
+        } catch (e: Exception) {
+            onError(e)
         }
+    }
 
     /** Direct super-seeding switch (shows the real state, unlike the toggle). */
     fun setSuperSeeding(value: Boolean) = launchAction {
