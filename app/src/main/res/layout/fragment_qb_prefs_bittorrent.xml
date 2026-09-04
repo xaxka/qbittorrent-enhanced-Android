@@ -449,7 +449,7 @@
                 android:id="@+id/addTrackersUrlInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textUri|multiLine" />
+                android:inputType="textUri|textMultiLine" />
         </com.google.android.material.textfield.TextInputLayout>
         <TextView
             style="@style/TextAppearance.App.SectionTitle"
@@ -468,7 +468,7 @@
                 android:id="@+id/dhtBootstrapNodesInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textUri|multiLine" />
+                android:inputType="textUri|textMultiLine" />
         </com.google.android.material.textfield.TextInputLayout>
         <TextView
             style="@style/TextAppearance.App.SectionTitle"
