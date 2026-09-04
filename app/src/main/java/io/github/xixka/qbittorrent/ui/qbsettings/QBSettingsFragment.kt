@@ -1,25 +1,21 @@
 package io.github.xixka.qbittorrent.ui.qbsettings
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentStateAdapter
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
-import androidx.core.view.WindowCompat
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ActivityQbSettingsBinding
-import io.github.xixka.qbittorrent.util.WindowInsetsSide
-import io.github.xixka.qbittorrent.util.ThemeUtils
-import io.github.xixka.qbittorrent.data.ServiceLocator
-import io.github.xixka.qbittorrent.util.applyWindowInsets
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.launch
 
 /**
@@ -28,24 +24,27 @@ import kotlinx.coroutines.launch
  * qBittorrent instance (bundled engine or remote server) and writes user
  * edits back through the same API the official WebUI uses, so every setting
  * takes effect immediately, exactly like on the desktop.
+ * Opened from Settings, hosted IN PLACE — no separate window.
  */
-class QBSettingsActivity : AppCompatActivity() {
+class QBSettingsFragment : Fragment() {
 
-    private lateinit var binding: ActivityQbSettingsBinding
+    private var _binding: ActivityQbSettingsBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: QBSettingsViewModel by viewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        // Material You dynamic colors (default on, Android 12+)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityQbSettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        // keep the form pages clear of the navigation bar in the edge-to-edge layout
-        applyWindowInsets(child = binding.viewPager, sideMask = WindowInsetsSide.BOTTOM)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityQbSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        binding.appBar.setNavigationOnClickListener { finish() }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.save_qb_prefs_menu) {
                 save()
@@ -69,9 +68,14 @@ class QBSettingsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
     private fun observe() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.loading.collect { loading ->
                         binding.loadingOverlay.visibility =
@@ -91,7 +95,7 @@ class QBSettingsActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         errorDialog?.dismiss()
-        errorDialog = MaterialAlertDialogBuilder(this)
+        errorDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.qbt_settings_title)
             .setMessage(getString(R.string.qbt_load_failed_fmt, message))
             .setPositiveButton(R.string.retry) { _, _ -> viewModel.retry() }
@@ -103,29 +107,29 @@ class QBSettingsActivity : AppCompatActivity() {
         viewModel.save { success, message ->
             when {
                 success && message == QBSettingsViewModel.NO_CHANGES ->
-                    Toast.makeText(this, R.string.qbt_no_changes, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.qbt_no_changes, Toast.LENGTH_SHORT).show()
 
                 success && message != null -> {
                     Toast.makeText(
-                        this,
+                        requireContext(),
                         getString(R.string.qbt_saved_fmt, message.toIntOrNull() ?: 0),
                         Toast.LENGTH_SHORT,
                     ).show()
-                    finish()
+                    (activity as? MainActivity)?.popPage()
                 }
 
                 message == QBSettingsViewModel.ERR_USERNAME ->
-                    Toast.makeText(this, R.string.qbt_webui_username_short, Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext(), R.string.qbt_webui_username_short, Toast.LENGTH_LONG).show()
 
                 message == QBSettingsViewModel.ERR_PASSWORD ->
-                    Toast.makeText(this, R.string.qbt_webui_password_short, Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext(), R.string.qbt_webui_password_short, Toast.LENGTH_LONG).show()
 
                 message == null ->
-                    Toast.makeText(this, R.string.qbt_not_loaded, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.qbt_not_loaded, Toast.LENGTH_SHORT).show()
 
                 else ->
                     Toast.makeText(
-                        this,
+                        requireContext(),
                         getString(R.string.qbt_save_failed_fmt, message),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -133,8 +137,8 @@ class QBSettingsActivity : AppCompatActivity() {
         }
     }
 
-    private class QBPrefsPagerAdapter(activity: FragmentActivity) :
-        FragmentStateAdapter(activity) {
+    private class QBPrefsPagerAdapter(fragment: Fragment) :
+        FragmentStateAdapter(fragment) {
 
         override fun createFragment(position: Int): Fragment = when (position) {
             0 -> DownloadsPrefsFragment()

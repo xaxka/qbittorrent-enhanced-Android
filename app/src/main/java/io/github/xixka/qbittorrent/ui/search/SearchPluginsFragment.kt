@@ -4,8 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,7 +17,7 @@ import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityLogBinding
 import io.github.xixka.qbittorrent.databinding.ItemSearchPluginBinding
 import io.github.xixka.qbittorrent.model.SearchPlugin
-import io.github.xixka.qbittorrent.util.ThemeUtils
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
@@ -26,21 +25,29 @@ import kotlinx.coroutines.launch
 /**
  * Search plugin manager (qBitController SearchPluginsScreen parity): enable /
  * disable, install from URL, uninstall, update all — LibreTorrent list style.
+ * Pushed as an IN-PLACE sub-page of the search screen — no new window.
  */
-class SearchPluginsActivity : AppCompatActivity() {
+class SearchPluginsFragment : Fragment() {
 
-    private lateinit var binding: ActivityLogBinding
+    private var _binding: ActivityLogBinding? = null
+    private val binding get() = _binding!!
+
     private var plugins: List<SearchPlugin> = emptyList()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityLogBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityLogBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.typeChipGroup.visibility = View.GONE
         binding.appBar.setTitle(R.string.search_plugins)
-        binding.appBar.setNavigationOnClickListener { finish() }
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.inflateMenu(R.menu.search_plugins)
         binding.appBar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -49,22 +56,27 @@ class SearchPluginsActivity : AppCompatActivity() {
                 else -> false
             }
         }
-        binding.logList.layoutManager = LinearLayoutManager(this)
+        binding.logList.layoutManager = LinearLayoutManager(requireContext())
         binding.logList.adapter = PluginAdapter()
         binding.logList.setEmptyView(binding.emptyView)
         binding.emptyView.setText(R.string.search_plugins_empty)
         binding.emptyView.setIconResource(R.drawable.ic_extension_24px)
         applyWindowInsets(
             child = binding.logList,
-            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT or WindowInsetsSide.BOTTOM,
+            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT,
         )
         load()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 
     private fun load() {
         lifecycleScope.launch {
             plugins = runCatching {
-                ServiceLocator.repository(this@SearchPluginsActivity).searchPlugins()
+                ServiceLocator.repository(requireContext()).searchPlugins()
             }.getOrDefault(emptyList())
             (binding.logList.adapter as? PluginAdapter)?.submitList(plugins)
         }
@@ -74,7 +86,7 @@ class SearchPluginsActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         input?.hint = "https://…/plugin.py"
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.search_install_plugin)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -82,10 +94,10 @@ class SearchPluginsActivity : AppCompatActivity() {
                 if (url.isNotEmpty()) {
                     lifecycleScope.launch {
                         val result = runCatching {
-                            ServiceLocator.repository(this@SearchPluginsActivity).searchInstallPlugin(url)
+                            ServiceLocator.repository(requireContext()).searchInstallPlugin(url)
                         }
                         android.widget.Toast.makeText(
-                            this@SearchPluginsActivity,
+                            requireContext(),
                             if (result.isSuccess) R.string.search_plugin_installed
                             else R.string.rss_action_failed,
                             android.widget.Toast.LENGTH_SHORT,
@@ -100,7 +112,7 @@ class SearchPluginsActivity : AppCompatActivity() {
 
     private fun updatePlugins() {
         lifecycleScope.launch {
-            runCatching { ServiceLocator.repository(this@SearchPluginsActivity).searchUpdatePlugins() }
+            runCatching { ServiceLocator.repository(requireContext()).searchUpdatePlugins() }
             load()
         }
     }
@@ -108,7 +120,7 @@ class SearchPluginsActivity : AppCompatActivity() {
     private fun togglePlugin(plugin: SearchPlugin, enable: Boolean) {
         lifecycleScope.launch {
             runCatching {
-                ServiceLocator.repository(this@SearchPluginsActivity)
+                ServiceLocator.repository(requireContext())
                     .searchEnablePlugin(listOf(plugin.name), enable)
             }
             load()
@@ -116,13 +128,13 @@ class SearchPluginsActivity : AppCompatActivity() {
     }
 
     private fun confirmUninstall(plugin: SearchPlugin) {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(plugin.fullName.ifBlank { plugin.name })
             .setMessage(getString(R.string.search_uninstall_confirm, plugin.name))
             .setPositiveButton(R.string.delete) { _, _ ->
                 lifecycleScope.launch {
                     runCatching {
-                        ServiceLocator.repository(this@SearchPluginsActivity)
+                        ServiceLocator.repository(requireContext())
                             .searchUninstallPlugin(listOf(plugin.name))
                     }
                     load()

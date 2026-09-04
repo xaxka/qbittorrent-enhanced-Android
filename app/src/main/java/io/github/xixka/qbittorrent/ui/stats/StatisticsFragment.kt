@@ -3,43 +3,49 @@ package io.github.xixka.qbittorrent.ui.stats
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityPanelBinding
 import io.github.xixka.qbittorrent.model.ServerState
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.util.Format
-import io.github.xixka.qbittorrent.util.ThemeUtils
-import io.github.xixka.qbittorrent.util.WindowInsetsSide
-import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
 
 /**
  * qBitController-style statistics panel (StatisticsDialog parity) rendered
  * with LibreTorrent's flat-row UI: user statistics, cache statistics and
  * performance statistics sections fed by /sync/maindata's server_state.
+ * Opened from Settings, hosted IN PLACE — no separate window.
  */
-class StatisticsActivity : AppCompatActivity() {
+class StatisticsFragment : Fragment() {
 
-    private lateinit var binding: ActivityPanelBinding
+    private var _binding: ActivityPanelBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityPanelBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        applyWindowInsets(
-            child = binding.scrollView,
-            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT or WindowInsetsSide.BOTTOM,
-        )
-        binding.appBar.setNavigationOnClickListener { finish() }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityPanelBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.setTitle(R.string.stats)
         load()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 
     private fun load() {
@@ -47,7 +53,7 @@ class StatisticsActivity : AppCompatActivity() {
         content.removeAllViews()
         content.addView(row(getString(R.string.loading)))
         lifecycleScope.launch {
-            val state = runCatching { ServiceLocator.repository(this@StatisticsActivity).serverState() }
+            val state = runCatching { ServiceLocator.repository(requireContext()).serverState() }
                 .getOrNull()
             content.removeAllViews()
             if (state == null) {
@@ -96,14 +102,14 @@ class StatisticsActivity : AppCompatActivity() {
     }
 
     private fun header(titleRes: Int): View {
-        val v = LayoutInflater.from(this)
+        val v = LayoutInflater.from(requireContext())
             .inflate(R.layout.item_panel_header, binding.content, false)
         v.findViewById<TextView>(R.id.header_title).setText(titleRes)
         return v
     }
 
     private fun row(label: String, value: String = ""): View {
-        val v = LayoutInflater.from(this).inflate(R.layout.item_stat_row, binding.content, false)
+        val v = LayoutInflater.from(requireContext()).inflate(R.layout.item_stat_row, binding.content, false)
         v.findViewById<TextView>(R.id.label).text = label
         v.findViewById<TextView>(R.id.value).text = value
         return v

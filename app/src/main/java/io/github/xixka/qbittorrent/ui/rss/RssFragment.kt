@@ -1,24 +1,21 @@
 package io.github.xixka.qbittorrent.ui.rss
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentStateAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
@@ -26,43 +23,52 @@ import io.github.xixka.qbittorrent.databinding.ActivityRssBinding
 import io.github.xixka.qbittorrent.databinding.ItemRssNodeBinding
 import io.github.xixka.qbittorrent.model.RssFeedNode
 import io.github.xixka.qbittorrent.model.RssRule
-import io.github.xixka.qbittorrent.util.ThemeUtils
-import io.github.xixka.qbittorrent.util.WindowInsetsSide
-import io.github.xixka.qbittorrent.util.applyWindowInsets
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.launch
 
 /**
  * RSS hub (qBitController RssFeedsScreen + RssRulesScreen parity, rendered
- * with LibreTorrent's tabbed list UI):
+ * with LibreTorrent's tabbed list UI) — an IN-PLACE destination of the
+ * bottom navigation, never a separate window:
  *  - Feeds tab: the server's subscription tree — add feed / folder,
  *    rename, move, delete, set feed URL, refresh, read articles
  *  - Rules tab: auto-download rules with the full qBC editor dialog
  */
-class RssActivity : AppCompatActivity() {
+class RssFragment : Fragment() {
 
-    private lateinit var binding: ActivityRssBinding
+    private var _binding: ActivityRssBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityRssBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        applyWindowInsets(child = binding.viewPager, sideMask = WindowInsetsSide.BOTTOM)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityRssBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        binding.appBar.setNavigationOnClickListener { finish() }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // the toolbar arrow returns to the torrent list (bottom-nav back)
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.goHome() }
         binding.viewPager.adapter = RssPagerAdapter(this)
-        com.google.android.material.tabs.TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
             tab.setText(if (pos == 0) R.string.rss_tab_feeds else R.string.rss_tab_rules)
         }.attach()
 
         binding.rssFab.setOnClickListener { onFab() }
     }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
     private fun onFab() {
         if (binding.viewPager.currentItem == 0) {
             // qBC keeps separate screens; LibreTorrent-style: a small chooser
-            MaterialAlertDialogBuilder(this)
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.rss_add)
                 .setItems(
                     arrayOf(
@@ -79,7 +85,7 @@ class RssActivity : AppCompatActivity() {
         }
     }
 
-    private fun repository() = ServiceLocator.repository(this)
+    private fun repository() = ServiceLocator.repository(requireContext())
 
     // ---------------- feeds ----------------
 
@@ -87,7 +93,7 @@ class RssActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_rss_feed, null)
         val url = view.findViewById<TextInputEditText>(R.id.rss_feed_url)
         val name = view.findViewById<TextInputEditText>(R.id.rss_feed_name)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_add_feed)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -99,7 +105,7 @@ class RssActivity : AppCompatActivity() {
                             repository().rssAddFeed(feedUrl, feedName)
                         }
                         Toast.makeText(
-                            this@RssActivity,
+                            requireContext(),
                             if (result.isSuccess) R.string.rss_added else R.string.rss_action_failed,
                             Toast.LENGTH_SHORT,
                         ).show()
@@ -114,7 +120,7 @@ class RssActivity : AppCompatActivity() {
     private fun showAddFolderDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_add_folder)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -141,7 +147,7 @@ class RssActivity : AppCompatActivity() {
             getString(R.string.rss_move),
             getString(R.string.rss_delete),
         )
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(node.name)
             .setItems(options.toTypedArray()) { _, which ->
                 when (options[which]) {
@@ -158,11 +164,8 @@ class RssActivity : AppCompatActivity() {
     }
 
     private fun openFeed(node: RssFeedNode) {
-        startActivity(
-            Intent(this, RssArticlesActivity::class.java)
-                .putExtra(RssArticlesActivity.EXTRA_PATH, node.apiPath)
-                .putExtra(RssArticlesActivity.EXTRA_TITLE, node.name)
-                .putExtra(RssArticlesActivity.EXTRA_WITH_DATA, node.articles.isNotEmpty()),
+        (activity as? MainActivity)?.pushPage(
+            RssArticlesFragment.newInstance(node.apiPath, node.name)
         )
     }
 
@@ -170,7 +173,7 @@ class RssActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val result = runCatching { repository().rssRefreshItem(node.apiPath) }
             Toast.makeText(
-                this@RssActivity,
+                requireContext(),
                 if (result.isSuccess) R.string.rss_refreshed else R.string.rss_action_failed,
                 Toast.LENGTH_SHORT,
             ).show()
@@ -183,7 +186,7 @@ class RssActivity : AppCompatActivity() {
         val input = view.findViewById<TextInputEditText>(R.id.input)
         input?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
         input?.setText(node.url.orEmpty())
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_edit_url)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -203,7 +206,7 @@ class RssActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         input?.setText(node.name)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_rename)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -225,7 +228,7 @@ class RssActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         input?.hint = getString(R.string.rss_move_hint)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_move)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -244,7 +247,7 @@ class RssActivity : AppCompatActivity() {
     }
 
     private fun confirmDeleteNode(node: RssFeedNode) {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_delete)
             .setMessage(getString(R.string.rss_delete_confirm, node.name))
             .setPositiveButton(R.string.delete) { _, _ ->
@@ -258,8 +261,7 @@ class RssActivity : AppCompatActivity() {
     }
 
     private fun refreshFeedsTab() {
-        val fragment = supportFragmentManager.fragments.firstOrNull()
-            ?.childFragmentManager?.fragments?.firstOrNull { it is RssFeedsFragment } as? RssFeedsFragment
+        val fragment = childFragmentManager.fragments.firstOrNull { it is RssFeedsFragment } as? RssFeedsFragment
         fragment?.load()
     }
 
@@ -292,7 +294,7 @@ class RssActivity : AppCompatActivity() {
         savePath?.setText(rule?.savePath.orEmpty())
         affectedFeeds?.setText(rule?.affectedFeeds.orEmpty().joinToString("\n"))
 
-        val dialog = MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (name == null) getString(R.string.rss_add_rule) else name)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -317,7 +319,7 @@ class RssActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     val result = runCatching { repository().rssSetRule(ruleName, newRule) }
                     Toast.makeText(
-                        this@RssActivity,
+                        requireContext(),
                         if (result.isSuccess) R.string.rss_rule_saved else R.string.rss_action_failed,
                         Toast.LENGTH_SHORT,
                     ).show()
@@ -331,13 +333,13 @@ class RssActivity : AppCompatActivity() {
             val nameView = layoutInflater.inflate(R.layout.dialog_input, null)
             val nameInput = nameView.findViewById<TextInputEditText>(R.id.input)
             nameInput?.hint = getString(R.string.rss_rule_name)
-            MaterialAlertDialogBuilder(this)
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.rss_add_rule)
                 .setView(nameView)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     promptRuleNameValue = nameInput?.text?.toString()?.trim().orEmpty()
                     if (promptRuleNameValue.isNullOrBlank()) {
-                        Toast.makeText(this, R.string.rss_rule_name_empty, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), R.string.rss_rule_name_empty, Toast.LENGTH_SHORT).show()
                     } else {
                         dialog.setTitle(promptRuleNameValue).show()
                     }
@@ -353,8 +355,7 @@ class RssActivity : AppCompatActivity() {
     private var promptRuleNameValue: String? = null
 
     private fun refreshRulesTab() {
-        val fragment = supportFragmentManager.fragments.firstOrNull()
-            ?.childFragmentManager?.fragments?.firstOrNull { it is RssRulesFragment } as? RssRulesFragment
+        val fragment = childFragmentManager.fragments.firstOrNull { it is RssRulesFragment } as? RssRulesFragment
         fragment?.load()
     }
 
@@ -364,7 +365,7 @@ class RssActivity : AppCompatActivity() {
             getString(R.string.rss_rename_rule),
             getString(R.string.rss_delete_rule),
         )
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(name)
             .setItems(options.toTypedArray()) { _, which ->
                 when (which) {
@@ -381,7 +382,7 @@ class RssActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         input?.setText(name)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_rename_rule)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -398,7 +399,7 @@ class RssActivity : AppCompatActivity() {
     }
 
     private fun confirmDeleteRule(name: String) {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_delete_rule)
             .setMessage(getString(R.string.rss_delete_rule_confirm, name))
             .setPositiveButton(R.string.delete) { _, _ ->
@@ -413,7 +414,7 @@ class RssActivity : AppCompatActivity() {
 
     // ---------------- pager ----------------
 
-    private class RssPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
+    private class RssPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
         override fun createFragment(position: Int): Fragment =
             if (position == 0) RssFeedsFragment() else RssRulesFragment()
 
@@ -462,15 +463,13 @@ class RssFeedsFragment : Fragment() {
         adapter = NodeAdapter(
             onOpen = { node ->
                 if (node.isFeed) {
-                    (activity as? RssActivity)?.showNodeMenu(node) ?: run {
-                        // direct open when not hosted by RssActivity
-                    }
+                    (parentFragment as? RssFragment)?.showNodeMenu(node)
                 } else {
                     if (!expanded.add(node.apiPath)) expanded.remove(node.apiPath)
                     load()
                 }
             },
-            onLongClick = { node -> (activity as? RssActivity)?.showNodeMenu(node) },
+            onLongClick = { node -> (parentFragment as? RssFragment)?.showNodeMenu(node) },
         )
         list.adapter = adapter
         list.setEmptyView(empty)
@@ -594,7 +593,7 @@ class RssRulesFragment : Fragment() {
             ),
         )
         adapter = RulesAdapter(
-            onClick = { (name, rule) -> (activity as? RssActivity)?.showRuleMenu(name, rule) },
+            onClick = { (name, rule) -> (parentFragment as? RssFragment)?.showRuleMenu(name, rule) },
         )
         list.adapter = adapter
         list.setEmptyView(empty)
@@ -607,7 +606,7 @@ class RssRulesFragment : Fragment() {
     }
 
     fun load() {
-        val act = activity as? RssActivity ?: return
+        val act = activity ?: return
         lifecycleScope.launch {
             val rules = runCatching {
                 ServiceLocator.repository(act).rssRules()

@@ -11,15 +11,17 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.children
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -27,7 +29,7 @@ import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
-import io.github.xixka.qbittorrent.data.ServerProfile
+import io.github.xixka.qbittorrent.data.ServerConfig
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityMainBinding
 import io.github.xixka.qbittorrent.databinding.DialogAddLinkBinding
@@ -37,10 +39,9 @@ import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.qbt.LocalEngineService
 import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
 import io.github.xixka.qbittorrent.ui.detail.DetailActivity
-import io.github.xixka.qbittorrent.ui.rss.RssActivity
-import io.github.xixka.qbittorrent.ui.search.SearchActivity
+import io.github.xixka.qbittorrent.ui.rss.RssFragment
+import io.github.xixka.qbittorrent.ui.search.SearchFragment
 import io.github.xixka.qbittorrent.ui.settings.SettingsFragment
-import io.github.xixka.qbittorrent.ui.stats.StatisticsActivity
 import io.github.xixka.qbittorrent.util.Format
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
@@ -52,8 +53,9 @@ import kotlinx.coroutines.launch
  * LibreTorrent-style home screen: navigation drawer with transfer stats and
  * filter chips (status / sorting / added date / categories / tags), search
  * bar, contextual toolbar, FAB popup menu and a bottom navigation that hosts
- * its destinations IN PLACE (torrents / RSS / settings) — the settings tab
- * swaps a fragment instead of opening a separate activity.
+ * ALL of its destinations IN PLACE (torrents / RSS / settings) — no bottom
+ * nav entry ever opens a separate window; sub-pages are pushed onto the
+ * same in-place container.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -131,17 +133,27 @@ class MainActivity : AppCompatActivity() {
         // the search with the engine's own search plugins (qBitController)
         binding.homeContent.searchView.setupWithSearchBar(binding.homeContent.searchBar)
         binding.homeContent.emptyViewSearchTorrentList.setOnClickListener {
-            if (viewModel.searchQuery.isNotBlank()) {
-                SearchActivity.start(this, viewModel.searchQuery)
-            } else {
-                SearchActivity.start(this)
-            }
+            binding.homeContent.searchView.hide()
+            pushPage(SearchFragment.newInstance(viewModel.searchQuery.ifBlank { null }))
         }
         binding.homeContent.searchBar.setNavigationOnClickListener {
-            binding.drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
+            binding.drawerLayout.openDrawer(GravityCompat.START)
         }
-        // No overflow menu: session actions live in the drawer (speed limits
-        // under the transfer stats) and everything else in Settings.
+        // No overflow menu: pause/resume-all live as toolbar icons
+        // (LibreTorrent home menu parity), everything else in Settings.
+        binding.homeContent.searchBar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.pause_all_menu -> {
+                    lifecycleScope.launch { runCatching { repo().pauseAll() } }
+                    true
+                }
+                R.id.resume_all_menu -> {
+                    lifecycleScope.launch { runCatching { repo().resumeAll() } }
+                    true
+                }
+                else -> false
+            }
+        }
 
         binding.homeContent.searchView.editText.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -168,21 +180,47 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.home_nav -> {
-                    showDestination(null)
+                    showTab(TAB_HOME)
                     true
                 }
                 R.id.rss_nav -> {
-                    // full-screen RSS hub (subscription tree + rules)
-                    startActivity(Intent(this, RssActivity::class.java))
-                    false // keep the torrent list as the selected tab
+                    // the RSS hub is an in-place destination, never a window
+                    showTab(TAB_RSS)
+                    true
                 }
                 R.id.settings_nav -> {
-                    showDestination(SETTINGS_DESTINATION)
+                    showTab(TAB_SETTINGS)
                     true
                 }
                 else -> false
             }
         }
+
+        // Single-activity back navigation: close the search overlay or the
+        // drawer, pop in-place sub-pages, return to the torrent list before
+        // finally leaving the app.
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    when {
+                        binding.homeContent.searchView.isShowing ->
+                            binding.homeContent.searchView.hide()
+
+                        binding.drawerLayout.isDrawerOpen(GravityCompat.START) ->
+                            binding.drawerLayout.closeDrawer(GravityCompat.START)
+
+                        pageStack.isNotEmpty() -> popPage()
+
+                        currentTab != TAB_HOME -> goHome()
+
+                        else -> finish()
+                    }
+                }
+            },
+        )
+
+        restoreFragments(savedInstanceState)
 
         setupDrawer()
         observeState()
@@ -195,32 +233,131 @@ class MainActivity : AppCompatActivity() {
         maybeAutoCheckUpdate()
     }
 
-    // ---------------- in-place destinations ----------------
+    // ---------------- in-place destinations (single-activity) ----------------
+
+    /** Currently selected bottom-nav tab. */
+    private var currentTab = TAB_HOME
+
+    /** Root fragment of each bottom-nav destination. */
+    private val tabRoots = mutableMapOf<String, Fragment>()
+
+    /** In-place sub-pages pushed above the current destination root. */
+    private val pageStack = mutableListOf<Fragment>()
+
+    private fun repo() = ServiceLocator.repository(this)
+
+    private fun topFragment(): Fragment? =
+        pageStack.lastOrNull() ?: tabRoots[currentTab]
+
+    private fun updateContainerVisibility() {
+        val showContainer = currentTab != TAB_HOME || pageStack.isNotEmpty()
+        binding.homeContent.root.visibility = if (showContainer) View.GONE else View.VISIBLE
+        binding.destinationContainer.visibility = if (showContainer) View.VISIBLE else View.GONE
+    }
 
     /**
-     * Swaps between the torrent home and the in-place settings page — the
-     * settings tab is a fragment in the same activity, not a new page.
+     * Switches the bottom-navigation destination IN PLACE — the torrent list,
+     * the RSS hub and the settings hub are all hosted in the same container,
+     * no new window is ever opened. Re-tapping the current tab drops its
+     * sub-pages and returns to the tab root.
      */
-    private fun showDestination(destinationId: String?) {
-        val showHome = destinationId == null
-        binding.homeContent.root.visibility = if (showHome) View.VISIBLE else View.GONE
-        binding.destinationContainer.visibility = if (showHome) View.GONE else View.VISIBLE
-        val settings = supportFragmentManager.findFragmentByTag(SETTINGS_DESTINATION)
-        if (showHome) {
-            settings?.let {
-                supportFragmentManager.beginTransaction().hide(it).commitAllowingStateLoss()
-            }
+    private fun showTab(tab: String) {
+        if (tab == currentTab) {
+            while (pageStack.isNotEmpty()) popPage()
+            updateContainerVisibility()
+            return
+        }
+        clearPageStack()
+        tabRoots[currentTab]?.let { root ->
+            supportFragmentManager.beginTransaction().hide(root).commitAllowingStateLoss()
+        }
+        currentTab = tab
+        if (tab == TAB_HOME) {
+            updateContainerVisibility()
         } else {
-            if (settings == null) {
+            val tag = ROOT_TAG_PREFIX + tab
+            val existing = supportFragmentManager.findFragmentByTag(tag)
+            if (existing == null) {
+                val root = createTabRoot(tab)
+                tabRoots[tab] = root
                 supportFragmentManager.beginTransaction()
-                    .add(R.id.destination_container, SettingsFragment(), SETTINGS_DESTINATION)
+                    .add(R.id.destination_container, root, tag)
                     .commitAllowingStateLoss()
             } else {
-                supportFragmentManager.beginTransaction()
-                    .show(settings)
-                    .commitAllowingStateLoss()
+                tabRoots[tab] = existing
+                supportFragmentManager.beginTransaction().show(existing).commitAllowingStateLoss()
+            }
+            updateContainerVisibility()
+        }
+    }
+
+    private fun createTabRoot(tab: String): Fragment = when (tab) {
+        TAB_RSS -> RssFragment()
+        TAB_SETTINGS -> SettingsFragment()
+        else -> throw IllegalArgumentException("unknown tab $tab")
+    }
+
+    /**
+     * Pushes an in-place sub-page (settings sub-screens, RSS articles, engine
+     * search, plugins) on top of the current destination — still no window.
+     */
+    fun pushPage(fragment: Fragment) {
+        val top = topFragment()
+        val tx = supportFragmentManager.beginTransaction()
+        top?.let { tx.hide(it) }
+        tx.add(R.id.destination_container, fragment)
+        tx.commitAllowingStateLoss()
+        pageStack += fragment
+        updateContainerVisibility()
+    }
+
+    fun popPage(): Boolean {
+        if (pageStack.isEmpty()) return false
+        val top = pageStack.removeAt(pageStack.lastIndex)
+        val tx = supportFragmentManager.beginTransaction()
+        tx.remove(top)
+        topFragment()?.let { tx.show(it) }
+        tx.commitAllowingStateLoss()
+        updateContainerVisibility()
+        return true
+    }
+
+    private fun clearPageStack() {
+        if (pageStack.isEmpty()) return
+        val tx = supportFragmentManager.beginTransaction()
+        pageStack.forEach { tx.remove(it) }
+        tx.commitAllowingStateLoss()
+        pageStack.clear()
+    }
+
+    /** Bottom-nav / toolbar-arrow "back to torrents". */
+    fun goHome() {
+        if (currentTab == TAB_HOME && pageStack.isEmpty()) return
+        clearPageStack()
+        if (currentTab != TAB_HOME) showTab(TAB_HOME) else updateContainerVisibility()
+        if (binding.bottomNavigation.selectedItemId != R.id.home_nav) {
+            binding.bottomNavigation.selectedItemId = R.id.home_nav
+        }
+    }
+
+    /** Re-attaches tab roots / sub-pages surviving an activity recreation. */
+    private fun restoreFragments(savedInstanceState: Bundle?) {
+        if (savedInstanceState == null) return
+        listOf(TAB_RSS, TAB_SETTINGS).forEach { tab ->
+            supportFragmentManager.findFragmentByTag(ROOT_TAG_PREFIX + tab)?.let {
+                tabRoots[tab] = it
             }
         }
+        val roots = tabRoots.values.toSet()
+        supportFragmentManager.fragments
+            .filter { it.id == R.id.destination_container && it !in roots }
+            .forEach { pageStack += it }
+        currentTab = when (binding.bottomNavigation.selectedItemId) {
+            R.id.rss_nav -> TAB_RSS
+            R.id.settings_nav -> TAB_SETTINGS
+            else -> TAB_HOME
+        }
+        updateContainerVisibility()
     }
 
     // ---------------- quick speed limits ----------------
@@ -400,7 +537,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupDrawer() {
         val d = drawerBinding
-        val repo = ServiceLocator.repository(this)
 
         d.sortDirectionToggleButton.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) viewModel.setSortDirection(checkedId == R.id.sort_desc_button)
@@ -487,69 +623,11 @@ class MainActivity : AppCompatActivity() {
         d.addCategoryButton.setOnClickListener { showAddCategoryDialog() }
         d.addTagButton.setOnClickListener { showAddTagDialog() }
 
-        // statistics panel + quick speed limits under the transfer stats
+        // Quick speed limits: the speed-display rows under the transfer
+        // stats open the limits dialog (requirement: speed limits live at
+        // the speed display, no extra rows, no menu entry).
         d.sessionDownloadStat.setOnClickListener { showSpeedLimitDialog() }
         d.sessionUploadStat.setOnClickListener { showSpeedLimitDialog() }
-        d.speedLimitRow.setOnClickListener { showSpeedLimitDialog() }
-        d.pauseAllRow.setOnClickListener {
-            lifecycleScope.launch { runCatching { repo.pauseAll() } }
-        }
-        d.resumeAllRow.setOnClickListener {
-            lifecycleScope.launch { runCatching { repo.resumeAll() } }
-        }
-
-        // server profile switcher (qBitController multi-server parity)
-        d.activeServerLabel.setOnClickListener { showServerSwitcher() }
-        d.serverSwitchIcon.setOnClickListener { showServerSwitcher() }
-    }
-
-    /**
-     * Multi-server switcher: bundled engine pseudo-profile (Enhanced) plus
-     * every configured remote server; add / edit / delete entries.
-     */
-    private fun showServerSwitcher() {
-        val prefs = ServiceLocator.prefs(this)
-        val profiles = prefs.serverProfiles()
-        val labels = mutableListOf<String>()
-        if (BuildConfig.IS_ENHANCED) labels += getString(R.string.settings_server_connection_engine)
-        labels += profiles.map { it.displayName() }
-        labels += getString(R.string.server_manage)
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.switch_server)
-            .setItems(labels.toTypedArray()) { _, which ->
-                val manageIndex = labels.size - 1
-                when {
-                    which == manageIndex ->
-                        startActivity(
-                            android.content.Intent(
-                                this,
-                                io.github.xixka.qbittorrent.ui.settings.ServerSettingsActivity::class.java,
-                            )
-                        )
-                    BuildConfig.IS_ENHANCED && which == 0 -> {
-                        if (prefs.useRemoteServer) {
-                            prefs.useRemoteServer = false
-                            ServiceLocator.resetClient()
-                            viewModel.restart()
-                            render(viewModel.state.value)
-                        }
-                    }
-                    else -> {
-                        val index = if (BuildConfig.IS_ENHANCED) which - 1 else which
-                        val profile = profiles.getOrNull(index) ?: return@setItems
-                        if (!prefs.useRemoteServer) prefs.useRemoteServer = true
-                        if (prefs.activeServer()?.id != profile.id) {
-                            prefs.switchServer(profile.id)
-                        }
-                        ServiceLocator.resetClient()
-                        viewModel.restart()
-                        render(viewModel.state.value)
-                    }
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     // ---------------- categories (qBC parity: name + save path) ----------------
@@ -826,25 +904,20 @@ class MainActivity : AppCompatActivity() {
 
         val d = drawerBinding
         state.transfer?.let {
-            d.sessionDownloadStat.text = "↓ ${Format.speed(it.dlInfoSpeed)} • ${Format.size(it.dlInfoData)}"
-            d.sessionUploadStat.text = "↑ ${Format.speed(it.upInfoSpeed)} • ${Format.size(it.upInfoData)}"
+            // LibreTorrent drawer format: transferred data • current speed
+            d.sessionDownloadStat.text = "${Format.size(it.dlInfoData)} • ${Format.speed(it.dlInfoSpeed)}"
+            d.sessionUploadStat.text = "${Format.size(it.upInfoData)} • ${Format.speed(it.upInfoSpeed)}"
             d.sessionDhtNodesStat.text = getString(R.string.dht_nodes_stat, it.dhtNodes.toString())
-            d.speedLimitValue.text = buildString {
-                append("↓ ")
-                append(if (it.dlRateLimit > 0) Format.speed(it.dlRateLimit) else "∞")
-                append(" • ↑ ")
-                append(if (it.upRateLimit > 0) Format.speed(it.upRateLimit) else "∞")
-            }
+        }
+        // Listening port: the bundled engine's WebUI port, or the active
+        // remote server's port — LibreTorrent drawer row.
+        val listenPort = if (prefs.usingLocalEngine) {
+            prefs.enginePort
+        } else {
+            prefs.activeServer()?.port ?: ServerConfig.DEFAULT_PORT
         }
         d.sessionListenPortStat.text =
-            state.serverVersion.ifBlank { getString(R.string.stats) }
-
-        // active server label
-        d.activeServerLabel.text = when {
-            localEngine -> getString(R.string.settings_server_connection_engine)
-            prefs.activeServer() != null -> prefs.activeServer()?.displayName()
-            else -> getString(R.string.settings_server_connection_not_configured)
-        }
+            getString(R.string.qbt_conn_listen) + ": " + listenPort
 
         updateDrawerChips(state.categories, state.tags)
     }
@@ -932,8 +1005,9 @@ class MainActivity : AppCompatActivity() {
         @Volatile
         private var engineAutoStarted = false
 
-        private const val HOME_DESTINATION = "home"
-        private const val RSS_DESTINATION = "rss"
-        private const val SETTINGS_DESTINATION = "settings"
+        private const val TAB_HOME = "home"
+        private const val TAB_RSS = "rss"
+        private const val TAB_SETTINGS = "settings"
+        private const val ROOT_TAG_PREFIX = "root_"
     }
 }

@@ -3,12 +3,9 @@ package io.github.xixka.qbittorrent.ui.rss
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,7 +18,7 @@ import io.github.xixka.qbittorrent.databinding.ActivityLogBinding
 import io.github.xixka.qbittorrent.databinding.ItemRssArticleBinding
 import io.github.xixka.qbittorrent.model.RssArticle
 import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
-import io.github.xixka.qbittorrent.util.ThemeUtils
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
@@ -31,47 +28,60 @@ import java.util.Date
 /**
  * Articles of one RSS feed (qBitController RssArticlesScreen parity,
  * LibreTorrent list style): unread markers, mark-read on open, add torrent
- * from the article's torrentUrl, mark all read, manual refresh.
+ * from the article's torrentUrl, mark all read, manual refresh. Pushed as an
+ * IN-PLACE sub-page of the RSS destination — no separate window.
  */
-class RssArticlesActivity : AppCompatActivity() {
+class RssArticlesFragment : Fragment() {
 
-    private lateinit var binding: ActivityLogBinding
+    private var _binding: ActivityLogBinding? = null
+    private val binding get() = _binding!!
+
     private val adapter = ArticleAdapter(
         onClick = { openArticle(it) },
         onLongClick = { showArticleMenu(it) },
     )
 
-    private val feedPath by lazy { intent.getStringExtra(EXTRA_PATH) ?: "" }
-    private val feedTitle by lazy { intent.getStringExtra(EXTRA_TITLE) ?: "" }
+    private val feedPath by lazy { arguments?.getString(ARG_PATH).orEmpty() }
+    private val feedTitle by lazy { arguments?.getString(ARG_TITLE).orEmpty() }
 
     private val timeFormat: DateFormat by lazy {
         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityLogBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityLogBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         // reuse the log screen skeleton: toolbar + list + empty placeholder
         binding.typeChipGroup.visibility = View.GONE
         applyWindowInsets(
             child = binding.logList,
-            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT or WindowInsetsSide.BOTTOM,
+            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT,
         )
         binding.appBar.title = feedTitle
-        binding.appBar.setNavigationOnClickListener { finish() }
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.inflateMenu(R.menu.rss_articles)
         binding.appBar.setOnMenuItemClickListener { item -> onMenuItem(item.itemId) }
 
-        binding.logList.layoutManager = LinearLayoutManager(this)
+        binding.logList.layoutManager = LinearLayoutManager(requireContext())
         binding.logList.adapter = adapter
         binding.logList.setEmptyView(binding.emptyView)
         binding.emptyView.setText(R.string.rss_no_articles)
         binding.emptyView.setIconResource(R.drawable.ic_article_24px)
 
         load()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
@@ -89,7 +99,7 @@ class RssArticlesActivity : AppCompatActivity() {
     private fun load() {
         lifecycleScope.launch {
             val articles = runCatching {
-                val tree = RssTreeParser.parse(ServiceLocator.repository(this@RssArticlesActivity).rssItems(true))
+                val tree = RssTreeParser.parse(ServiceLocator.repository(requireContext()).rssItems(true))
                 RssTreeParser.flatten(tree).firstOrNull { it.apiPath == feedPath }?.articles
             }.getOrNull().orEmpty().sortedByDescending { it.date }
             adapter.submitList(articles)
@@ -99,7 +109,7 @@ class RssArticlesActivity : AppCompatActivity() {
     private fun markAllRead() {
         lifecycleScope.launch {
             runCatching {
-                ServiceLocator.repository(this@RssArticlesActivity).rssMarkAsRead(feedPath, null)
+                ServiceLocator.repository(requireContext()).rssMarkAsRead(feedPath, null)
             }
             load()
         }
@@ -108,12 +118,12 @@ class RssArticlesActivity : AppCompatActivity() {
     private fun openArticle(article: RssArticle) {
         lifecycleScope.launch {
             runCatching {
-                ServiceLocator.repository(this@RssArticlesActivity).rssMarkAsRead(feedPath, article.id)
+                ServiceLocator.repository(requireContext()).rssMarkAsRead(feedPath, article.id)
             }
         }
         val url = article.torrentUrl.ifBlank { article.link }
         if (url.isNotBlank()) {
-            AddTorrentActivity.start(this, url)
+            AddTorrentActivity.start(requireContext(), url)
         } else {
             showArticleMenu(article)
         }
@@ -125,17 +135,17 @@ class RssArticlesActivity : AppCompatActivity() {
             getString(R.string.rss_mark_read),
             getString(R.string.rss_open_link),
         )
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(article.title)
             .setItems(options.toTypedArray()) { _, which ->
                 when (which) {
                     0 -> {
                         val url = article.torrentUrl.ifBlank { article.link }
-                        if (url.isNotBlank()) AddTorrentActivity.start(this, url)
+                        if (url.isNotBlank()) AddTorrentActivity.start(requireContext(), url)
                     }
                     1 -> lifecycleScope.launch {
                         runCatching {
-                            ServiceLocator.repository(this@RssArticlesActivity)
+                            ServiceLocator.repository(requireContext())
                                 .rssMarkAsRead(feedPath, article.id)
                         }
                         load()
@@ -183,9 +193,16 @@ class RssArticlesActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_PATH = "path"
-        const val EXTRA_TITLE = "title"
-        const val EXTRA_WITH_DATA = "with_data"
+        private const val ARG_PATH = "path"
+        private const val ARG_TITLE = "title"
+
+        fun newInstance(path: String, title: String): RssArticlesFragment =
+            RssArticlesFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_PATH, path)
+                    putString(ARG_TITLE, title)
+                }
+            }
 
         private val DIFF = object : DiffUtil.ItemCallback<RssArticle>() {
             override fun areItemsTheSame(oldItem: RssArticle, newItem: RssArticle) =

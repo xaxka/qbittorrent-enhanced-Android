@@ -68,60 +68,6 @@
             android:exported="false"
             android:parentActivityName=".ui.main.MainActivity" />
 
-        <activity
-            android:name=".ui.settings.ServerSettingsActivity"
-            android:exported="false"
-            android:label="@string/settings_server_connection"
-            android:parentActivityName=".ui.main.MainActivity" />
-
-        <!--
-            Form-heavy preferences editor: surviving rotations without
-            recreating the views keeps the user's in-progress edits intact.
-        -->
-        <activity
-            android:name=".ui.qbsettings.QBSettingsActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:exported="false"
-            android:label="@string/qbt_settings_title"
-            android:parentActivityName=".ui.main.MainActivity"
-            android:windowSoftInputMode="adjustResize" />
-
-        <activity
-            android:name=".ui.stats.StatisticsActivity"
-            android:exported="false"
-            android:label="@string/stats"
-            android:parentActivityName=".ui.main.MainActivity" />
-
-        <activity
-            android:name=".ui.log.LogActivity"
-            android:exported="false"
-            android:label="@string/log_title"
-            android:parentActivityName=".ui.main.MainActivity" />
-
-        <activity
-            android:name=".ui.rss.RssActivity"
-            android:exported="false"
-            android:label="@string/rss_title"
-            android:parentActivityName=".ui.main.MainActivity" />
-
-        <activity
-            android:name=".ui.rss.RssArticlesActivity"
-            android:exported="false"
-            android:label="@string/rss_title"
-            android:parentActivityName=".ui.rss.RssActivity" />
-
-        <activity
-            android:name=".ui.search.SearchActivity"
-            android:exported="false"
-            android:label="@string/search_engine_title"
-            android:parentActivityName=".ui.main.MainActivity" />
-
-        <activity
-            android:name=".ui.search.SearchPluginsActivity"
-            android:exported="false"
-            android:label="@string/search_plugins"
-            android:parentActivityName=".ui.search.SearchActivity" />
-
         <service
             android:name=".qbt.LocalEngineService"
             android:exported="false"

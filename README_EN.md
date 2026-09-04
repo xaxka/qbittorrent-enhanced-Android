@@ -3,12 +3,11 @@
 [简体中文](README.md)
 
 Native Android client for [qBittorrent](https://github.com/qbittorrent/qBittorrent) —
-one code base, two editions:
+a single edition with a bundled engine:
 
-| Edition | Package | Description |
-|---------|---------|-------------|
-| **qBittorrent** (`standard` flavor) | `io.github.xixka.qbittorrent` | Pure remote-control client. Talks the **unmodified qBittorrent Web API v2** (default port **8080**, configurable host/port/username/password, optional HTTPS with trust-all for self-signed certs). |
-| **qBittorrent Enhanced** (`enhanced` flavor) | `io.github.xixka.qbittorrent.enhanced` | Same client, plus a **bundled local `qbittorrent-enhanced-nox` engine** cross-compiled from source by CI, started as a child process and controlled through the very same Web API — works out of the box, no server needed. |
+| Description |
+|-------------|
+| **Bundles a local `qbittorrent-enhanced-nox` engine** cross-compiled from source by CI, started as a child process and controlled through the Web API — works out of the box, no server needed — while remaining a full remote-control client for any qBittorrent server (Settings → Server, multiple profiles, optional HTTPS with trust-all for self-signed certs). |
 
 The UI is a **native Material 3 interface (Material You dynamic colors on by
 default)** in the style of
@@ -42,19 +41,19 @@ WebUI embedding. Feature set modelled after
   download of results; plugin management (install/uninstall/update/enable)
 * **Log viewer**: engine execution log (log/main) with level filtering
 * **Multi-server management**: qBitController-style server profiles with
-  one-tap switching, editing and deletion; the Enhanced edition switches
-  between the bundled engine and remote servers at any time
+  one-tap switching, editing and deletion; switch between the bundled
+  engine and remote servers at any time
 * **Full qBittorrent preferences editor** (Settings → *qBittorrent settings*):
   reads the live configuration of the connected instance and writes edits back
   through the exact WebUI Options API — **covering all 217 qBittorrent Enhanced
   WebUI Options keys** across seven tabs (Downloads / Speed / BitTorrent /
   Connection / WebUI / RSS / Advanced); changes apply live without restart.
   A dedicated `prefs-coverage` CI gate keeps the coverage from regressing
-* Global speed limits and alternative speed limits (adjustable right below
-  the transfer stats in the drawer)
-* Enhanced edition: engine starts with the app, **boot autostart**, manual
-  stop, **watchdog keep-alive** (auto-restarts the engine when it dies),
-  LAN WebUI access
+* Global speed limits and alternative speed limits (tap the download/upload
+  speed rows of the drawer's transfer stats)
+* Fully automatic engine lifecycle: starts with the app, **boot autostart**,
+  **watchdog keep-alive** (auto-restarts the engine when it dies), retry
+  prompt only when the engine fails to start, LAN WebUI access
 * Immersive edge-to-edge layout (gesture-navigation-bar inset aware)
 * **In-app update check** against the GitHub Releases published by CI
   (manual check + non-intrusive daily automatic check)
@@ -68,9 +67,9 @@ WebUI embedding. Feature set modelled after
 APKs are built, signed and published automatically by GitHub Actions to
 [Releases](https://github.com/xixka/qbittorrentAndroid/releases):
 
-* The Enhanced edition is split **per ABI**: `arm64-v8a`, `armeabi-v7a`,
-  `x86_64` (each with its own `versionCode` offset; the universal APK is kept
-  for the ABI-independent standard edition only)
+* Split **per ABI**: `arm64-v8a`, `armeabi-v7a`,
+  `x86_64` (each with its own `versionCode` offset; every APK bundles the
+  engine)
 * All published APKs are **signed** with the committed CI key
   (`app/ci-signing.keystore` — a public, sideload-only key that guarantees a
   stable signature so releases can update each other in place; it is *not* a

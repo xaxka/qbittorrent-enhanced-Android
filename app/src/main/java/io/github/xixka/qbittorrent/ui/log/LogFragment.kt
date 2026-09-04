@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,7 +18,7 @@ import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityLogBinding
 import io.github.xixka.qbittorrent.databinding.ItemLogRowBinding
 import io.github.xixka.qbittorrent.model.LogEntry
-import io.github.xixka.qbittorrent.util.ThemeUtils
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
@@ -30,10 +28,13 @@ import java.util.Date
 /**
  * Engine log viewer (qBitController LogScreen parity): the WebUI log feed of
  * the connected server, filtered by severity chips, in LibreTorrent styling.
+ * Opened from Settings, hosted IN PLACE — no separate window.
  */
-class LogActivity : AppCompatActivity() {
+class LogFragment : Fragment() {
 
-    private lateinit var binding: ActivityLogBinding
+    private var _binding: ActivityLogBinding? = null
+    private val binding get() = _binding!!
+
     private val adapter = LogAdapter()
 
     private var all: List<LogEntry> = emptyList()
@@ -43,17 +44,22 @@ class LogActivity : AppCompatActivity() {
         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityLogBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityLogBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         applyWindowInsets(
             child = binding.logList,
-            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT or WindowInsetsSide.BOTTOM,
+            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT,
         )
-        binding.appBar.setNavigationOnClickListener { finish() }
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.setOnMenuItemClickListener {
             if (it.itemId == R.id.refresh_log_menu) {
                 load()
@@ -61,12 +67,17 @@ class LogActivity : AppCompatActivity() {
             } else false
         }
 
-        binding.logList.layoutManager = LinearLayoutManager(this)
+        binding.logList.layoutManager = LinearLayoutManager(requireContext())
         binding.logList.adapter = adapter
         binding.logList.setEmptyView(binding.emptyView)
 
         binding.typeChipGroup.setOnCheckedStateChangeListener { group, _ -> onFilterChanged(group) }
         load()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 
     private fun onFilterChanged(group: ChipGroup) {
@@ -90,7 +101,7 @@ class LogActivity : AppCompatActivity() {
     private fun load() {
         lifecycleScope.launch {
             val result = runCatching {
-                ServiceLocator.repository(this@LogActivity).log()
+                ServiceLocator.repository(requireContext()).log()
             }
             result
                 .onSuccess { entries ->
@@ -100,7 +111,7 @@ class LogActivity : AppCompatActivity() {
                 .onFailure { e ->
                     all = emptyList()
                     applyFilter()
-                    MaterialAlertDialogBuilder(this@LogActivity)
+                    MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.error)
                         .setMessage(e.message ?: getString(R.string.error_connection))
                         .setPositiveButton(android.R.string.ok, null)

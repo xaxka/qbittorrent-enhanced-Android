@@ -6,25 +6,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivitySearchBinding
 import io.github.xixka.qbittorrent.databinding.ItemSearchResultBinding
 import io.github.xixka.qbittorrent.model.SearchResultEntry
-import io.github.xixka.qbittorrent.model.SearchPlugin
 import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.util.Format
-import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.Job
@@ -37,14 +33,17 @@ import kotlinx.coroutines.launch
  * SearchResultScreen parity): starts a /search/start job with pattern,
  * category and plugin scope, polls /search/results until the engine reports
  * "Stopped", and hands the picked result's fileUrl to the add-torrent sheet.
+ * Pushed as an IN-PLACE sub-page of the home destination — no new window.
  */
-class SearchActivity : AppCompatActivity() {
+class SearchFragment : Fragment() {
 
-    private lateinit var binding: ActivitySearchBinding
+    private var _binding: ActivitySearchBinding? = null
+    private val binding get() = _binding!!
+
     private val adapter = ResultAdapter(
         onClick = { entry ->
             if (entry.fileUrl.isNotBlank()) {
-                AddTorrentActivity.start(this, entry.fileUrl)
+                AddTorrentActivity.start(requireContext(), entry.fileUrl)
             } else if (entry.descriptionLink.isNotBlank()) {
                 runCatching {
                     startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(entry.descriptionLink)))
@@ -70,21 +69,28 @@ class SearchActivity : AppCompatActivity() {
         "books" to "Books",
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivitySearchBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    private var categoryLabels: List<Pair<String, String>> = emptyList()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivitySearchBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         applyWindowInsets(
             child = binding.resultList,
-            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT or WindowInsetsSide.BOTTOM,
+            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT,
         )
-        binding.appBar.setNavigationOnClickListener { finish() }
+        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.search_plugins_menu -> {
-                    startActivity(Intent(this, SearchPluginsActivity::class.java))
+                    (activity as? MainActivity)?.pushPage(SearchPluginsFragment())
                     true
                 }
                 R.id.search_stop_menu -> {
@@ -95,46 +101,51 @@ class SearchActivity : AppCompatActivity() {
             }
         }
 
-        binding.resultList.layoutManager = LinearLayoutManager(this)
+        binding.resultList.layoutManager = LinearLayoutManager(requireContext())
         binding.resultList.adapter = adapter
         binding.resultList.setEmptyView(binding.emptyView)
 
-        val patternInput = findViewById<TextInputEditText>(R.id.search_pattern)
-        val categoryDropdown = findViewById<MaterialAutoCompleteTextView>(R.id.search_category_dropdown)
-        val pluginsDropdown = findViewById<MaterialAutoCompleteTextView>(R.id.search_plugins_dropdown)
-
         // localized labels
-        val labels = categories.map { pair ->
+        categoryLabels = categories.map { pair ->
             pair.first to getString(labelResFor(pair.first))
         }
-        val labelList = labels.map { it.second }
-        categoryDropdown?.setAdapter(
-            ArrayAdapter(this, android.R.layout.simple_list_item_1, labelList)
+        val labelList = categoryLabels.map { it.second }
+        binding.searchCategoryDropdown?.setAdapter(
+            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, labelList)
         )
-        categoryDropdown?.setText(labelList.firstOrNull() ?: "All", false)
-        pluginsDropdown?.setAdapter(
+        binding.searchCategoryDropdown?.setText(labelList.firstOrNull() ?: "All", false)
+        binding.searchPluginsDropdown?.setAdapter(
             ArrayAdapter(
-                this,
+                requireContext(),
                 android.R.layout.simple_list_item_1,
                 listOf(getString(R.string.search_plugins_enabled), getString(R.string.search_plugins_all)),
             )
         )
-        pluginsDropdown?.setText(getString(R.string.search_plugins_enabled), false)
+        binding.searchPluginsDropdown?.setText(getString(R.string.search_plugins_enabled), false)
 
-        intent.getStringExtra(EXTRA_PATTERN)?.let { patternInput?.setText(it) }
+        arguments?.getString(ARG_PATTERN)?.let { binding.searchPattern?.setText(it) }
 
         binding.searchStartButton.setOnClickListener {
-            val pattern = patternInput?.text?.toString()?.trim().orEmpty()
-            if (pattern.isNotEmpty()) startSearch(pattern, selectedCategory(labels), selectedPluginScope())
+            val pattern = binding.searchPattern?.text?.toString()?.trim().orEmpty()
+            if (pattern.isNotEmpty()) startSearch(pattern, selectedCategory(), selectedPluginScope())
         }
-        patternInput?.setOnEditorActionListener { v, actionId, _ ->
+        binding.searchPattern?.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 val pattern = v.text.toString().trim()
-                if (pattern.isNotEmpty()) startSearch(pattern, selectedCategory(labels), selectedPluginScope())
+                if (pattern.isNotEmpty()) startSearch(pattern, selectedCategory(), selectedPluginScope())
                 true
             } else false
         }
+    }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        stopSearch()
+        super.onDestroy()
     }
 
     private fun labelResFor(code: String): Int = when (code) {
@@ -149,15 +160,13 @@ class SearchActivity : AppCompatActivity() {
         else -> R.string.search_cat_all
     }
 
-    private fun selectedCategory(labels: List<Pair<String, String>>): String {
-        val dropdown = findViewById<MaterialAutoCompleteTextView>(R.id.search_category_dropdown)
-        val text = dropdown?.text?.toString() ?: return "all"
-        return labels.firstOrNull { it.second == text }?.first ?: "all"
+    private fun selectedCategory(): String {
+        val text = binding.searchCategoryDropdown?.text?.toString() ?: return "all"
+        return categoryLabels.firstOrNull { it.second == text }?.first ?: "all"
     }
 
     private fun selectedPluginScope(): String {
-        val dropdown = findViewById<MaterialAutoCompleteTextView>(R.id.search_plugins_dropdown)
-        return if (dropdown?.text?.toString() == getString(R.string.search_plugins_all)) "all" else "enabled"
+        return if (binding.searchPluginsDropdown?.text?.toString() == getString(R.string.search_plugins_all)) "all" else "enabled"
     }
 
     private fun startSearch(pattern: String, category: String, plugins: String) {
@@ -166,7 +175,7 @@ class SearchActivity : AppCompatActivity() {
         binding.emptyView.setText(R.string.search_running)
         lifecycleScope.launch {
             val start = runCatching {
-                ServiceLocator.repository(this@SearchActivity).searchStart(pattern, category, plugins)
+                ServiceLocator.repository(requireContext()).searchStart(pattern, category, plugins)
             }
             start
                 .onSuccess { response ->
@@ -175,7 +184,7 @@ class SearchActivity : AppCompatActivity() {
                 }
                 .onFailure { e ->
                     binding.emptyView.setText(R.string.search_no_results)
-                    MaterialAlertDialogBuilder(this@SearchActivity)
+                    MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.search_engine_title)
                         .setMessage(e.message ?: getString(R.string.search_start_failed))
                         .setPositiveButton(android.R.string.ok, null)
@@ -189,7 +198,7 @@ class SearchActivity : AppCompatActivity() {
         searchJob = lifecycleScope.launch {
             while (isActive && searchId >= 0) {
                 val results = runCatching {
-                    ServiceLocator.repository(this@SearchActivity).searchResults(searchId)
+                    ServiceLocator.repository(requireContext()).searchResults(searchId)
                 }.getOrNull()
                 if (results != null) {
                     adapter.submitList(results.results)
@@ -212,8 +221,8 @@ class SearchActivity : AppCompatActivity() {
         if (id >= 0) {
             searchId = -1
             lifecycleScope.launch {
-                runCatching { ServiceLocator.repository(this@SearchActivity).searchStop(id) }
-                runCatching { ServiceLocator.repository(this@SearchActivity).searchDelete(id) }
+                runCatching { ServiceLocator.repository(requireContext()).searchStop(id) }
+                runCatching { ServiceLocator.repository(requireContext()).searchDelete(id) }
             }
         }
     }
@@ -223,11 +232,11 @@ class SearchActivity : AppCompatActivity() {
             getString(R.string.search_add_torrent),
             getString(R.string.search_open_site),
         )
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(entry.fileName)
             .setItems(options.toTypedArray()) { _, which ->
                 when (which) {
-                    0 -> if (entry.fileUrl.isNotBlank()) AddTorrentActivity.start(this, entry.fileUrl)
+                    0 -> if (entry.fileUrl.isNotBlank()) AddTorrentActivity.start(requireContext(), entry.fileUrl)
                     1 -> runCatching {
                         startActivity(
                             Intent(Intent.ACTION_VIEW, android.net.Uri.parse(entry.descriptionLink)),
@@ -237,11 +246,6 @@ class SearchActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    override fun onDestroy() {
-        stopSearch()
-        super.onDestroy()
     }
 
     // ---------------- adapter ----------------
@@ -276,14 +280,14 @@ class SearchActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_PATTERN = "pattern"
+        private const val ARG_PATTERN = "pattern"
 
-        fun start(context: android.content.Context, pattern: String? = null) {
-            context.startActivity(
-                Intent(context, SearchActivity::class.java)
-                    .putExtra(EXTRA_PATTERN, pattern)
-            )
-        }
+        fun newInstance(pattern: String?): SearchFragment =
+            SearchFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_PATTERN, pattern)
+                }
+            }
 
         private val DIFF = object : DiffUtil.ItemCallback<SearchResultEntry>() {
             override fun areItemsTheSame(oldItem: SearchResultEntry, newItem: SearchResultEntry) =

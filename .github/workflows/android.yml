@@ -26,7 +26,7 @@ jobs:
   # (bionic dynamic-linked build, per the OpenListAndroid pipeline:
   #  Qt6 static + openssl-linked + libtorrent 1.2 + zlib-ng compat).
   # The resulting binary is packaged as libqbittorrent-nox.so into the
-  # `enhanced` flavor jniLibs.
+  # jniLibs of the main source set.
   # ---------------------------------------------------------------------
   qbt-nox:
     name: Build qbittorrent-enhanced-nox (${{ matrix.ABI }})
@@ -139,7 +139,7 @@ jobs:
           if-no-files-found: error
 
   # ---------------------------------------------------------------------
-  # Fast compile gate: builds the standard (no native engine) debug APK so
+  # Fast compile gate: builds the debug APK (jniLibs may be absent locally) so
   # Kotlin / resource errors surface within minutes instead of after the
   # long qbittorrent-nox cross-compile. The full build below only runs when
   # this passes.
@@ -166,8 +166,8 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
 
-      - name: Compile (standard debug, no native libs needed)
-        run: ./gradlew assembleStandardDebug --stacktrace
+      - name: Compile (debug, no native libs needed)
+        run: ./gradlew assembleDebug --stacktrace
 
   # ---------------------------------------------------------------------
   # Settings completeness gate: the in-app preferences editor must cover
@@ -186,10 +186,10 @@ jobs:
         run: python3 scripts/check_prefs_coverage.py
 
   # ---------------------------------------------------------------------
-  # Build both Android editions from the shared code base.
+  # Build the single enhanced edition (per-ABI split APKs).
   # ---------------------------------------------------------------------
   build:
-    name: Build qBittorrent / qBittorrent Enhanced
+    name: Build qBittorrent Enhanced
     runs-on: ubuntu-latest
     needs: [qbt-nox, compile-check, prefs-coverage]
     permissions:
@@ -220,51 +220,38 @@ jobs:
           echo "VERSION_CODE=$(TZ=Asia/Shanghai date +%y%m%d%H)$(($(TZ=Asia/Shanghai date +%M) / 10))" >> "$GITHUB_ENV"
           echo "versionName=$VERSION_NAME versionCode=$VERSION_CODE"
 
-      - name: Download nox libs into enhanced jniLibs
+      - name: Download nox libs into jniLibs
         uses: actions/download-artifact@v4
         with:
           pattern: qbt-nox-*
-          path: app/src/enhanced/jniLibs
+          path: app/src/main/jniLibs
           merge-multiple: true
 
       - name: Verify jniLibs
         run: |
-          ls -laR app/src/enhanced/jniLibs
+          ls -laR app/src/main/jniLibs
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            test -s "app/src/enhanced/jniLibs/$abi/libqbittorrent-nox.so" || { echo "ERROR: missing libqbittorrent-nox.so for $abi"; exit 1; }
-            test -s "app/src/enhanced/jniLibs/$abi/libc++_shared.so" || { echo "ERROR: missing libc++_shared.so for $abi"; exit 1; }
+            test -s "app/src/main/jniLibs/$abi/libqbittorrent-nox.so" || { echo "ERROR: missing libqbittorrent-nox.so for $abi"; exit 1; }
+            test -s "app/src/main/jniLibs/$abi/libc++_shared.so" || { echo "ERROR: missing libc++_shared.so for $abi"; exit 1; }
           done
 
       # Release builds are signed with the committed CI key (see
       # app/ci-signing.keystore) — every APK below is directly installable,
       # there are no more unsigned APKs.
-      - name: Build qBittorrent (standard edition, universal APK)
-        run: ./gradlew assembleStandardRelease
-          -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE" --stacktrace
-
       - name: Build qBittorrent Enhanced (per-ABI split APKs)
-        run: ./gradlew assembleEnhancedRelease
+        run: ./gradlew assembleRelease
           -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE" --stacktrace
 
       - name: List APK outputs
         run: find app/build/outputs/apk -name '*.apk' -exec ls -la {} \;
 
-      - name: Verify enhanced APKs contain the nox engine
+      - name: Verify APKs contain the nox engine
         run: |
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            apk="app/build/outputs/apk/enhanced/release/app-enhanced-${abi}-release.apk"
+            apk="app/build/outputs/apk/release/app-${abi}-release.apk"
             echo "== $apk =="
             test -f "$apk" || { echo "ERROR: missing split APK $apk"; exit 1; }
             unzip -l "$apk" | grep -E 'libqbittorrent-nox.so|libc\+\+_shared.so' || { echo "ERROR: nox engine missing in $apk"; exit 1; }
-          done
-
-      - name: Verify standard APKs contain no engine
-        run: |
-          for apk in app/build/outputs/apk/standard/release/*.apk; do
-            echo "== $apk =="
-            if unzip -l "$apk" | grep -q 'libqbittorrent-nox.so'; then
-              echo "ERROR: engine found in remote-only standard APK $apk"; exit 1
-            fi
           done
 
       - name: Verify APKs are signed
@@ -283,26 +270,17 @@ jobs:
         run: |
           V="$VERSION_NAME"
           mkdir -p release-out
-          # standard: one universal APK (no native code, ABI-independent)
-          cp app/build/outputs/apk/standard/release/app-standard-universal-release.apk "release-out/qBittorrent-Remote-$V.apk"
-          # enhanced: one APK per ABI
-          cp app/build/outputs/apk/enhanced/release/app-enhanced-arm64-v8a-release.apk "release-out/qBittorrent-Enhanced-$V-arm64-v8a.apk"
-          cp app/build/outputs/apk/enhanced/release/app-enhanced-armeabi-v7a-release.apk "release-out/qBittorrent-Enhanced-$V-armeabi-v7a.apk"
-          cp app/build/outputs/apk/enhanced/release/app-enhanced-x86_64-release.apk "release-out/qBittorrent-Enhanced-$V-x86_64.apk"
+          # one APK per ABI, each bundling the enhanced nox engine
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk "release-out/qBittorrent-Enhanced-$V-arm64-v8a.apk"
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk "release-out/qBittorrent-Enhanced-$V-armeabi-v7a.apk"
+          cp app/build/outputs/apk/release/app-x86_64-release.apk "release-out/qBittorrent-Enhanced-$V-x86_64.apk"
           ls -la release-out
-
-      - name: Upload qBittorrent (standard) APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: qbittorrent-standard-apks
-          path: app/build/outputs/apk/standard/**/*.apk
-          if-no-files-found: error
 
       - name: Upload qBittorrent Enhanced APKs
         uses: actions/upload-artifact@v4
         with:
           name: qbittorrent-enhanced-apks
-          path: app/build/outputs/apk/enhanced/**/app-enhanced-*-release.apk
+          path: app/build/outputs/apk/release/app-*-release.apk
           if-no-files-found: error
 
       - name: Publish dev build to GitHub Releases
@@ -322,9 +300,11 @@ jobs:
 
             | APK | 引擎 | 说明 |
             |---|---|---|
-            | qBittorrent-Remote-*.apk | 无内置引擎 | 纯远程控制版：连接并控制 qBittorrent / qBittorrent-nox 服务器（单 APK，与 ABI 无关） |
             | qBittorrent-Enhanced-*-arm64-v8a.apk | 内置 qbittorrent-enhanced-nox | 64 位 ARM 设备（绝大多数手机/平板） |
             | qBittorrent-Enhanced-*-armeabi-v7a.apk | 内置 qbittorrent-enhanced-nox | 32 位 ARM 设备 |
             | qBittorrent-Enhanced-*-x86_64.apk | 内置 qbittorrent-enhanced-nox | x86_64 设备/模拟器 |
+
+            内置引擎开箱即用；也可在 设置 → 服务器连接 中切换到远程
+            qBittorrent 服务器（多配置切换）。
           prerelease: true
           files: release-out/*.apk

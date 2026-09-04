@@ -3,7 +3,7 @@
     <item
         android:id="@+id/home_nav"
         android:contentDescription="@string/torrents"
-        android:icon="@drawable/ic_download_24px"
+        android:icon="@drawable/ic_lists_24px"
         android:title="@string/torrents" />
 
     <item

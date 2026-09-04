@@ -17,23 +17,24 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
-import io.github.xixka.qbittorrent.data.ServerProfile
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.FragmentSettingsListBinding
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
-import io.github.xixka.qbittorrent.qbt.LocalEngineService
-import io.github.xixka.qbittorrent.ui.log.LogActivity
-import io.github.xixka.qbittorrent.ui.qbsettings.QBSettingsActivity
-import io.github.xixka.qbittorrent.ui.rss.RssActivity
+import io.github.xixka.qbittorrent.ui.main.MainActivity
+import io.github.xixka.qbittorrent.ui.qbsettings.QBSettingsFragment
+import io.github.xixka.qbittorrent.ui.log.LogFragment
+import io.github.xixka.qbittorrent.ui.settings.ServerSettingsFragment
+import io.github.xixka.qbittorrent.ui.stats.StatisticsFragment
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
 import kotlinx.coroutines.launch
 
 /**
  * Settings hub, LibreTorrent-style preference list. Shown IN PLACE by the
- * bottom navigation of MainActivity (no separate activity), with subpages
- * for the qBittorrent options editor, server connections, RSS, log viewer
- * and engine controls.
+ * bottom navigation of MainActivity (no separate activity); subpages
+ * (qBittorrent options editor, server connections, log viewer, statistics)
+ * are pushed onto the same in-place container — never a new window. RSS has
+ * its own bottom-navigation tab and is deliberately NOT duplicated here.
  */
 class SettingsFragment : Fragment() {
 
@@ -86,16 +87,16 @@ class SettingsFragment : Fragment() {
             summary = getString(R.string.settings_qbt_open_sub),
         )
         rows += Item(
-            id = ID_RSS,
-            icon = R.drawable.ic_rss_feed_24px,
-            title = getString(R.string.rss_title),
-            summary = getString(R.string.rss_title_sub),
-        )
-        rows += Item(
             id = ID_LOG,
             icon = R.drawable.ic_article_24px,
             title = getString(R.string.log_title),
             summary = getString(R.string.log_title_sub),
+        )
+        rows += Item(
+            id = ID_STATISTICS,
+            icon = R.drawable.ic_speed_24px,
+            title = getString(R.string.stats),
+            summary = null,
         )
 
         rows += Header(R.string.settings_appearance)
@@ -143,22 +144,9 @@ class SettingsFragment : Fragment() {
                 switch = true,
                 checked = prefs.engineWatchdog,
             )
-            rows += Item(
-                id = ID_ENGINE_TOGGLE,
-                icon = R.drawable.ic_lan_24px,
-                title = getString(
-                    if (LocalEngineManager.isRunning()) R.string.settings_engine_stop
-                    else R.string.settings_engine_start
-                ),
-                summary = getString(
-                    when (LocalEngineManager.state) {
-                        LocalEngineManager.State.RUNNING -> R.string.engine_status_running
-                        LocalEngineManager.State.STARTING -> R.string.engine_status_starting
-                        LocalEngineManager.State.FAILED -> R.string.engine_status_failed
-                        else -> R.string.engine_status_stopped
-                    }
-                ),
-            )
+            // NOTE: no manual engine stop/start entry — the engine lifecycle
+            // is fully automatic (autostart + watchdog); a retry prompt only
+            // appears when the engine actually fails to start.
         }
 
         rows += Header(R.string.settings_connection)
@@ -228,11 +216,10 @@ class SettingsFragment : Fragment() {
     // ---------------- interactions ----------------
 
     private fun onRowClick(item: Item, checked: Boolean) {
-        val ctx = requireContext()
         when (item.id) {
-            ID_QB_SETTINGS -> startActivity(Intent(ctx, QBSettingsActivity::class.java))
-            ID_RSS -> startActivity(Intent(ctx, RssActivity::class.java))
-            ID_LOG -> startActivity(Intent(ctx, LogActivity::class.java))
+            ID_QB_SETTINGS -> push(QBSettingsFragment())
+            ID_LOG -> push(LogFragment())
+            ID_STATISTICS -> push(StatisticsFragment())
 
             ID_DYNAMIC_COLORS -> {
                 prefs.dynamicColors = checked
@@ -246,16 +233,7 @@ class SettingsFragment : Fragment() {
             ID_ENGINE_AUTOSTART -> prefs.engineAutoStart = checked
             ID_ENGINE_WATCHDOG -> prefs.engineWatchdog = checked
 
-            ID_ENGINE_TOGGLE -> {
-                if (LocalEngineManager.isRunning()) {
-                    LocalEngineService.stop(ctx)
-                } else {
-                    LocalEngineService.start(ctx)
-                }
-                binding.settingsList.postDelayed({ rebuildRows() }, 800)
-            }
-
-            ID_SERVER -> startActivity(Intent(ctx, ServerSettingsActivity::class.java))
+            ID_SERVER -> push(ServerSettingsFragment())
             ID_USE_REMOTE -> {
                 prefs.useRemoteServer = checked
                 ServiceLocator.resetClient()
@@ -268,6 +246,11 @@ class SettingsFragment : Fragment() {
 
             ID_VERSION -> showAboutDialog()
         }
+    }
+
+    /** Opens a settings subpage in the same window (in-place push). */
+    private fun push(fragment: androidx.fragment.app.Fragment) {
+        (activity as? MainActivity)?.pushPage(fragment)
     }
 
     private fun showThemeDialog() {
@@ -458,14 +441,13 @@ class SettingsFragment : Fragment() {
         private const val ID_THEME = 3
         private const val ID_POLL_INTERVAL = 4
         private const val ID_ENGINE_AUTOSTART = 5
-        private const val ID_ENGINE_TOGGLE = 6
         private const val ID_SERVER = 7
         private const val ID_VERSION = 8
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10
-        private const val ID_RSS = 11
         private const val ID_LOG = 12
         private const val ID_ENGINE_WATCHDOG = 13
         private const val ID_USE_REMOTE = 14
+        private const val ID_STATISTICS = 15
     }
 }

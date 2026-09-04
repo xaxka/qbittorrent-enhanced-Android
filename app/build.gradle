@@ -22,39 +22,23 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+        // Single edition: the app ALWAYS bundles the local
+        // qbittorrent-enhanced-nox engine and can ALSO remote-control any
+        // qBittorrent server (Settings → Server). One edition, one release.
+        resValue "string", "app_name", "qBittorrent Enhanced"
+        buildConfigField "boolean", "IS_ENHANCED", "true"
     }
 
-    // Two editions of the client share the same code base:
-    //  * standard — pure remote control client for a qBittorrent/qBittorrent-nox server
-    //  * enhanced — additionally bundles qbittorrent-enhanced-nox (local engine, OpenListAndroid build)
-    flavorDimensions "edition"
-    productFlavors {
-        standard {
-            dimension "edition"
-            applicationId "io.github.xixka.qbittorrent"
-            resValue "string", "app_name", "qBittorrent Remote"
-            buildConfigField "boolean", "IS_ENHANCED", "false"
-        }
-        enhanced {
-            dimension "edition"
-            applicationId "io.github.xixka.qbittorrent.enhanced"
-            versionNameSuffix "-enhanced"
-            resValue "string", "app_name", "qBittorrent Enhanced"
-            buildConfigField "boolean", "IS_ENHANCED", "true"
-        }
-    }
-
-    // One APK per ABI (arm64-v8a / armeabi-v7a / x86_64) so the Enhanced
-    // edition — which bundles a ~30 MB native engine per ABI — stays
-    // installable on slow networks and restricted storage. The universal
-    // APK is kept for the ABI-independent standard edition (no native code);
-    // CI publishes only the split Enhanced APKs.
+    // One APK per ABI (arm64-v8a / armeabi-v7a / x86_64) so the app — which
+    // bundles a ~30 MB native engine per ABI — stays installable on slow
+    // networks and restricted storage. CI publishes the split APKs; there is
+    // no universal APK (it would triple the download size).
     splits {
         abi {
             enable true
             reset()
             include 'arm64-v8a', 'armeabi-v7a', 'x86_64'
-            universalApk true
+            universalApk false
         }
     }
 
@@ -70,7 +54,7 @@ android {
             def abi = output.getFilter(com.android.build.OutputFile.ABI)
             if (abi != null) {
                 output.versionCodeOverride = variant.versionCode + (abiVersionCode[abi] ?: 0)
-                outputFileName = "app-${variant.flavorName}-${abi}-${variant.buildType.name}.apk"
+                outputFileName = "app-${abi}-${variant.buildType.name}.apk"
             }
         }
     }
@@ -101,7 +85,7 @@ android {
         }
     }
 
-    // The enhanced edition ships libqbittorrent-nox.so in jniLibs and exec()s it from
+    // The app ships libqbittorrent-nox.so in jniLibs and exec()s it from
     // nativeLibraryDir, which requires legacy packaging (extracted, executable).
     packagingOptions {
         jniLibs {

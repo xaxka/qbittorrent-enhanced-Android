@@ -2,12 +2,11 @@
 
 [English](README_EN.md)
 
-qBittorrent Android 原生客户端（同一代码库、两个发行版）：
+qBittorrent Android 原生客户端（单一发行版，内置引擎）：
 
-| 发行版 | 包名 | 说明 |
-|--------|------|------|
-| **qBittorrent**（`standard`） | `io.github.xixka.qbittorrent` | 纯远程控制客户端，通过**原版 qBittorrent Web API v2** 连接任意 qBittorrent 服务器（默认端口 **8080**，可自定义地址/端口/用户名/密码，支持自签名证书）。 |
-| **qBittorrent Enhanced**（`enhanced`） | `io.github.xixka.qbittorrent.enhanced` | 在标准版基础上**内置本地 `qbittorrent-enhanced-nox` 引擎**（由 CI 从源码交叉编译，作为子进程启动，同样通过 Web API 控制）——安装即用，无需服务器。 |
+| 说明 |
+|------|
+| **内置本地 `qbittorrent-enhanced-nox` 引擎**（由 CI 从源码交叉编译，作为子进程启动，安装即用、无需服务器），同时可通过 **原版 qBittorrent Web API v2** 连接并控制任意远程 qBittorrent 服务器（设置 → 服务器连接，多配置切换，支持自签名证书）。 |
 
 界面为 **原生 Material 3（Material You 动态配色默认开启）**，交互风格参照
 [LibreTorrent](https://github.com/proninyaroslav/libretorrent)——无 WebView、不嵌入
@@ -33,15 +32,15 @@ WebUI。所有功能实现参照 [qBitController](https://github.com/Bartuzen/qB
   （安装/卸载/更新/启停）
 * **日志查看器**：引擎运行日志（log/main），按级别过滤
 * **多服务器管理**：qBitController 式服务器配置档案，一键切换、编辑、删除；
-  Enhanced 版可随时在内置引擎与远程服务器之间切换
+  可随时在内置引擎与远程服务器之间切换
 * **完整 qBittorrent 设置编辑器**（设置 → *qBittorrent 设置*）：
   读取在线引擎的全部配置并写回——**覆盖 qBittorrent Enhanced WebUI Options
   全部 217 个配置项**（下载/速度/BitTorrent/连接/WebUI/RSS/高级七个分页），
   修改实时生效无需重启；CI 设有专门的 `prefs-coverage` 校验步骤保证配置覆盖
   不回退
-* 全局速度限制与备用速度限制（抽屉内传输统计下方即可调整）
-* Enhanced 专属：引擎随应用启动、**开机自启**、手动停止、**看门狗保活**
-  （引擎意外退出时自动重启）、局域网 WebUI 访问
+* 全局速度限制与备用速度限制（点按抽屉内传输统计的下载/上传速度行即可调整）
+* 引擎全自动管理：随应用启动、**开机自启**、**看门狗保活**
+  （引擎意外退出时自动重启）、启动失败时才提示重试；局域网 WebUI 访问
 * 沉浸式全面屏布局（边到边、手势导航栏内边距自适应）
 * **应用内更新检查**：对照 CI 发布的 GitHub Releases（手动检查 + 每日静默检查）
 * **13 种语言**：简体中文、繁體中文、English、Русский、Deutsch、Français、Español、
@@ -54,8 +53,8 @@ WebUI。所有功能实现参照 [qBitController](https://github.com/Bartuzen/qB
 APK 由 GitHub Actions 自动编译、签名并发布到
 [Releases](https://github.com/xixka/qbittorrentAndroid/releases)：
 
-* Enhanced 版按 **ABI 拆分**：`arm64-v8a`、`armeabi-v7a`、`x86_64`
-  （各自带 versionCode 偏移，按设备架构选择；通用包仅用于标准版）
+* 按 **ABI 拆分**：`arm64-v8a`、`armeabi-v7a`、`x86_64`
+  （各自带 versionCode 偏移，按设备架构选择，每个 APK 都内置引擎）
 * 所有发布的 APK 均**已签名**（仓库内置公开 CI 密钥 `app/ci-signing.keystore`，
   仅用于侧载更新签名一致性，不是机密），可直接覆盖升级
 * 应用内"检查更新"会读取 CI 发布的版本信息并跳转到对应架构的 APK

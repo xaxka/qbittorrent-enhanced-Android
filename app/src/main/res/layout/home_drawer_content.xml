@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Port of LibreTorrent home_drawer_content.xml (GPL-3.0), pixel-level:
+     stats rows + filter sections, same styles/margins as the original.
+     Chip sets are extended with the full qBittorrent status/sort set. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -11,233 +14,76 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="12dp">
 
-        <!-- ============ server / statistics header card ============ -->
-        <com.google.android.material.card.MaterialCardView
-            style="@style/App.Components.MaterialCard.Filled.SurfaceVariant"
+        <TextView
+            style="?attr/textAppearanceTitleLarge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
+            android:layout_margin="16dp"
+            android:text="@string/stats" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@null"
-                        app:srcCompat="@drawable/ic_dns_24px" />
-
-                    <TextView
-                        android:id="@+id/active_server_label"
-                        style="?attr/textAppearanceTitleMedium"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        tools:text="Bundled engine" />
-
-                    <ImageView
-                        android:id="@+id/server_switch_icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@string/switch_server"
-                        app:srcCompat="@drawable/ic_keyboard_arrow_down_24px" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/session_listen_port_stat"
-                    style="@style/App.Components.ListItem.SupportingText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    tools:text="qBittorrent 5.2.3" />
-
-                <TextView
-                    android:id="@+id/session_dht_nodes_stat"
-                    style="@style/App.Components.ListItem.SupportingText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:text="DHT nodes: 100" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ============ transfer + quick speed limits ============ -->
-        <com.google.android.material.card.MaterialCardView
-            style="@style/App.Components.MaterialCard.Filled.SurfaceVariant"
+        <TextView
+            android:id="@+id/session_listen_port_stat"
+            style="@style/App.Components.ListItem.Label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
+            android:layout_margin="16dp"
+            android:drawablePadding="16dp"
+            app:drawableStartCompat="@drawable/ic_lan_24px"
+            tools:text="Listening port: 6881" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
+        <TextView
+            android:id="@+id/session_dht_nodes_stat"
+            style="@style/App.Components.ListItem.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:drawablePadding="16dp"
+            app:drawableStartCompat="@drawable/ic_hub_24px"
+            tools:text="DHT nodes: 100" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+        <TextView
+            android:id="@+id/session_download_stat"
+            style="@style/App.Components.ListItem.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:contentDescription="@string/download_speed"
+            android:drawablePadding="16dp"
+            app:drawableStartCompat="@drawable/ic_download_24px"
+            tools:text="1 Mb/s • 1 Mb/s" />
 
-                    <TextView
-                        style="@style/TextAppearance.App.SectionTitle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:drawablePadding="8dp"
-                        android:gravity="center_vertical"
-                        android:text="@string/stats"
-                        app:drawableStartCompat="@drawable/ic_speed_24px" />
-
-                    <TextView
-                        android:id="@+id/stats_open_hint"
-                        style="@style/App.Components.ListItem.SupportingText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/tap_to_open" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/session_download_stat"
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:contentDescription="@string/download_speed"
-                    tools:text="↓ 1 MiB/s • 1 GiB" />
-
-                <TextView
-                    android:id="@+id/session_upload_stat"
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@string/upload_speed"
-                    tools:text="↑ 1 MiB/s • 1 GiB" />
-
-                <com.google.android.material.divider.MaterialDivider
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp" />
-
-                <!-- quick speed limits, directly under the transfer stats -->
-                <LinearLayout
-                    android:id="@+id/speed_limit_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="8dp">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@null"
-                        app:srcCompat="@drawable/ic_speed_24px" />
-
-                    <TextView
-                        android:id="@+id/speed_limit_label"
-                        style="@style/App.Components.ListItem.SupportingText"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:text="@string/speed_limits" />
-
-                    <TextView
-                        android:id="@+id/speed_limit_value"
-                        style="@style/App.Components.ListItem.SupportingText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        tools:text="↓ ∞ • ↑ ∞" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/pause_all_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="8dp">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@null"
-                        app:srcCompat="@drawable/ic_pause_24px" />
-
-                    <TextView
-                        style="@style/App.Components.ListItem.SupportingText"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:text="@string/pause_all" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/resume_all_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="8dp">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:contentDescription="@null"
-                        app:srcCompat="@drawable/ic_play_arrow_24px" />
-
-                    <TextView
-                        style="@style/App.Components.ListItem.SupportingText"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:text="@string/resume_all" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:id="@+id/session_upload_stat"
+            style="@style/App.Components.ListItem.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:contentDescription="@string/upload_speed"
+            android:drawablePadding="16dp"
+            app:drawableStartCompat="@drawable/ic_upload_24px"
+            tools:text="1 Mb/s • 1 Mb/s" />
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
+            android:layout_margin="16dp" />
 
-        <!-- ============ filters ============ -->
         <TextView
-            style="?attr/textAppearanceTitleMedium"
+            style="?attr/textAppearanceTitleLarge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_margin="16dp"
             android:text="@string/filters" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="4dp">
+            android:layout_marginHorizontal="16dp">
 
             <TextView
-                style="@style/App.Components.ListItem.SupportingText"
+                style="?attr/textAppearanceTitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -258,8 +104,7 @@
             android:id="@+id/drawer_status_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            app:chipSpacingVertical="0dp"
+            android:layout_marginHorizontal="16dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
@@ -370,17 +215,15 @@
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp" />
+            android:layout_margin="16dp" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp">
+            android:layout_marginHorizontal="16dp">
 
             <TextView
-                style="@style/App.Components.ListItem.SupportingText"
+                style="?attr/textAppearanceTitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -418,10 +261,9 @@
             android:id="@+id/drawer_sorting_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="4dp"
-            app:chipSpacingVertical="0dp"
-            app:singleSelection="true">
+            android:layout_marginHorizontal="16dp"
+            app:singleSelection="true"
+            tools:checkedChip="@id/drawer_sorting_date_added">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_date_added"
@@ -515,17 +357,15 @@
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp" />
+            android:layout_margin="16dp" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp">
+            android:layout_marginHorizontal="16dp">
 
             <TextView
-                style="@style/App.Components.ListItem.SupportingText"
+                style="?attr/textAppearanceTitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -546,9 +386,7 @@
             android:id="@+id/drawer_date_added_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="4dp"
-            app:chipSpacingVertical="0dp">
+            android:layout_marginHorizontal="16dp">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_date_added_today"
@@ -594,18 +432,15 @@
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp" />
+            android:layout_margin="16dp" />
 
-        <!-- ============ categories ============ -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp">
+            android:layout_marginHorizontal="16dp">
 
             <TextView
-                style="@style/App.Components.ListItem.SupportingText"
+                style="?attr/textAppearanceTitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -635,9 +470,7 @@
             android:id="@+id/drawer_categories_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="4dp"
-            app:chipSpacingVertical="0dp"
+            android:layout_marginHorizontal="16dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
@@ -652,18 +485,15 @@
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp" />
+            android:layout_margin="16dp" />
 
-        <!-- ============ tags ============ -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp">
+            android:layout_marginHorizontal="16dp">
 
             <TextView
-                style="@style/App.Components.ListItem.SupportingText"
+                style="?attr/textAppearanceTitleMedium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -693,9 +523,7 @@
             android:id="@+id/drawer_tags_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="4dp"
-            app:chipSpacingVertical="0dp"
+            android:layout_marginHorizontal="16dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip

@@ -44,12 +44,6 @@ class LocalEngineService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) {
-            stopWatchdog()
-            LocalEngineManager.stop()
-            stopSelf()
-            return START_NOT_STICKY
-        }
         startForegroundCompat()
         val prefs = ServiceLocator.prefs(this)
         scope.launch {
@@ -141,18 +135,15 @@ class LocalEngineService : Service() {
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val stop = PendingIntent.getService(
-            this, 1,
-            Intent(this, LocalEngineService::class.java).setAction(ACTION_STOP),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
+        // Purely informational notification: the engine lifecycle is
+        // automatic (boot autostart + watchdog), so there is deliberately no
+        // stop action.
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(getString(R.string.engine_notification_title))
             .setContentText(getString(R.string.engine_notification_text))
             .setContentIntent(open)
             .setOngoing(true)
-            .addAction(0, getString(R.string.engine_stop), stop)
             .build()
         if (Build.VERSION.SDK_INT >= 29) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -164,7 +155,6 @@ class LocalEngineService : Service() {
     companion object {
         const val CHANNEL_ID = "local_engine"
         const val NOTIFICATION_ID = 42
-        const val ACTION_STOP = "io.github.xixka.qbittorrent.engine.STOP"
 
         /** Watchdog probe cadence (30 s). */
         private const val WATCHDOG_INTERVAL_MS = 30_000L
@@ -175,12 +165,6 @@ class LocalEngineService : Service() {
         fun start(context: Context) {
             context.startForegroundService(
                 Intent(context, LocalEngineService::class.java)
-            )
-        }
-
-        fun stop(context: Context) {
-            context.startService(
-                Intent(context, LocalEngineService::class.java).setAction(ACTION_STOP)
             )
         }
     }

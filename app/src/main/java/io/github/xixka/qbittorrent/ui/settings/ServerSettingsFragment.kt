@@ -3,12 +3,12 @@ package io.github.xixka.qbittorrent.ui.settings
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -19,9 +19,7 @@ import io.github.xixka.qbittorrent.data.ServerConfig
 import io.github.xixka.qbittorrent.data.ServerProfile
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityServerSettingsBinding
-import io.github.xixka.qbittorrent.util.ThemeUtils
-import io.github.xixka.qbittorrent.util.WindowInsetsSide
-import io.github.xixka.qbittorrent.util.applyWindowInsets
+import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,25 +27,29 @@ import kotlinx.coroutines.withContext
 /**
  * Server connection manager, qBitController-style: a list of saved server
  * profiles with add / edit / delete, the active profile selected with a
- * radio row. In the Enhanced edition the bundled engine is the default
- * endpoint, so the list only takes effect after the "use remote server"
- * switch is turned on.
+ * radio row. The bundled engine is the default endpoint, so the list takes
+ * effect after the "use remote server" switch is turned on.
+ * Opened from Settings, hosted IN PLACE — no separate window.
  */
-class ServerSettingsActivity : AppCompatActivity() {
+class ServerSettingsFragment : Fragment() {
 
-    private lateinit var binding: ActivityServerSettingsBinding
+    private var _binding: ActivityServerSettingsBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
-        binding = ActivityServerSettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        applyWindowInsets(child = binding.serverScroll, sideMask = WindowInsetsSide.BOTTOM)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = ActivityServerSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        val prefs = ServiceLocator.prefs(this)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
+
+        val prefs = ServiceLocator.prefs(requireContext())
 
         if (BuildConfig.IS_ENHANCED) {
             binding.remoteSwitch.isChecked = prefs.useRemoteServer
@@ -65,8 +67,13 @@ class ServerSettingsActivity : AppCompatActivity() {
         render()
     }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
     private fun render() {
-        val prefs = ServiceLocator.prefs(this)
+        val prefs = ServiceLocator.prefs(requireContext())
         val profiles = prefs.serverProfiles()
         val list = binding.profileList
         list.removeAllViews()
@@ -75,24 +82,24 @@ class ServerSettingsActivity : AppCompatActivity() {
             profiles.forEach { profile -> list.addView(profileRow(profile)) }
         } else {
             // engine mode: still show the profiles so they can be managed,
-            // but activation happens through the switch in the drawer
+            // but activation happens through the remote-server switch
             profiles.forEach { profile -> list.addView(profileRow(profile, selectable = false)) }
         }
     }
 
     /** One list row; tapping selects the active profile. */
     private fun profileRow(profile: ServerProfile, selectable: Boolean = true): View {
-        val row = LayoutInflater.from(this)
+        val row = LayoutInflater.from(requireContext())
             .inflate(R.layout.item_server_profile, binding.profileList, false)
         row.findViewById<TextView>(R.id.profileName).text = profile.displayName()
         row.findViewById<TextView>(R.id.profileHost).text =
             "${if (profile.https) "https" else "http"}://${profile.host}:${profile.port}" +
                 profile.basePath
         val radio = row.findViewById<RadioButton>(R.id.profileActive)
-        radio.isChecked = ServiceLocator.prefs(this).activeServer()?.id == profile.id
+        radio.isChecked = ServiceLocator.prefs(requireContext()).activeServer()?.id == profile.id
         row.setOnClickListener {
             if (selectable) {
-                val prefs = ServiceLocator.prefs(this)
+                val prefs = ServiceLocator.prefs(requireContext())
                 if (prefs.activeServer()?.id != profile.id) {
                     prefs.switchServer(profile.id)
                 }
@@ -104,15 +111,14 @@ class ServerSettingsActivity : AppCompatActivity() {
             showProfileDialog(profile)
         }
         row.findViewById<ImageButton>(R.id.profileDelete).setOnClickListener {
-            MaterialAlertDialogBuilder(this)
+            MaterialAlertDialogBuilder(requireContext())
                 .setTitle(profile.displayName())
                 .setMessage(R.string.server_delete_confirm)
                 .setPositiveButton(R.string.rss_delete) { _, _ ->
-                    val prefs = ServiceLocator.prefs(this)
+                    val prefs = ServiceLocator.prefs(requireContext())
                     prefs.deleteServerProfile(profile.id)
                     if (prefs.activeServer() == null) {
-                        // last remote profile gone: fall back to the bundled
-                        // engine (Enhanced) or an empty config (standard)
+                        // last remote profile gone: fall back to the bundled engine
                         prefs.useRemoteServer = false
                     }
                     ServiceLocator.resetClient()
@@ -130,7 +136,7 @@ class ServerSettingsActivity : AppCompatActivity() {
      * against the server before saving.
      */
     private fun showProfileDialog(existing: ServerProfile?) {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_server_profile, null)
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_server_profile, null)
         val name = view.findViewById<TextInputEditText>(R.id.nameInput)
         val host = view.findViewById<TextInputEditText>(R.id.hostInput)
         val port = view.findViewById<TextInputEditText>(R.id.portInput)
@@ -151,7 +157,7 @@ class ServerSettingsActivity : AppCompatActivity() {
             trustAll.isChecked = it.trustAllCerts
         }
 
-        val dialog = MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (existing == null) R.string.server_add else R.string.server_edit)
             .setView(view)
             .setPositiveButton(android.R.string.ok, null)
@@ -171,7 +177,7 @@ class ServerSettingsActivity : AppCompatActivity() {
                     port.error = "1 - 65535"
                     return@setOnClickListener
                 }
-                val prefs = ServiceLocator.prefs(this)
+                val prefs = ServiceLocator.prefs(requireContext())
                 val profile = ServerProfile(
                     id = existing?.id ?: System.currentTimeMillis(),
                     name = name.text?.toString()?.trim().orEmpty(),
@@ -191,7 +197,7 @@ class ServerSettingsActivity : AppCompatActivity() {
                 ServiceLocator.resetClient()
                 dialog.dismiss()
                 render()
-                Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.settings_saved, Toast.LENGTH_SHORT).show()
             }
 
         // test the connection with the values currently typed in the dialog
@@ -211,30 +217,25 @@ class ServerSettingsActivity : AppCompatActivity() {
             it.isEnabled = false
             lifecycleScope.launch {
                 val result = withContext(Dispatchers.IO) {
-                    runCatching { ServiceLocator.testRepository(this@ServerSettingsActivity, config).appVersion() }
+                    runCatching { ServiceLocator.testRepository(requireContext(), config).appVersion() }
                 }
                 it.isEnabled = true
                 result
                     .onSuccess { version ->
                         Toast.makeText(
-                            this@ServerSettingsActivity,
+                            requireContext(),
                             getString(R.string.settings_connection_ok, version),
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
                     .onFailure { e ->
                         Toast.makeText(
-                            this@ServerSettingsActivity,
+                            requireContext(),
                             getString(R.string.settings_connection_failed, e.message ?: ""),
                             Toast.LENGTH_LONG,
                         ).show()
                     }
             }
         }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
     }
 }
