@@ -3,7 +3,6 @@ package io.github.xixka.qbittorrent.data
 import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.api.QBApiException
-import io.github.xixka.qbittorrent.api.QBApiService
 import io.github.xixka.qbittorrent.model.LogEntry
 import io.github.xixka.qbittorrent.model.MainData
 import io.github.xixka.qbittorrent.model.Peer
@@ -86,11 +85,8 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun toggleFirstLastPiecePriority(hashes: List<String>) =
         client.withAuth { it.toggleFirstLastPiecePriority(hashes.joinToString("|")) }
 
-    suspend fun pauseAll(): Unit = stopOrPause { it.stop("all") }
-        ?: client.withAuth { it.pause("all") }
-
-    suspend fun resumeAll(): Unit = startOrResume { it.start("all") }
-        ?: client.withAuth { it.resume("all") }
+    suspend fun pauseAll() = stopOrPause("all")
+    suspend fun resumeAll() = startOrResume("all")
 
     // ---------- actions ----------
 
@@ -159,25 +155,28 @@ class TorrentRepository(private val client: QBApiClient) {
      * sniffing, expressed as a response-code probe instead (works without
      * caching the server version).
      */
-    suspend fun pause(hashes: List<String>): Unit = stopOrPause {
-        it.stop(hashes.joinToString("|"))
-    } ?: client.withAuth { it.pause(hashes.joinToString("|")) }
+    suspend fun pause(hashes: List<String>) = stopOrPause(hashes.joinToString("|"))
 
-    suspend fun resume(hashes: List<String>): Unit = startOrResume {
-        it.start(hashes.joinToString("|"))
-    } ?: client.withAuth { it.resume(hashes.joinToString("|")) }
+    suspend fun resume(hashes: List<String>) = startOrResume(hashes.joinToString("|"))
 
-    /** Runs [block]; null when the server answered 404 (endpoint absent). */
-    private suspend fun stopOrPause(block: suspend (QBApiService) -> Unit): Unit? = try {
-        client.withAuth(block)
-    } catch (e: QBApiException) {
-        if (e.code == 404) null else throw e
+    /** Runs stop; on HTTP 404 (endpoint absent, qB < 5.0) retries with pause. */
+    private suspend fun stopOrPause(hashes: String) {
+        try {
+            client.withAuth { it.stop(hashes) }
+        } catch (e: QBApiException) {
+            if (e.code != 404) throw e
+            client.withAuth { it.pause(hashes) }
+        }
     }
 
-    private suspend fun startOrResume(block: suspend (QBApiService) -> Unit): Unit? = try {
-        client.withAuth(block)
-    } catch (e: QBApiException) {
-        if (e.code == 404) null else throw e
+    /** Runs start; on HTTP 404 (endpoint absent, qB < 5.0) retries with resume. */
+    private suspend fun startOrResume(hashes: String) {
+        try {
+            client.withAuth { it.start(hashes) }
+        } catch (e: QBApiException) {
+            if (e.code != 404) throw e
+            client.withAuth { it.resume(hashes) }
+        }
     }
 
     suspend fun delete(hashes: List<String>, deleteFiles: Boolean) =
