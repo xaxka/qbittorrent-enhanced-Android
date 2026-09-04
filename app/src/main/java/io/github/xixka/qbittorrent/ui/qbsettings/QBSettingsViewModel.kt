@@ -49,6 +49,12 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
     /** Sections to render: the known schema plus dynamic "other" rows. */
     val sections = MutableStateFlow<List<PrefSection>>(QBPrefSchema.sections)
 
+    /**
+     * Signature of the instance the loaded snapshot belongs to
+     * (local engine flag + active server id). Null until [load] runs.
+     */
+    private var loadedTarget: String? = null
+
     /** Editable working copy; starts as a deep copy of [raw] on every load. */
     private var editable: JsonObject = JsonObject()
 
@@ -61,6 +67,7 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
                     ServiceLocator.repository(appContext).appPreferences()
                 }
                 raw.value = prefs
+                loadedTarget = targetSignature()
                 resetEditable(prefs)
                 sections.value = buildSections(prefs)
             } catch (e: CancellationException) {
@@ -74,6 +81,31 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun retry() = load()
+
+    /**
+     * Reloads when the instance being edited has changed since the last
+     * [load] — e.g. the user switched the active server (or toggled the
+     * local engine) while the activity-scoped ViewModel kept the previous
+     * server's snapshot. Discards any in-progress edits of the stale copy.
+     * Returns true when a reload was triggered.
+     */
+    fun reloadIfTargetChanged(): Boolean {
+        if (loadedTarget != null && loadedTarget != targetSignature()) {
+            load()
+            return true
+        }
+        return false
+    }
+
+    /** Identifies the instance the editor talks to right now. */
+    private fun targetSignature(): String {
+        val prefs = ServiceLocator.prefs(appContext)
+        return if (prefs.usingLocalEngine) {
+            "local"
+        } else {
+            "remote:${prefs.activeServer()?.id ?: 0L}"
+        }
+    }
 
     private fun resetEditable(prefs: JsonObject) {
         val copy = JsonObject()
