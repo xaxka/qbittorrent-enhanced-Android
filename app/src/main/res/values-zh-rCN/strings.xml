@@ -559,6 +559,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">自动 Torrent 管理</string>
     <string name="add_auto_tmm_sub">分类或保存路径变化时，qBittorrent 会自动移动 Torrent</string>
     <string name="qbt_settings_live_hint">修改立即生效，无需重启</string>
+    <string name="qb_settings_editing_fmt">正在编辑：%1$s — 修改立即生效</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">保存管理</string>
     <string name="qbt_auto_tmm_default">默认启用自动 Torrent 管理 (TMM)</string>
@@ -935,6 +936,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">搜索完成</string>
     <string name="search_no_results">未找到结果</string>
     <string name="search_start_failed">服务器已禁用搜索（请在 qBittorrent 选项中启用）</string>
+    <string name="search_python_missing">搜索插件是在 qBittorrent 服务器端运行的 Python 程序。内置引擎未附带 Python，因此本地无法使用搜索；连接装有 Python 的远程 qBittorrent 即可使用。</string>
     <string name="search_add_torrent">下载</string>
     <string name="search_open_site">打开站点</string>
     <string name="search_category">分类</string>

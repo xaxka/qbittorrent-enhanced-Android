@@ -15,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.xixka.qbittorrent.R
+import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityQbSettingsBinding
 import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.launch
@@ -64,6 +65,12 @@ class QBSettingsFragment : Fragment() {
             }
         }
 
+        // Always show WHICH instance is being edited: the editor reads and
+        // writes the live settings of the currently connected server, so
+        // switching servers switches the settings — the subtitle makes that
+        // explicit for users who keep several remote profiles.
+        binding.appBar.subtitle = editingTargetLabel()
+
         binding.viewPager.adapter = SectionsPagerAdapter(this)
 
         // keep every page alive so switching tabs never loses input focus
@@ -97,6 +104,17 @@ class QBSettingsFragment : Fragment() {
         mediator = null
         _binding = null
         super.onDestroyView()
+    }
+
+    /** "Editing: <name>" — bundled engine or the active remote profile. */
+    private fun editingTargetLabel(): String {
+        val prefs = ServiceLocator.prefs(requireContext())
+        val target = if (prefs.usingLocalEngine) {
+            getString(R.string.local_engine)
+        } else {
+            prefs.activeServer()?.displayName() ?: "—"
+        }
+        return getString(R.string.qb_settings_editing_fmt, target)
     }
 
     /** (Re)builds the tab strip for the current section list. */

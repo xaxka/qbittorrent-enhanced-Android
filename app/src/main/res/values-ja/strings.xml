@@ -557,6 +557,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">自動トレント管理</string>
     <string name="add_auto_tmm_sub">カテゴリや保存先が変わると qBittorrent がトレントを移動します</string>
     <string name="qbt_settings_live_hint">変更は即時に反映されます（再起動不要）</string>
+    <string name="qb_settings_editing_fmt">編集対象: %1$s — 変更は即時反映</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">保存管理</string>
     <string name="qbt_auto_tmm_default">既定で自動トレント管理を使用する</string>
@@ -933,6 +934,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">検索が完了しました</string>
     <string name="search_no_results">結果が見つかりません</string>
     <string name="search_start_failed">サーバーで検索が無効です（qBittorrent設定で有効化）</string>
+    <string name="search_python_missing">検索プラグインは qBittorrent サーバー側で動く Python プログラムです。内蔵エンジンには Python が同梱されていないため、ローカル検索は利用できません。Python がインストールされたリモートサーバーなら利用できます。</string>
     <string name="search_add_torrent">ダウンロード</string>
     <string name="search_open_site">サイトを開く</string>
     <string name="search_category">カテゴリ</string>

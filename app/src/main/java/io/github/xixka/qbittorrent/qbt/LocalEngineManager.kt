@@ -117,7 +117,10 @@ object LocalEngineManager {
                 }
             }.apply { isDaemon = true; name = "nox-log-pump" }.start()
 
-            // wait for the WebUI to become ready
+            // wait for the WebUI to become ready — probe at 150 ms so the
+            // moment the listener binds is caught almost immediately
+            // (qbittorrent-nox answers /app/version only after the session
+            // is up; the app-side wait is dominated by the engine itself)
             val deadline = System.currentTimeMillis() + 25_000
             var ready = false
             while (System.currentTimeMillis() < deadline) {
@@ -126,7 +129,7 @@ object LocalEngineManager {
                     ready = true
                     break
                 }
-                Thread.sleep(400)
+                Thread.sleep(150)
             }
             if (ready) {
                 state = State.RUNNING

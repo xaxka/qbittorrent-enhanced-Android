@@ -558,6 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">Gestión automática del torrent</string>
     <string name="add_auto_tmm_sub">qBittorrent reubica el torrent cuando cambian la categoría o la ruta de guardado</string>
     <string name="qbt_settings_live_hint">Los cambios se aplican de inmediato, sin reiniciar</string>
+    <string name="qb_settings_editing_fmt">Editando: %1$s — se aplica al instante</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Gestión del guardado</string>
     <string name="qbt_auto_tmm_default">Usar el modo de gestión automática por defecto</string>
@@ -938,6 +939,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Búsqueda completada</string>
     <string name="search_no_results">Sin resultados</string>
     <string name="search_start_failed">La búsqueda está desactivada en el servidor (actívala en las opciones)</string>
+    <string name="search_python_missing">Los complementos de búsqueda son programas Python que se ejecutan en el servidor de qBittorrent. El motor integrado no incluye Python, por lo que la búsqueda local no está disponible. Los servidores remotos con Python instalado sí permiten buscar.</string>
     <string name="search_add_torrent">Descargar</string>
     <string name="search_open_site">Abrir sitio</string>
     <string name="search_category">Categoría</string>

@@ -557,6 +557,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">Gestion automatique du torrent</string>
     <string name="add_auto_tmm_sub">qBittorrent déplace le torrent quand la catégorie ou le chemin change</string>
     <string name="qbt_settings_live_hint">Les modifications s\'appliquent immédiatement — sans redémarrage</string>
+    <string name="qb_settings_editing_fmt">Modification : %1$s — appliqué immédiatement</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Gestion de l\'enregistrement</string>
     <string name="qbt_auto_tmm_default">Utiliser par défaut le mode de gestion automatique</string>
@@ -937,6 +938,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Recherche terminée</string>
     <string name="search_no_results">Aucun résultat</string>
     <string name="search_start_failed">La recherche est désactivée sur le serveur (activez-la dans les options)</string>
+    <string name="search_python_missing">Les greffons de recherche sont des programmes Python exécutés sur le serveur qBittorrent. Le moteur intégré n'inclut pas Python, la recherche locale est donc indisponible. Les serveurs distants avec Python installé prennent en charge la recherche.</string>
     <string name="search_add_torrent">Télécharger</string>
     <string name="search_open_site">Ouvrir le site</string>
     <string name="search_category">Catégorie</string>

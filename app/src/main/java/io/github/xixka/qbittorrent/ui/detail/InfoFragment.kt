@@ -139,7 +139,12 @@ class InfoFragment : Fragment() {
                 R.string.torrent_overview_hash_v1 to (props?.infohashV1?.ifBlank { torrent.hash } ?: torrent.hash),
                 R.string.torrent_overview_hash_v2 to (props?.infohashV2?.ifBlank { "—" } ?: "—"),
                 R.string.torrent_option_save_path to (props?.savePath ?: torrent.savePath),
-                R.string.torrent_comment to (props?.comment?.ifBlank { "—" } ?: "—"),
+                // Comments of public torrents are NFO-style blobs with
+                // dozens of blank lines: collapse them or the Information
+                // card drowns in empty lines.
+                R.string.torrent_comment to (props?.comment
+                    ?.let { Format.collapseBlankLines(it) }
+                    ?.ifBlank { "—" } ?: "—"),
                 R.string.torrent_overview_pieces to (
                     if (props != null && props.piecesNum > 0) context.getString(
                         R.string.torrent_overview_pieces_format,
@@ -150,7 +155,9 @@ class InfoFragment : Fragment() {
                     ),
                 R.string.detail_completed_on to
                     (torrent.completionOn.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
-                R.string.torrent_created_in_program to (props?.createdBy?.ifBlank { "—" } ?: "—"),
+                R.string.torrent_created_in_program to (props?.createdBy
+                    ?.let { Format.collapseBlankLines(it) }
+                    ?.ifBlank { "—" } ?: "—"),
                 R.string.torrent_create_date to
                     (props?.creationDate?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
             ),
@@ -276,7 +283,9 @@ class InfoFragment : Fragment() {
         rows.forEachIndexed { index, (labelRes, value) ->
             val row = container.getChildAt(index)
             row.findViewById<TextView>(R.id.param_label).setText(labelRes)
-            row.findViewById<TextView>(R.id.param_value).text = value
+            // A blank value would render an empty-looking row; the em dash
+            // keeps the panel readable when the server sent nothing.
+            row.findViewById<TextView>(R.id.param_value).text = value.ifBlank { "—" }
         }
     }
 

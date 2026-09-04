@@ -558,6 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">Automatisches Torrent-Management</string>
     <string name="add_auto_tmm_sub">qBittorrent verschiebt den Torrent, wenn Kategorie oder Speicherpfad wechseln</string>
     <string name="qbt_settings_live_hint">Änderungen greifen sofort — kein Neustart nötig</string>
+    <string name="qb_settings_editing_fmt">Bearbeitet: %1$s — Änderungen gelten sofort</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Speicherverwaltung</string>
     <string name="qbt_auto_tmm_default">Automatischen Torrent-Management-Modus standardmäßig verwenden</string>
@@ -934,6 +935,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Suche abgeschlossen</string>
     <string name="search_no_results">Keine Ergebnisse</string>
     <string name="search_start_failed">Suche ist auf dem Server deaktiviert (in den qBittorrent-Optionen aktivieren)</string>
+    <string name="search_python_missing">Such-Plugins sind Python-Programme, die auf dem qBittorrent-Server laufen. Die integrierte Engine enthält kein Python, daher ist die lokale Suche nicht verfügbar. Remote-Server mit installiertem Python unterstützen die Suche.</string>
     <string name="search_add_torrent">Herunterladen</string>
     <string name="search_open_site">Seite öffnen</string>
     <string name="search_category">Kategorie</string>

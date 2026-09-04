@@ -558,6 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">Otomatik torrent yönetimi</string>
     <string name="add_auto_tmm_sub">Kategori veya kayıt yolu değiştiğinde qBittorrent torrenti taşır</string>
     <string name="qbt_settings_live_hint">Değişiklikler anında uygulanır — yeniden başlatma gerekmez</string>
+    <string name="qb_settings_editing_fmt">Düzenleniyor: %1$s — anında uygulanır</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Kayıt yönetimi</string>
     <string name="qbt_auto_tmm_default">Varsayılan olarak otomatik torrent yönetimi kullan</string>
@@ -934,6 +935,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Arama tamamlandı</string>
     <string name="search_no_results">Sonuç bulunamadı</string>
     <string name="search_start_failed">Sunucuda arama devre dışı (qBittorrent seçeneklerinden etkinleştir)</string>
+    <string name="search_python_missing">Arama eklentileri, qBittorrent sunucusunda çalışan Python programlarıdır. Yerleşik motor Python içermediğinden yerel arama kullanılamaz. Python kurulu uzak sunucularda arama kullanılabilir.</string>
     <string name="search_add_torrent">İndir</string>
     <string name="search_open_site">Siteyi aç</string>
     <string name="search_category">Kategori</string>

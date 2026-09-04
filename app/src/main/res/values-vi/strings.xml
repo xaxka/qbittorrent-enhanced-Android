@@ -557,6 +557,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">Quản lý torrent tự động</string>
     <string name="add_auto_tmm_sub">Khi danh mục hoặc đường dẫn lưu thay đổi, qBittorrent sẽ di chuyển torrent</string>
     <string name="qbt_settings_live_hint">Thay đổi có hiệu lực ngay — không cần khởi động lại</string>
+    <string name="qb_settings_editing_fmt">Đang chỉnh sửa: %1$s — áp dụng ngay</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Quản lý lưu trữ</string>
     <string name="qbt_auto_tmm_default">Mặc định dùng chế độ quản lý torrent tự động</string>
@@ -933,6 +934,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Đã tìm xong</string>
     <string name="search_no_results">Không tìm thấy kết quả</string>
     <string name="search_start_failed">Tìm kiếm đã bị tắt trên máy chủ (bật trong tùy chọn qBittorrent)</string>
+    <string name="search_python_missing">Các plugin tìm kiếm là chương trình Python chạy trên máy chủ qBittorrent. Engine tích hợp không kèm Python nên không tìm kiếm được cục bộ. Máy chủ từ xa có cài Python sẽ hỗ trợ tìm kiếm.</string>
     <string name="search_add_torrent">Tải</string>
     <string name="search_open_site">Mở trang</string>
     <string name="search_category">Phân loại</string>

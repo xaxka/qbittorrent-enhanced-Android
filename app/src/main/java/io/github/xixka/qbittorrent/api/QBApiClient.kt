@@ -122,7 +122,7 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
                 login()
                 checked(block(currentService()))
             } else {
-                throw QBApiException("Server error HTTP ${e.code()}", e.code())
+                throw QBApiException(errorMessage(e.code(), e.response()?.errorBody()?.string()), e.code())
             }
         }
     }
@@ -130,9 +130,21 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
     /** Fails the call when a Response-typed endpoint answered non-2xx. */
     private fun <T> checked(result: T): T {
         if (result is RetrofitResponse<*> && !result.isSuccessful) {
-            throw QBApiException("Server error HTTP ${result.code()}", result.code())
+            val body = runCatching { result.errorBody()?.string() }.getOrNull()
+            throw QBApiException(errorMessage(result.code(), body), result.code())
         }
         return result
+    }
+
+    /**
+     * Builds the exception message from the server's error body when it has
+     * one (qB API errors like "Python must be installed to use the Search
+     * Engine." arrive as plain-text bodies) — falling back to the generic
+     * "Server error HTTP <code>".
+     */
+    private fun errorMessage(code: Int, body: String?): String {
+        val text = body?.trim().orEmpty()
+        return if (text.isNotEmpty()) text.take(300) else "Server error HTTP $code"
     }
 
     private fun Any?.isAuthExpired(): Boolean =

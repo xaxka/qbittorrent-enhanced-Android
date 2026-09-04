@@ -36,6 +36,10 @@ class LocalEngineService : Service() {
 
     private var watchdogJob: kotlinx.coroutines.Job? = null
 
+    /** In-flight engine start (closes the race between two rapid start requests). */
+    @Volatile
+    private var engineStartJob: kotlinx.coroutines.Job? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -46,7 +50,21 @@ class LocalEngineService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForegroundCompat()
         val prefs = ServiceLocator.prefs(this)
-        scope.launch {
+        // Idempotency: the app now requests an engine start from BOTH the
+        // Application class (cold-start fast path) and MainActivity
+        // (fallback). A second request arriving while an earlier one is
+        // still booting must NOT restart the engine — LocalEngineManager
+        // always tears down before spawning, so a naive double start would
+        // kill the engine the first request just brought up.
+        val state = LocalEngineManager.state
+        if (state == LocalEngineManager.State.STARTING ||
+            LocalEngineManager.isRunning() ||
+            engineStartJob?.isActive == true
+        ) {
+            startWatchdog()
+            return START_STICKY
+        }
+        engineStartJob = scope.launch {
             runCatching {
                 LocalEngineManager.start(
                     context = this@LocalEngineService,

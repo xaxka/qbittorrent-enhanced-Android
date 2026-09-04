@@ -9,6 +9,8 @@ import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TransferInfo
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -92,6 +96,16 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = ServiceLocator.repository(app)
     private val prefs = ServiceLocator.prefs(app)
+    private val gson = Gson()
+
+    /** Last successful torrent list, cached to disk for instant cold starts. */
+    private val cacheFile = File(app.filesDir, CACHE_FILE_NAME)
+    private var lastCacheSignature: String? = null
+    private var lastCacheWrite = 0L
+
+    /** True once any fetch has ever succeeded (switches off fast retries). */
+    @Volatile
+    private var everConnected = false
 
     private val _state = MutableStateFlow(ListUiState())
     val state: StateFlow<ListUiState> = _state
@@ -115,19 +129,39 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     private var pollJob: Job? = null
 
     init {
-        restart()
+        // Instant cold start: seed the list from the disk cache BEFORE the
+        // first network poll so the user sees their torrents immediately
+        // while the engine/server connection comes up in the background
+        // (LibreTorrent's Room-backed list behaves the same way).
+        viewModelScope.launch {
+            seedFromDiskCache()
+            restart()
+        }
     }
 
     fun restart() {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
             var first = true
             while (isActive) {
-                refreshOnce(showLoading = first)
+                // blocking spinner only when nothing is on screen yet — a
+                // cache-seeded list must stay visible while it refreshes
+                val ok = refreshOnce(showLoading = first && _state.value.torrents.isEmpty())
                 first = false
-                // keep the poll cadence quiet: no loading indicator on
-                // background refreshes, the list just updates in place
-                delay(prefs.pollIntervalSec.coerceIn(1, 60) * 1000L)
+                // While the first connection has not succeeded yet (engine
+                // still booting), retry every 300 ms instead of waiting a
+                // full poll interval — the list appears the moment the
+                // WebUI answers. Windowed to 15 s so a permanently dead
+                // remote server is never hammered.
+                val interval = if (!ok && !everConnected &&
+                    System.currentTimeMillis() - startedAt < 15_000
+                ) {
+                    300L
+                } else {
+                    prefs.pollIntervalSec.coerceIn(1, 60) * 1000L
+                }
+                delay(interval)
             }
         }
     }
@@ -137,10 +171,10 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { refreshOnce(showLoading = _state.value.torrents.isEmpty()) }
     }
 
-    private suspend fun refreshOnce(showLoading: Boolean = false) {
+    private suspend fun refreshOnce(showLoading: Boolean = false): Boolean {
         if (!prefs.serverConfig().isConfigured) {
             _state.update { it.copy(configured = false, connected = false, loading = false) }
-            return
+            return false
         }
         // The full-screen loading indicator only appears while there is
         // nothing to show yet (initial load / manual refresh on an empty
@@ -172,6 +206,9 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     tags = tagList,
                 )
             }
+            everConnected = true
+            persistCache(torrents)
+            return true
         } catch (e: QBAuthException) {
             // local engine: while it is coming up, don't flag an auth error
             val engine = engineState()
@@ -184,6 +221,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     engineFailed = engine == FAILED,
                 )
             }
+            return false
         } catch (e: Exception) {
             val engine = engineState()
             val msg = when (e) {
@@ -203,8 +241,67 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     engineFailed = engine == FAILED,
                 )
             }
+            return false
         }
     }
+
+    /**
+     * Emits the cached torrent list as the initial state so the list is on
+     * screen at t=0; the first live poll replaces it a moment later. Only
+     * applied while nothing newer is available AND the snapshot was taken
+     * from the SAME server the app is about to connect to — with several
+     * remote profiles the cache must never leak another instance's list.
+     */
+    private suspend fun seedFromDiskCache() = withContext(Dispatchers.IO) {
+        runCatching {
+            if (!cacheFile.isFile) return@runCatching
+            val cached = gson.fromJson(
+                cacheFile.readText(),
+                CachedTorrentList::class.java,
+            )
+            if (cached != null &&
+                cached.endpoint == currentEndpoint() &&
+                cached.torrents.isNotEmpty() &&
+                _state.value.torrents.isEmpty()
+            ) {
+                _state.update {
+                    it.copy(
+                        torrents = applyFilters(cached.torrents.toList()),
+                        allCount = cached.torrents.size,
+                        loading = false,
+                        connected = false,
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Persists the live list for the next cold start, tagged with the
+     * endpoint it came from. Structural changes (torrent added/removed)
+     * write immediately; pure progress changes are throttled to one write
+     * per 10 s so polling at 1 s never thrashes the flash storage.
+     */
+    private suspend fun persistCache(torrents: List<TorrentInfo>) = withContext(Dispatchers.IO) {
+        runCatching {
+            val signature = "${torrents.size}|${torrents.sumOf { (it.progress * 1000).toLong() }}"
+            val structuralChange =
+                signature.substringBefore('|') != lastCacheSignature?.substringBefore('|')
+            val now = System.currentTimeMillis()
+            if (signature != lastCacheSignature &&
+                (structuralChange || now - lastCacheWrite >= 10_000)
+            ) {
+                cacheFile.writeText(
+                    gson.toJson(CachedTorrentList(currentEndpoint(), torrents.toTypedArray())),
+                )
+                lastCacheSignature = signature
+                lastCacheWrite = now
+            }
+        }
+    }
+
+    /** Cache key: the endpoint the snapshot belongs to. */
+    private fun currentEndpoint(): String = prefs.serverConfig().baseUrl()
 
     private fun engineState(): String? =
         if (prefs.usingLocalEngine) LocalEngineManager.state.name else null
@@ -338,6 +435,15 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     fun resumeAll() = viewModelScope.launch { runCatching { repository.resumeAll() } }
 
     companion object {
+        /** Disk snapshot of the last list, rendered instantly on cold start. */
+        private const val CACHE_FILE_NAME = "torrent_list_cache.json"
+
+        /** Envelope of the disk snapshot: the list plus its origin endpoint. */
+        private data class CachedTorrentList(
+            val endpoint: String,
+            val torrents: Array<TorrentInfo>,
+        )
+
         fun factory(app: Application): androidx.lifecycle.ViewModelProvider.Factory =
             object : androidx.lifecycle.ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")

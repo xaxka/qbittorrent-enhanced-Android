@@ -62,6 +62,19 @@ object Format {
 
     fun ratio(ratio: Double): String = String.format(Locale.ROOT, "%.2f", ratio)
 
+    /**
+     * Collapses NFO-style comment blobs: runs of 2+ newlines (possibly with
+     * whitespace-only lines between them) become a single newline, every
+     * line is trimmed and the whole string is trimmed. Public tracker
+     * comments routinely carry dozens of blank lines which made the detail
+     * overview card mostly empty space.
+     */
+    fun collapseBlankLines(value: String): String =
+        value.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .joinToString("\n")
+
     private fun trim(value: Double): String {
         return if (value >= 100) String.format(Locale.ROOT, "%.0f", value)
         else String.format(Locale.ROOT, "%.1f", value)

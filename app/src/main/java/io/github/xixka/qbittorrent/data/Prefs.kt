@@ -56,7 +56,7 @@ class Prefs(context: Context) {
         set(value) = sp.edit().putString(KEY_PASSWORD, value).apply()
 
     var pollIntervalSec: Int
-        get() = sp.getInt(KEY_POLL, 2).coerceIn(1, 60)
+        get() = sp.getInt(KEY_POLL, 1).coerceIn(1, 60)
         set(value) = sp.edit().putInt(KEY_POLL, value).apply()
 
     /**

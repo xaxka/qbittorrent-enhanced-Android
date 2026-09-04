@@ -125,6 +125,13 @@ class SearchFragment : Fragment() {
 
         arguments?.getString(ARG_PATTERN)?.let { binding.searchPattern?.setText(it) }
 
+        // The bundled engine deliberately ships without Python, and qB's
+        // search plugins only run with one — tell the user up front instead
+        // of letting them run into the 409 error.
+        if (ServiceLocator.prefs(requireContext()).usingLocalEngine) {
+            binding.emptyView.setText(R.string.search_python_missing)
+        }
+
         binding.searchStartButton.setOnClickListener {
             val pattern = binding.searchPattern?.text?.toString()?.trim().orEmpty()
             if (pattern.isNotEmpty()) startSearch(pattern, selectedCategory(), selectedPluginScope())
@@ -183,10 +190,25 @@ class SearchFragment : Fragment() {
                     pollResults()
                 }
                 .onFailure { e ->
-                    binding.emptyView.setText(R.string.search_no_results)
+                    val message = e.message ?: getString(R.string.search_start_failed)
+                    // qB's search plugins are Python programs executed by the
+                    // SERVER: without Python there is no search (409 + "Python
+                    // must be installed…"). The bundled engine ships no
+                    // Python by design — explain that instead of dumping the
+                    // raw engine error at the user.
+                    val localEngine = ServiceLocator.prefs(requireContext()).usingLocalEngine
+                    val pythonMissing = message.contains("python", ignoreCase = true) ||
+                        (localEngine && e is io.github.xixka.qbittorrent.api.QBApiException && e.code == 409)
+                    binding.emptyView.setText(
+                        if (pythonMissing) R.string.search_python_missing
+                        else R.string.search_no_results,
+                    )
                     MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.search_engine_title)
-                        .setMessage(e.message ?: getString(R.string.search_start_failed))
+                        .setMessage(
+                            if (pythonMissing) getString(R.string.search_python_missing)
+                            else message,
+                        )
                         .setPositiveButton(android.R.string.ok, null)
                         .show()
                 }

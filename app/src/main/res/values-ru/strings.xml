@@ -558,6 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_auto_tmm">Автоматическое управление торрентом</string>
     <string name="add_auto_tmm_sub">qBittorrent перемещает торрент при смене категории или пути сохранения</string>
     <string name="qbt_settings_live_hint">Изменения применяются сразу — без перезапуска</string>
+    <string name="qb_settings_editing_fmt">Изменяются настройки: %1$s — применяются сразу</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Управление сохранением</string>
     <string name="qbt_auto_tmm_default">По умолчанию использовать автоматическое управление (TMM)</string>
@@ -942,6 +943,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Поиск завершён</string>
     <string name="search_no_results">Ничего не найдено</string>
     <string name="search_start_failed">Поиск отключён на сервере (включите в настройках qBittorrent)</string>
+    <string name="search_python_missing">Плагины поиска — это программы на Python, выполняемые на сервере qBittorrent. Встроенный движок не содержит Python, поэтому локальный поиск недоступен. Подключитесь к удалённому qBittorrent с установленным Python.</string>
     <string name="search_add_torrent">Скачать</string>
     <string name="search_open_site">Открыть сайт</string>
     <string name="search_category">Категория</string>
