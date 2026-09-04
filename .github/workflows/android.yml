@@ -235,10 +235,10 @@ jobs:
 
       - name: Verify enhanced APKs contain the nox engine
         run: |
-          for apk in app/build/outputs/apk/enhanced/release/*-arm64-v8a.apk \
-                      app/build/outputs/apk/enhanced/release/*-armeabi-v7a.apk \
-                      app/build/outputs/apk/enhanced/release/*-x86_64.apk; do
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            apk="app/build/outputs/apk/enhanced/release/app-enhanced-${abi}-release.apk"
             echo "== $apk =="
+            test -f "$apk" || { echo "ERROR: missing split APK $apk"; exit 1; }
             unzip -l "$apk" | grep -E 'libqbittorrent-nox.so|libc\+\+_shared.so' || { echo "ERROR: nox engine missing in $apk"; exit 1; }
           done
 
@@ -268,7 +268,7 @@ jobs:
           V="$VERSION_NAME"
           mkdir -p release-out
           # standard: one universal APK (no native code, ABI-independent)
-          cp app/build/outputs/apk/standard/release/app-standard-release.apk "release-out/qBittorrent-Remote-$V.apk"
+          cp app/build/outputs/apk/standard/release/app-standard-universal-release.apk "release-out/qBittorrent-Remote-$V.apk"
           # enhanced: one APK per ABI
           cp app/build/outputs/apk/enhanced/release/app-enhanced-arm64-v8a-release.apk "release-out/qBittorrent-Enhanced-$V-arm64-v8a.apk"
           cp app/build/outputs/apk/enhanced/release/app-enhanced-armeabi-v7a-release.apk "release-out/qBittorrent-Enhanced-$V-armeabi-v7a.apk"
