@@ -21,6 +21,10 @@ env:
   ZLIB_NG_VER: 2.3.3
   # qBittorrent-Enhanced-Edition release-5.2.3.10 (pinned commit)
   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+  # Human version of the bundled engine — also used as the app versionName,
+  # so the app version matches upstream qBittorrent-Enhanced instead of a
+  # date-looking number that reads as a "too high" version.
+  QBT_VERSION: 5.2.3.10
   # libtorrent v1.2.20 (pinned tag). Deliberately NOT the 2.x series: 2.x
   # defaults to mmap-backed storage, whose page-cache mappings make the
   # resident set balloon on memory-constrained Android devices; the 1.2
@@ -191,10 +195,17 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
 
-      - name: Compute version (YY.MM.DD / YYMMDDHHt, Asia/Shanghai)
+      # Version scheme: versionName = bundled qBittorrent-Enhanced engine
+      # version (stable, matches upstream), versionCode = Unix epoch seconds
+      # (UTC, timezone-independent). The old YYMMDDHHt date scheme collided
+      # across same-day rebuilds and looked like "version 26"; epoch seconds
+      # are strictly monotonic per build and sit far above every previously
+      # shipped date-based code (~260 million), so existing installs always
+      # update in place. Android accepts codes up to 2100000000 (≈ year 2033).
+      - name: Compute version
         run: |
-          echo "VERSION_NAME=$(TZ=Asia/Shanghai date +%y.%m.%d)" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$(TZ=Asia/Shanghai date +%y%m%d%H)$(($(TZ=Asia/Shanghai date +%M) / 10))" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$QBT_VERSION" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$(date -u +%s)" >> "$GITHUB_ENV"
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
           echo "BUILT_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
           echo "versionName=$VERSION_NAME versionCode=$VERSION_CODE"
@@ -247,12 +258,15 @@ jobs:
 
       - name: Stage APKs for release
         run: |
-          V="$VERSION_NAME"
           mkdir -p release-out
-          # one APK per ABI, each bundling the enhanced nox engine
-          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk "release-out/qBittorrent-Enhanced-$V-arm64-v8a.apk"
-          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk "release-out/qBittorrent-Enhanced-$V-armeabi-v7a.apk"
-          cp app/build/outputs/apk/release/app-x86_64-release.apk "release-out/qBittorrent-Enhanced-$V-x86_64.apk"
+          # one APK per ABI, each bundling the enhanced nox engine.
+          # Asset names are STABLE (no version/date suffix): the rolling dev
+          # release keeps exactly one file per ABI, so users can never
+          # download a stale same-named build or mismatch versions; the
+          # authoritative build identity is the versionCode in the body.
+          cp app/build/outputs/apk/release/app-arm64-v8a-release.apk "release-out/qBittorrent-Enhanced-arm64-v8a.apk"
+          cp app/build/outputs/apk/release/app-armeabi-v7a-release.apk "release-out/qBittorrent-Enhanced-armeabi-v7a.apk"
+          cp app/build/outputs/apk/release/app-x86_64-release.apk "release-out/qBittorrent-Enhanced-x86_64.apk"
           ls -la release-out
 
       - name: Upload qBittorrent Enhanced APKs
@@ -261,6 +275,25 @@ jobs:
           name: qbittorrent-enhanced-apks
           path: app/build/outputs/apk/release/app-*-release.apk
           if-no-files-found: error
+
+      # The rolling dev release used to carry version-suffixed asset names
+      # (e.g. qBittorrent-Enhanced-26.09.04-arm64-v8a.apk). Names changed now,
+      # so stale assets would otherwise linger forever next to the new stable
+      # names — wipe ALL existing assets before publishing so the release
+      # always exposes exactly the three current APKs.
+      - name: Remove stale dev-release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view dev --json assets >/dev/null 2>&1; then
+            gh release view dev --json assets --jq '.assets[].name' | while read -r name; do
+              [ -z "$name" ] && continue
+              echo "deleting stale asset: $name"
+              gh release delete-asset dev "$name" --yes || true
+            done
+          else
+            echo "dev release does not exist yet; nothing to clean"
+          fi
 
       - name: Publish dev build to GitHub Releases
         uses: softprops/action-gh-release@v3

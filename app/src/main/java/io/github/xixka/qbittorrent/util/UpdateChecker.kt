@@ -12,13 +12,15 @@ import java.util.concurrent.TimeUnit
 /**
  * Checks for app updates via the GitHub Releases published by CI.
  *
- * The Android CI workflow builds every push with
- * versionName = YY.MM.DD / versionCode = YYMMDDHHt and publishes the APKs to
- * the rolling `dev` release, recording the build info in the release body
- * ("Version: 25.09.04 (versionCode 250904115)") and in the asset names
- * ("qBittorrent-Enhanced-25.09.04-arm64-v8a.apk"). This checker downloads the
- * release list, picks the newest published build and compares it against
- * BuildConfig.VERSION_CODE (falling back to versionName comparison).
+ * The Android CI workflow builds every push with versionName = bundled
+ * qBittorrent-Enhanced engine version (e.g. "5.2.3.10") and versionCode =
+ * Unix epoch seconds (unique, strictly increasing per build), publishing the
+ * APKs to the rolling `dev` release under stable ABI-named assets
+ * ("qBittorrent-Enhanced-arm64-v8a.apk") and recording the build info in the
+ * release body ("Version: 5.2.3.10 (versionCode 1789944235)"). This checker
+ * downloads the release list, picks the newest published build and compares
+ * it against BuildConfig.VERSION_CODE (the versionName no longer changes
+ * per build, so the code is the authoritative signal).
  */
 object UpdateChecker {
 
@@ -32,9 +34,9 @@ object UpdateChecker {
     }
 
     data class Update(
-        /** versionName of the newest build, e.g. "25.09.04". */
+        /** versionName of the newest build, e.g. "5.2.3.10". */
         val version: String,
-        /** versionCode of the newest build (YYMMDDHHt). */
+        /** versionCode of the newest build (Unix epoch seconds). */
         val versionCode: Long,
         /** Human release page URL. */
         val htmlUrl: String,
@@ -70,21 +72,26 @@ object UpdateChecker {
                 if (best == null || candidate.versionCode > best.versionCode) best = candidate
             }
             // only report when strictly newer than the running build:
-            // compare the date-style versionName (YY.MM.DD); BuildConfig names
-            // carry flavor suffixes ("-enhanced", "-debug"), so extract the
-            // numeric part first. Fall back to versionCode comparison.
+            // versionCode (epoch seconds, unique per CI build) is the
+            // authoritative signal — the engine versionName is stable across
+            // builds, so comparing names would never surface an update.
+            // The name comparison is only a fallback for releases whose body
+            // carried no versionCode.
             if (best != null && isNewer(best)) best else null
         }
     }
 
     private fun isNewer(candidate: Update): Boolean {
+        if (candidate.versionCode > 0) {
+            return candidate.versionCode > BuildConfig.VERSION_CODE.toLong()
+        }
         val remote = parseVersion(candidate.version)
         val local = parseVersion(BuildConfig.VERSION_NAME)
         if (remote != null && local != null) return remote > local
-        return candidate.versionCode > BuildConfig.VERSION_CODE.toLong()
+        return false
     }
 
-    /** "25.09.04" (or "25.09.04-enhanced") -> 250904, component-packed. */
+    /** "5.2.3.10" (or "5.2.3.10-debug") -> 50203, component-packed. */
     private fun parseVersion(version: String): Long? {
         val m = Regex("(\\d+)\\.(\\d+)\\.(\\d+)").find(version) ?: return null
         val (a, b, c) = m.destructured

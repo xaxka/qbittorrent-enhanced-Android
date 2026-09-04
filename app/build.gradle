@@ -3,9 +3,12 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-// Version scheme: versionName = YY.MM.DD, versionCode = YYMMDDHHt (9 digits,
-// t = ten-minute digit 0-5). CI passes them via -PversionName / -PversionCode;
-// local builds fall back to 1.0.0 / 1.
+// Version scheme: versionName = bundled qBittorrent-Enhanced engine version
+// (e.g. 5.2.3.10), versionCode = Unix epoch seconds — strictly monotonic per
+// CI build, timezone-independent, and far above the retired YYMMDDHHt date
+// codes (~260 million) so every existing install updates in place (Android
+// caps versionCode at 2100000000, valid until ~2033). CI passes them via
+// -PversionName / -PversionCode; local builds fall back to 1.0.0 / 1.
 def appVersionName = (project.findProperty('versionName') ?: '1.0.0').toString()
 def appVersionCode = Integer.parseInt((project.findProperty('versionCode') ?: '1').toString())
 
