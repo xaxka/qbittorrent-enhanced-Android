@@ -17,6 +17,8 @@ import androidx.core.view.WindowCompat
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ActivityQbSettingsBinding
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
+import io.github.xixka.qbittorrent.util.ThemeUtils
+import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
 
@@ -36,6 +38,8 @@ class QBSettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Material You dynamic colors (default on, Android 12+)
+        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
         binding = ActivityQbSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // keep the form pages clear of the navigation bar in the edge-to-edge layout
@@ -52,8 +56,8 @@ class QBSettingsActivity : AppCompatActivity() {
         }
 
         binding.viewPager.adapter = QBPrefsPagerAdapter(this)
-        // keep all six pages alive so every tab contributes to "save"
-        binding.viewPager.offscreenPageLimit = 5
+        // keep all seven pages alive so every tab contributes to "save"
+        binding.viewPager.offscreenPageLimit = 6
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.setText(TAB_TITLES[position])
         }.attach()
@@ -138,6 +142,7 @@ class QBSettingsActivity : AppCompatActivity() {
             2 -> BitTorrentPrefsFragment()
             3 -> ConnectionPrefsFragment()
             4 -> WebUiPrefsFragment()
+            5 -> RssPrefsFragment()
             else -> AdvancedPrefsFragment()
         }
 
@@ -151,6 +156,7 @@ class QBSettingsActivity : AppCompatActivity() {
             R.string.qbt_tab_bittorrent,
             R.string.qbt_tab_connection,
             R.string.qbt_tab_webui,
+            R.string.qbt_tab_rss,
             R.string.qbt_tab_advanced,
         )
     }

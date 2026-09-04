@@ -76,6 +76,22 @@ class BitTorrentPrefsFragment : QBPrefsTabFragment() {
         ratioAction.select(QBPrefBindings.enumInt(prefs, "max_ratio_act", 0).coerceIn(0, 3))
         binding.addTrackersEnabledSwitch.isChecked = bool(prefs, "add_trackers_enabled", false)
         binding.addTrackersInput.setText(str(prefs, "add_trackers"))
+        binding.slowDlRateInput.setKiB(int(prefs, "slow_torrent_dl_rate_threshold", 2))
+        binding.slowUlRateInput.setKiB(int(prefs, "slow_torrent_ul_rate_threshold", 2))
+        binding.slowInactiveTimerInput.setText(int(prefs, "slow_torrent_inactive_timer", 60).toString())
+        binding.reannounceAddrSwitch.isChecked = bool(prefs, "reannounce_when_address_changed", true)
+        binding.maxInactiveSeedingEnabledSwitch.isChecked =
+            bool(prefs, "max_inactive_seeding_time_enabled", false)
+        binding.maxInactiveSeedingTimeInput.setText(int(prefs, "max_inactive_seeding_time", 60).toString())
+        binding.embeddedTrackerSwitch.isChecked = bool(prefs, "enable_embedded_tracker", false)
+        binding.embeddedTrackerPortInput.setText(int(prefs, "embedded_tracker_port", 9000).toString())
+        binding.embeddedTrackerFwdSwitch.isChecked = bool(prefs, "embedded_tracker_port_forwarding", false)
+        binding.ipFilterEnabledSwitch.isChecked = bool(prefs, "ip_filter_enabled", false)
+        binding.ipFilterPathInput.setText(str(prefs, "ip_filter_path"))
+        binding.ipFilterTrackersSwitch.isChecked = bool(prefs, "ip_filter_trackers", false)
+        binding.bannedIpsInput.setText(str(prefs, "banned_IPs"))
+        binding.shadowBanSwitch.isChecked = bool(prefs, "shadow_ban_enabled", false)
+        binding.shadowBannedIpsInput.setText(str(prefs, "shadow_banned_IPs"))
     }
 
     override fun collectValues(out: JsonObject) {
@@ -103,6 +119,24 @@ class BitTorrentPrefsFragment : QBPrefsTabFragment() {
         out.put("max_ratio_act", ratioAction.selectedOr(0))
         out.put("add_trackers_enabled", binding.addTrackersEnabledSwitch.isChecked)
         out.put("add_trackers", binding.addTrackersInput.text?.toString()?.trim().orEmpty())
+        binding.slowDlRateInput.toKiBBytes()?.let { out.put("slow_torrent_dl_rate_threshold", it) }
+        binding.slowUlRateInput.toKiBBytes()?.let { out.put("slow_torrent_ul_rate_threshold", it) }
+        binding.slowInactiveTimerInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it > 0 }?.let { out.put("slow_torrent_inactive_timer", it) }
+        out.put("reannounce_when_address_changed", binding.reannounceAddrSwitch.isChecked)
+        out.put("max_inactive_seeding_time_enabled", binding.maxInactiveSeedingEnabledSwitch.isChecked)
+        binding.maxInactiveSeedingTimeInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it >= 0 }?.let { out.put("max_inactive_seeding_time", it) }
+        out.put("enable_embedded_tracker", binding.embeddedTrackerSwitch.isChecked)
+        binding.embeddedTrackerPortInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 1..65535 }?.let { out.put("embedded_tracker_port", it) }
+        out.put("embedded_tracker_port_forwarding", binding.embeddedTrackerFwdSwitch.isChecked)
+        out.put("ip_filter_enabled", binding.ipFilterEnabledSwitch.isChecked)
+        out.put("ip_filter_path", binding.ipFilterPathInput.text?.toString()?.trim().orEmpty())
+        out.put("ip_filter_trackers", binding.ipFilterTrackersSwitch.isChecked)
+        out.put("banned_IPs", binding.bannedIpsInput.text?.toString()?.trim().orEmpty())
+        out.put("shadow_ban_enabled", binding.shadowBanSwitch.isChecked)
+        out.put("shadow_banned_IPs", binding.shadowBannedIpsInput.text?.toString()?.trim().orEmpty())
     }
 
     override fun onDestroyView() {
@@ -112,4 +146,14 @@ class BitTorrentPrefsFragment : QBPrefsTabFragment() {
 
     private fun formatRatio(value: Double): String =
         if (value < 0.0) "1.0" else if (value == value.toLong().toDouble()) value.toLong().toString() else value.toString()
+
+    private fun com.google.android.material.textfield.TextInputEditText.setKiB(bytesPerSec: Int) {
+        setText((bytesPerSec.coerceAtLeast(0) / 1024).toString())
+    }
+
+    private fun com.google.android.material.textfield.TextInputEditText.toKiBBytes(): Int? {
+        val kib = text?.toString()?.trim()?.toIntOrNull() ?: return null
+        if (kib < 0) return null
+        return kib * 1024
+    }
 }

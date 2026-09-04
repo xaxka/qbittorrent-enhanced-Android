@@ -11,7 +11,9 @@ import io.github.xixka.qbittorrent.model.Tracker
 import io.github.xixka.qbittorrent.model.TransferInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Response
 
 /**
  * Thin, typed façade over the qBittorrent Web API.
@@ -22,6 +24,10 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun appVersion(): String = client.withAuth { it.appVersion() }
 
     suspend fun webApiVersion(): String = client.withAuth { it.webApiVersion() }
+
+    /** Default download location of the connected instance. */
+    suspend fun defaultSavePath(): String =
+        runCatching { client.withAuth { it.defaultSavePath() } }.getOrDefault("")
 
     /** Full preference snapshot (`GET /api/v2/app/preferences`). */
     suspend fun appPreferences(): JsonObject = client.withAuth { it.appPreferences() }
@@ -60,6 +66,14 @@ class TorrentRepository(private val client: QBApiClient) {
 
     // ---------- actions ----------
 
+    /**
+     * Adds torrents by URL/magnet or .torrent file with the full parameter
+     * set of the qBittorrent WebUI add dialog (qBitController parity).
+     *
+     * Limits are bytes/s; [seedingTimeLimit] is minutes; [autoTmm] null =
+     * leave the server default. Both `paused` and `stopped` keys are sent
+     * so 4.x (`paused`) and 5.x (`stopped`) servers both behave.
+     */
     suspend fun addTorrent(
         urls: String?,
         fileBytes: ByteArray? = null,
@@ -68,26 +82,44 @@ class TorrentRepository(private val client: QBApiClient) {
         category: String? = null,
         paused: Boolean = false,
         sequential: Boolean = false,
-    ) = client.withAuth {
-        if (fileBytes != null) {
-            val mediaType = "application/x-bittorrent".toMediaTypeOrNull()
-            val body = fileBytes.toRequestBody(mediaType)
-            val part = MultipartBody.Part.createFormData("torrents", fileName, body)
-            it.addTorrentFile(
-                torrents = part,
-                savePath = savePath?.toFormPart(),
-                category = category?.takeIf { c -> c.isNotBlank() }?.toFormPart(),
-                paused = paused.toString().toFormPart(),
-                sequential = sequential.toString().toFormPart(),
-            )
-        } else {
-            it.addTorrent(
-                urls = urls?.trim(),
-                savePath = savePath?.takeIf { p -> p.isNotBlank() },
-                category = category?.takeIf { c -> c.isNotBlank() },
-                paused = paused.toString(),
-                sequential = sequential.toString(),
-            )
+        skipChecking: Boolean = false,
+        firstLastPiece: Boolean = false,
+        autoTmm: Boolean? = null,
+        stopCondition: String? = null,
+        contentLayout: String? = null,
+        rename: String? = null,
+        dlLimit: Long? = null,
+        upLimit: Long? = null,
+        ratioLimit: Double? = null,
+        seedingTimeLimit: Long? = null,
+    ): Response<ResponseBody> {
+        val fields = buildMap {
+            urls?.trim()?.takeIf { it.isNotEmpty() }?.let { put("urls", it) }
+            savePath?.takeIf { it.isNotBlank() }?.let { put("savepath", it.trim()) }
+            category?.takeIf { it.isNotBlank() }?.let { put("category", it.trim()) }
+            put("paused", paused.toString())
+            put("stopped", paused.toString())
+            put("sequentialDownload", sequential.toString())
+            put("skip_checking", skipChecking.toString())
+            put("firstLastPiecePrio", firstLastPiece.toString())
+            autoTmm?.let { put("autoTMM", it.toString()) }
+            stopCondition?.let { put("stopCondition", it) }
+            contentLayout?.let { put("contentLayout", it) }
+            rename?.takeIf { it.isNotBlank() }?.let { put("rename", it.trim()) }
+            dlLimit?.let { put("dlLimit", it.toString()) }
+            upLimit?.let { put("upLimit", it.toString()) }
+            ratioLimit?.let { put("ratioLimit", it.toString()) }
+            seedingTimeLimit?.let { put("seedingTimeLimit", it.toString()) }
+        }
+        return client.withAuth {
+            if (fileBytes != null) {
+                val mediaType = "application/x-bittorrent".toMediaTypeOrNull()
+                val body = fileBytes.toRequestBody(mediaType)
+                val part = MultipartBody.Part.createFormData("torrents", fileName, body)
+                addTorrentFile(part, fields.mapValues { it.value.toFormPart() })
+            } else {
+                addTorrent(fields)
+            }
         }
     }
 
@@ -118,6 +150,12 @@ class TorrentRepository(private val client: QBApiClient) {
 
     suspend fun createCategory(name: String, savePath: String) =
         client.withAuth { it.createCategory(name, savePath) }
+
+    suspend fun editCategory(name: String, savePath: String) =
+        client.withAuth { it.editCategory(name, savePath) }
+
+    suspend fun removeCategory(name: String) =
+        client.withAuth { it.removeCategories(name) }
 
     suspend fun toggleSequential(hashes: List<String>) =
         client.withAuth { it.toggleSequentialDownload(hashes.joinToString("|")) }

@@ -12,12 +12,14 @@ import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Field
+import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.PartMap
 import retrofit2.http.Query
 
 /**
@@ -41,6 +43,10 @@ interface QBApiService {
 
     @GET("api/v2/app/webapiVersion")
     suspend fun webApiVersion(): String
+
+    /** Default download location (`GET /api/v2/app/defaultSavePath`). */
+    @GET("api/v2/app/defaultSavePath")
+    suspend fun defaultSavePath(): String
 
     /**
      * Full preference snapshot of the connected qBittorrent instance
@@ -101,23 +107,13 @@ interface QBApiService {
 
     @FormUrlEncoded
     @POST("api/v2/torrents/add")
-    suspend fun addTorrent(
-        @Field("urls") urls: String? = null,
-        @Field("savepath") savePath: String? = null,
-        @Field("category") category: String? = null,
-        @Field("paused") paused: String? = null,
-        @Field("sequentialDownload") sequential: String? = null,
-        @Field("root_folder") rootFolder: String? = null,
-    ): Response<ResponseBody>
+    suspend fun addTorrent(@FieldMap fields: Map<String, String>): Response<ResponseBody>
 
     @Multipart
     @POST("api/v2/torrents/add")
     suspend fun addTorrentFile(
         @Part torrents: MultipartBody.Part,
-        @Part("savepath") savePath: okhttp3.RequestBody? = null,
-        @Part("category") category: okhttp3.RequestBody? = null,
-        @Part("paused") paused: okhttp3.RequestBody? = null,
-        @Part("sequentialDownload") sequential: okhttp3.RequestBody? = null,
+        @PartMap fields: Map<String, okhttp3.RequestBody> = emptyMap(),
     ): Response<ResponseBody>
 
     @FormUrlEncoded
@@ -179,6 +175,19 @@ interface QBApiService {
     suspend fun createCategory(
         @Field("category") category: String,
         @Field("savePath") savePath: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/editCategory")
+    suspend fun editCategory(
+        @Field("category") category: String,
+        @Field("savePath") savePath: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/removeCategories")
+    suspend fun removeCategories(
+        @Field("categories") categories: String,
     ): Response<ResponseBody>
 
     @FormUrlEncoded

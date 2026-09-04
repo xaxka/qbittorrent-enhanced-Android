@@ -37,9 +37,45 @@ data class ListUiState(
     val categories: List<String> = emptyList(),
 )
 
-enum class StatusFilter { NONE, DOWNLOADING, DOWNLOADED, DOWNLOADING_METADATA, ERROR }
+/**
+ * The full status filter set of the qBittorrent WebUI sidebar, with exactly
+ * the server-side semantics (qb-enhanced src/base/torrentfilter.cpp +
+ * torrentimpl.cpp): `downloading` includes stopped-downloading torrents,
+ * `completed` is the seeding state set, `resumed` is anything not stopped,
+ * `active`/`inactive` are based on current transfer speeds.
+ */
+enum class StatusFilter(val states: Set<String>? = null, val speedBased: Int = 0) {
+    ALL(null),
+    DOWNLOADING(
+        setOf(
+            "downloading", "metadl", "forcedmetadl", "stalleddl", "checkingdl",
+            "stoppeddl", "pauseddl", "queueddl", "forceddl",
+        )
+    ),
+    SEEDING(setOf("uploading", "stalledup", "checkingup", "queuedup", "forcedup")),
+    COMPLETED(
+        setOf(
+            "uploading", "stalledup", "checkingup", "stoppedup", "pausedup",
+            "queuedup", "forcedup",
+        )
+    ),
+    RESUMED,
+    PAUSED(setOf("stoppeddl", "stoppedup", "pauseddl", "pausedup")),
+    ACTIVE(null, speedBased = 1),
+    INACTIVE(null, speedBased = -1),
+    STALLED(setOf("stalleddl", "stalledup")),
+    CHECKING(setOf("checkingup", "checkingdl", "checkingresumedata")),
+    MOVING(setOf("moving")),
+    ERROR(setOf("error", "missingfiles")),
+    DOWNLOADING_METADATA(setOf("metadl", "forcedmetadl")),
+}
+
 enum class DateAddedFilter { NONE, TODAY, YESTERDAY, WEEK, MONTH, YEAR }
 enum class SortField { DATE_ADDED, NAME, SIZE, PROGRESS, ETA, PEERS }
+
+/** State sets shared by [StatusFilter.RESUMED]. */
+private val STOPPED_STATES =
+    setOf("stoppeddl", "stoppedup", "pauseddl", "pausedup")
 
 class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -50,7 +86,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     val state: StateFlow<ListUiState> = _state
 
     // drawer filters
-    var statusFilter = StatusFilter.NONE
+    var statusFilter = StatusFilter.ALL
         private set
     var dateFilter = DateAddedFilter.NONE
         private set
@@ -135,7 +171,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setStatusFilter(filter: StatusFilter?) {
-        statusFilter = filter ?: StatusFilter.NONE
+        statusFilter = filter ?: StatusFilter.ALL
         refilter()
     }
 
@@ -165,7 +201,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun resetFilters() {
-        statusFilter = StatusFilter.NONE
+        statusFilter = StatusFilter.ALL
         dateFilter = DateAddedFilter.NONE
         category = null
         refilter()
@@ -187,12 +223,18 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     private fun applyFilters(source: List<TorrentInfo> = lastAll): List<TorrentInfo> {
         var result = source.asSequence()
 
-        result = when (statusFilter) {
-            StatusFilter.NONE -> result
-            StatusFilter.DOWNLOADING -> result.filter { !isPaused(it) && it.progress < 1.0 && it.state.lowercase() != "metadl" }
-            StatusFilter.DOWNLOADED -> result.filter { it.progress >= 1.0 }
-            StatusFilter.DOWNLOADING_METADATA -> result.filter { it.state.lowercase() == "metadl" }
-            StatusFilter.ERROR -> result.filter { it.state.startsWith("error") || it.state.startsWith("missing") }
+        val f = statusFilter
+        when {
+            // "All" keeps everything
+            f == StatusFilter.ALL -> {}
+            // Resumed: everything that is not stopped (Torrent::isRunning)
+            f == StatusFilter.RESUMED ->
+                result = result.filter { it.state.lowercase() !in STOPPED_STATES }
+            // Active/Inactive: current transfer speeds (Torrent::isActive)
+            f.speedBased == 1 -> result = result.filter { it.dlSpeed > 0 || it.upSpeed > 0 }
+            f.speedBased == -1 -> result = result.filter { it.dlSpeed <= 0 && it.upSpeed <= 0 }
+            // Explicit state sets with the server's own filter semantics
+            f.states != null -> result = result.filter { it.state.lowercase() in f.states }
         }
 
         result = when (dateFilter) {
@@ -239,9 +281,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
         }
         return sorted.toList()
     }
-
-    private fun isPaused(t: TorrentInfo) =
-        t.state.lowercase() in setOf("pauseddl", "pausedup", "stoppeddl", "stoppedup")
 
     fun pauseAll() = viewModelScope.launch { runCatching { repository.pauseAll() } }
     fun resumeAll() = viewModelScope.launch { runCatching { repository.resumeAll() } }

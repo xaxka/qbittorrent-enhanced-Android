@@ -97,6 +97,8 @@ fun JsonObject.put(key: String, value: Boolean) = addProperty(key, value)
 /** Convenience: adds an integer preference (serialized as JSON number). */
 fun JsonObject.put(key: String, value: Int) = addProperty(key, value)
 
+fun JsonObject.put(key: String, value: Long) = addProperty(key, value)
+
 fun JsonObject.put(key: String, value: Double) = addProperty(key, value)
 
 fun JsonObject.put(key: String, value: String) = addProperty(key, value)

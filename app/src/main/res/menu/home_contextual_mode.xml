@@ -10,6 +10,12 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/set_category_torrent_menu"
+        android:icon="@drawable/ic_label_24px"
+        android:title="@string/set_category"
+        android:contentDescription="@string/set_category" />
+
+    <item
         android:id="@+id/force_recheck_torrent_menu"
         android:icon="@drawable/ic_repeat_24px"
         android:title="@string/force_recheck_torrent"

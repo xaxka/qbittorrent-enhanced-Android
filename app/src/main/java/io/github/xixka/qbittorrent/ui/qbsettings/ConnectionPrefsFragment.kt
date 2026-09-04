@@ -81,6 +81,20 @@ class ConnectionPrefsFragment : QBPrefsTabFragment() {
         binding.proxyMiscSwitch.isChecked = bool(prefs, "proxy_misc", true)
         binding.banUnknownSwitch.isChecked = bool(prefs, "auto_ban_unknown_peer", false)
         binding.banBtPlayerSwitch.isChecked = bool(prefs, "auto_ban_bt_player_peer", false)
+        binding.proxyHostnameLookupSwitch.isChecked = bool(prefs, "proxy_hostname_lookup", false)
+        binding.proxyRssSwitch.isChecked = bool(prefs, "proxy_rss", false)
+        binding.ignoreSslErrorsSwitch.isChecked = bool(prefs, "ignore_ssl_errors", false)
+        binding.randomPortSwitch.isChecked = bool(prefs, "random_port", true)
+        binding.networkInterfaceInput.setText(str(prefs, "current_network_interface"))
+        binding.interfaceAddressInput.setText(str(prefs, "current_interface_address"))
+        binding.i2pEnabledSwitch.isChecked = bool(prefs, "i2p_enabled", false)
+        binding.i2pAddressInput.setText(str(prefs, "i2p_address"))
+        binding.i2pPortInput.setText(int(prefs, "i2p_port", 7656).toString())
+        binding.i2pMixedSwitch.isChecked = bool(prefs, "i2p_mixed_mode", false)
+        binding.i2pInboundQuantityInput.setText(int(prefs, "i2p_inbound_quantity", 3).toString())
+        binding.i2pOutboundQuantityInput.setText(int(prefs, "i2p_outbound_quantity", 3).toString())
+        binding.i2pInboundLengthInput.setText(int(prefs, "i2p_inbound_length", 3).toString())
+        binding.i2pOutboundLengthInput.setText(int(prefs, "i2p_outbound_length", 3).toString())
     }
 
     override fun collectValues(out: JsonObject) {
@@ -113,6 +127,25 @@ class ConnectionPrefsFragment : QBPrefsTabFragment() {
         out.put("proxy_misc", binding.proxyMiscSwitch.isChecked)
         out.put("auto_ban_unknown_peer", binding.banUnknownSwitch.isChecked)
         out.put("auto_ban_bt_player_peer", binding.banBtPlayerSwitch.isChecked)
+        out.put("proxy_hostname_lookup", binding.proxyHostnameLookupSwitch.isChecked)
+        out.put("proxy_rss", binding.proxyRssSwitch.isChecked)
+        out.put("ignore_ssl_errors", binding.ignoreSslErrorsSwitch.isChecked)
+        out.put("random_port", binding.randomPortSwitch.isChecked)
+        out.put("current_network_interface", binding.networkInterfaceInput.text?.toString()?.trim().orEmpty())
+        out.put("current_interface_address", binding.interfaceAddressInput.text?.toString()?.trim().orEmpty())
+        out.put("i2p_enabled", binding.i2pEnabledSwitch.isChecked)
+        out.put("i2p_address", binding.i2pAddressInput.text?.toString()?.trim().orEmpty())
+        binding.i2pPortInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..65535 }?.let { out.put("i2p_port", it) }
+        out.put("i2p_mixed_mode", binding.i2pMixedSwitch.isChecked)
+        binding.i2pInboundQuantityInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..16 }?.let { out.put("i2p_inbound_quantity", it) }
+        binding.i2pOutboundQuantityInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..16 }?.let { out.put("i2p_outbound_quantity", it) }
+        binding.i2pInboundLengthInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..7 }?.let { out.put("i2p_inbound_length", it) }
+        binding.i2pOutboundLengthInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..7 }?.let { out.put("i2p_outbound_length", it) }
     }
 
     override fun onDestroyView() {

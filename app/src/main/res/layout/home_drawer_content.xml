@@ -105,6 +105,14 @@
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_all"
+                app:chipIcon="@drawable/ic_lists_24px" />
+
+            <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_downloading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -113,20 +121,76 @@
                 app:chipIcon="@drawable/ic_download_24px" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_status_downloaded"
+                android:id="@+id/drawer_status_seeding"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_downloaded"
+                android:text="@string/drawer_status_seeding"
+                app:chipIcon="@drawable/ic_upload_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_completed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_completed"
                 app:chipIcon="@drawable/ic_download_done_24px" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_status_downloading_metadata"
+                android:id="@+id/drawer_status_resumed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_downloading_metadata"
-                app:chipIcon="@drawable/ic_magnet_24px" />
+                android:text="@string/drawer_status_resumed"
+                app:chipIcon="@drawable/ic_play_arrow_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_paused"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_paused"
+                app:chipIcon="@drawable/ic_pause_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_active"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_active"
+                app:chipIcon="@drawable/ic_speed_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_inactive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_inactive"
+                app:chipIcon="@drawable/ic_stop_circle_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_stalled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_stalled"
+                app:chipIcon="@drawable/ic_hub_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_checking"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_checking"
+                app:chipIcon="@drawable/ic_checklist_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_moving"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_moving"
+                app:chipIcon="@drawable/ic_drive_file_move_24px" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_error"
@@ -135,6 +199,14 @@
                 android:checkable="true"
                 android:text="@string/drawer_status_error"
                 app:chipIcon="@drawable/ic_error_24px" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/drawer_status_downloading_metadata"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/drawer_status_downloading_metadata"
+                app:chipIcon="@drawable/ic_magnet_24px" />
         </com.google.android.material.chip.ChipGroup>
 
         <com.google.android.material.divider.MaterialDivider

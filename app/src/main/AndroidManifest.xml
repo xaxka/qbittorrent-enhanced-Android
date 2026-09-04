@@ -73,6 +73,12 @@
             android:exported="false"
             android:label="@string/settings" />
 
+        <activity
+            android:name=".ui.settings.ServerSettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_server_connection"
+            android:parentActivityName=".ui.settings.SettingsActivity" />
+
         <!--
             Form-heavy preferences editor: surviving rotations without
             recreating the views keeps the user's in-progress edits intact.

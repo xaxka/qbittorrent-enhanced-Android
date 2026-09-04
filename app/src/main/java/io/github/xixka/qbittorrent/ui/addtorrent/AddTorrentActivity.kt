@@ -4,15 +4,18 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityAddTorrentBinding
-import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +23,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Add a torrent by URL / magnet link or by picking a .torrent file — exactly the
- * upstream /api/v2/torrents/add parameters.
+ * Add a torrent by URL / magnet link or .torrent file with the full
+ * parameter set of the qBittorrent WebUI add dialog (qBitController
+ * parity): name, category, save path, content layout, stop condition,
+ * per-torrent speed/share limits, start-stopped, skip checking, sequential
+ * download, first/last piece priority and automatic torrent management.
+ *
+ * Dropdown defaults (categories, save path, "start stopped", layout, stop
+ * condition) mirror the connected instance's own preferences, exactly like
+ * the WebUI does when it opens its add dialog.
  */
 class AddTorrentActivity : AppCompatActivity() {
 
@@ -29,6 +39,15 @@ class AddTorrentActivity : AppCompatActivity() {
 
     private var fileBytes: ByteArray? = null
     private var fileName: String? = null
+
+    /** contentLayout values accepted by /api/v2/torrents/add. */
+    private val contentLayoutValues = listOf("Original", "Subfolder", "NoSubfolder")
+
+    /** stopCondition values accepted by /api/v2/torrents/add. */
+    private val stopConditionValues = listOf("None", "MetadataReceived", "FilesChecked")
+
+    private var selectedContentLayout = 0
+    private var selectedStopCondition = 0
 
     private val pickFile =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -38,6 +57,7 @@ class AddTorrentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
         binding = ActivityAddTorrentBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // keep the form clear of the navigation bar in the edge-to-edge layout
@@ -45,11 +65,107 @@ class AddTorrentActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        setupDropdowns()
         binding.pickFileButton.setOnClickListener { pickFile.launch("*/*") }
-
         binding.addButton.setOnClickListener { submit() }
 
         handleIntent(intent)
+        loadServerDefaults()
+    }
+
+    private fun setupDropdowns() {
+        binding.layoutDropdown.setAdapter(
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_list_item_1,
+                listOf(
+                    getString(R.string.content_layout_original),
+                    getString(R.string.content_layout_subfolder),
+                    getString(R.string.content_layout_no_subfolder),
+                ),
+            )
+        )
+        binding.layoutDropdown.setOnItemClickListener { _, _, position, _ ->
+            selectedContentLayout = position
+        }
+
+        binding.stopConditionDropdown.setAdapter(
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_list_item_1,
+                listOf(
+                    getString(R.string.stop_condition_none),
+                    getString(R.string.stop_condition_metadata),
+                    getString(R.string.stop_condition_files_checked),
+                ),
+            )
+        )
+        binding.stopConditionDropdown.setOnItemClickListener { _, _, position, _ ->
+            selectedStopCondition = position
+        }
+    }
+
+    /** Categories + defaults from the connected instance, like the WebUI. */
+    private fun loadServerDefaults() {
+        lifecycleScope.launch {
+            val (categories, savePath, prefs) = withContext(Dispatchers.IO) {
+                runCatching {
+                    val repo = ServiceLocator.repository(this@AddTorrentActivity)
+                    Triple(
+                        repo.categories().keys.filter { it.isNotBlank() }.sorted(),
+                        repo.defaultSavePath(),
+                        repo.appPreferences(),
+                    )
+                }.getOrNull() ?: Triple(emptyList(), "", null as JsonObject?)
+            }
+            if (categories.isNotEmpty()) {
+                binding.categoryInput.setAdapter(
+                    ArrayAdapter(
+                        this@AddTorrentActivity,
+                        android.R.layout.simple_list_item_1,
+                        categories,
+                    )
+                )
+            }
+            if (savePath.isNotBlank() && binding.savePathInput.text?.isBlank() == true) {
+                binding.savePathInput.setText(savePath)
+            }
+            prefs?.let { p ->
+                // "Start torrent" checkbox mirrors the server preference, like the WebUI
+                binding.pausedSwitch.isChecked =
+                    p.get("add_stopped_enabled")?.asBoolean == true
+                val layout = p.get("torrent_content_layout")?.takeIf { it.isJsonPrimitive }?.asString
+                selectedContentLayout = layout.let {
+                    when (it?.lowercase()) {
+                        "subfolder" -> 1
+                        "nosubfolder" -> 2
+                        else -> 0
+                    }
+                }
+                binding.layoutDropdown.setText(
+                    listOf(
+                        getString(R.string.content_layout_original),
+                        getString(R.string.content_layout_subfolder),
+                        getString(R.string.content_layout_no_subfolder),
+                    )[selectedContentLayout],
+                    false,
+                )
+                val stop = p.get("torrent_stop_condition")?.takeIf { it.isJsonPrimitive }?.asString
+                selectedStopCondition = when (stop?.lowercase()) {
+                    "metadatareceived" -> 1
+                    "fileschecked" -> 2
+                    else -> 0
+                }
+                binding.stopConditionDropdown.setText(
+                    listOf(
+                        getString(R.string.stop_condition_none),
+                        getString(R.string.stop_condition_metadata),
+                        getString(R.string.stop_condition_files_checked),
+                    )[selectedStopCondition],
+                    false,
+                )
+            }
+        }
     }
 
     /** Accepts shared magnet/torrent links and .torrent files from other apps. */
@@ -105,8 +221,8 @@ class AddTorrentActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.add_no_input, Toast.LENGTH_SHORT).show()
             return
         }
-        if (!urls.isEmpty() && fileBytes == null &&
-            !urls.startsWith("magnet:") && !urls.startsWith("http")
+        if (urls.isNotEmpty() && fileBytes == null &&
+            !urls.lineSequence().all { it.startsWith("magnet:") || it.startsWith("http") }
         ) {
             Toast.makeText(this, R.string.add_no_input, Toast.LENGTH_SHORT).show()
             return
@@ -125,8 +241,23 @@ class AddTorrentActivity : AppCompatActivity() {
                             ?.takeIf { it.isNotEmpty() },
                         category = binding.categoryInput.text?.toString()?.trim()
                             ?.takeIf { it.isNotEmpty() },
-                        paused = binding.pausedCheck.isChecked,
-                        sequential = binding.sequentialCheck.isChecked,
+                        paused = binding.pausedSwitch.isChecked,
+                        sequential = binding.sequentialSwitch.isChecked,
+                        skipChecking = binding.skipCheckingSwitch.isChecked,
+                        firstLastPiece = binding.firstLastSwitch.isChecked,
+                        autoTmm = binding.autoTmmSwitch.isChecked,
+                        stopCondition = stopConditionValues[selectedStopCondition],
+                        contentLayout = contentLayoutValues[selectedContentLayout],
+                        rename = binding.nameInput.text?.toString()?.trim()
+                            ?.takeIf { it.isNotEmpty() },
+                        dlLimit = binding.dlLimitInput.text?.toString()?.trim()
+                            ?.toLongOrNull()?.takeIf { it >= 0 }?.let { it * 1024 },
+                        upLimit = binding.upLimitInput.text?.toString()?.trim()
+                            ?.toLongOrNull()?.takeIf { it >= 0 }?.let { it * 1024 },
+                        ratioLimit = binding.ratioLimitInput.text?.toString()?.trim()
+                            ?.toDoubleOrNull()?.takeIf { it >= 0.0 },
+                        seedingTimeLimit = binding.seedingTimeInput.text?.toString()?.trim()
+                            ?.toLongOrNull()?.takeIf { it >= 0 },
                     )
                     true
                 }.getOrElse { false }

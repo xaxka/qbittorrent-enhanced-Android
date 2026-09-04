@@ -38,6 +38,7 @@ import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
 import io.github.xixka.qbittorrent.ui.detail.DetailActivity
 import io.github.xixka.qbittorrent.ui.settings.SettingsActivity
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
@@ -68,6 +69,8 @@ class MainActivity : AppCompatActivity() {
         // the AppBarLayout consumes the status bar inset (fitsSystemWindows +
         // statusBarForeground), see fragment_home.xml.
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Material You dynamic colors (default on, Android 12+)
+        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -126,8 +129,6 @@ class MainActivity : AppCompatActivity() {
             binding.drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
         }
         binding.homeContent.searchBar.setOnMenuItemClickListener { onHomeMenuItem(it.itemId) }
-        binding.homeContent.searchBar.menu.findItem(R.id.action_local_engine)?.isVisible =
-            BuildConfig.IS_ENHANCED && LocalEngineManager.isSupported(this)
 
         binding.homeContent.searchView.editText.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -162,7 +163,8 @@ class MainActivity : AppCompatActivity() {
         // Load the bundled engine together with the app — no manual step.
         maybeAutoStartEngine()
 
-        // Non-intrusive daily update check against GitHub Releases.
+        // Non-intrusive daily update check against GitHub Releases (the
+        // manual check lives in Settings → About).
         maybeAutoCheckUpdate()
     }
 
@@ -171,22 +173,10 @@ class MainActivity : AppCompatActivity() {
         when (itemId) {
             R.id.pause_all_menu -> lifecycleScope.launch { runCatching { repo.pauseAll() } }
             R.id.resume_all_menu -> lifecycleScope.launch { runCatching { repo.resumeAll() } }
-            R.id.about_menu -> showAboutDialog()
-            R.id.settings_menu -> startActivity(Intent(this, SettingsActivity::class.java))
-            R.id.check_update_menu -> checkUpdate(manual = true)
-            R.id.action_local_engine -> toggleLocalEngine()
+            R.id.speed_limit_menu -> showSpeedLimitDialog()
             else -> return false
         }
         return true
-    }
-
-    private fun toggleLocalEngine() {
-        if (LocalEngineManager.isRunning()) {
-            LocalEngineService.stop(this)
-        } else {
-            LocalEngineService.start(this)
-            Toast.makeText(this, R.string.engine_starting, Toast.LENGTH_SHORT).show()
-        }
     }
 
     /** Starts the bundled engine once per process (Enhanced edition only). */
@@ -199,38 +189,66 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ---------------- quick speed limits ----------------
+
+    /**
+     * Quick speed-limit sheet, qBittorrent-tray style: alternative-speed
+     * toggle plus global download/upload limits, applied immediately via
+     * /api/v2/transfer/setDownloadLimit + setUploadLimit — no restart.
+     */
+    private fun showSpeedLimitDialog() {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_speed_limit, null)
+        val altSwitch =
+            view.findViewById<com.google.android.material.materialswitch.MaterialSwitch>(R.id.altSpeedSwitch)
+        val dlInput = view.findViewById<TextInputEditText>(R.id.download_limit)
+        val upInput = view.findViewById<TextInputEditText>(R.id.upload_limit)
+
+        val transfer = viewModel.state.value.transfer
+        altSwitch.isChecked = transfer?.useAltSpeedLimits == true
+        dlInput.setText((transfer?.dlRateLimit ?: 0L).coerceAtLeast(0L).div(1024L).toString())
+        upInput.setText((transfer?.upRateLimit ?: 0L).coerceAtLeast(0L).div(1024L).toString())
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.speed_limits)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                lifecycleScope.launch {
+                    val repo = ServiceLocator.repository(this@MainActivity)
+                    val result = runCatching {
+                        dlInput.text?.toString()?.trim()?.toLongOrNull()?.let {
+                            if (it >= 0) repo.setDownloadLimit(it * 1024)
+                        }
+                        upInput.text?.toString()?.trim()?.toLongOrNull()?.let {
+                            if (it >= 0) repo.setUploadLimit(it * 1024)
+                        }
+                        if (altSwitch.isChecked != (transfer?.useAltSpeedLimits == true)) {
+                            repo.toggleAltSpeedLimits()
+                        }
+                    }
+                    Toast.makeText(
+                        this@MainActivity,
+                        if (result.isSuccess) R.string.speed_limits_applied
+                        else R.string.speed_limits_failed,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     // ---------------- update check (GitHub Releases) ----------------
 
     private fun maybeAutoCheckUpdate() {
         val prefs = ServiceLocator.prefs(this)
         if (System.currentTimeMillis() - prefs.lastUpdateCheck < UPDATE_CHECK_INTERVAL_MS) return
-        checkUpdate(manual = false)
-    }
-
-    private fun checkUpdate(manual: Boolean) {
         ServiceLocator.prefs(this).lastUpdateCheck = System.currentTimeMillis()
         lifecycleScope.launch {
             val result = runCatching { UpdateChecker.check() }
             val alive = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
             result
                 .onSuccess { update ->
-                    when {
-                        update != null && alive -> showUpdateDialog(update)
-                        manual -> Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.update_up_to_date, BuildConfig.VERSION_NAME),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                }
-                .onFailure {
-                    if (manual) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.update_check_failed, it.message ?: ""),
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
+                    if (update != null && alive) showUpdateDialog(update)
                 }
         }
     }
@@ -254,23 +272,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showAboutDialog() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.about)
-            .setMessage(
-                getString(R.string.about_message) +
-                    "\n\n" + getString(R.string.about_version, BuildConfig.VERSION_NAME)
-            )
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
-    }
-
     private fun onContextualMenuItem(itemId: Int): Boolean {
         val hashes = adapter.selectedHashes()
         if (hashes.isEmpty()) return true
         val repo = ServiceLocator.repository(this)
         when (itemId) {
             R.id.delete_torrent_menu -> confirmDelete(hashes)
+            R.id.set_category_torrent_menu -> showSetCategoryDialog(hashes)
             R.id.force_recheck_torrent_menu ->
                 lifecycleScope.launch { runCatching { repo.recheck(hashes) }; viewModel.refresh() }
             R.id.force_announce_torrent_menu ->
@@ -364,10 +372,19 @@ class MainActivity : AppCompatActivity() {
         d.drawerStatusChipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             viewModel.setStatusFilter(
                 when (checkedIds.firstOrNull()) {
+                    R.id.drawer_status_all -> StatusFilter.ALL
                     R.id.drawer_status_downloading -> StatusFilter.DOWNLOADING
-                    R.id.drawer_status_downloading_metadata -> StatusFilter.DOWNLOADING_METADATA
-                    R.id.drawer_status_downloaded -> StatusFilter.DOWNLOADED
+                    R.id.drawer_status_seeding -> StatusFilter.SEEDING
+                    R.id.drawer_status_completed -> StatusFilter.COMPLETED
+                    R.id.drawer_status_resumed -> StatusFilter.RESUMED
+                    R.id.drawer_status_paused -> StatusFilter.PAUSED
+                    R.id.drawer_status_active -> StatusFilter.ACTIVE
+                    R.id.drawer_status_inactive -> StatusFilter.INACTIVE
+                    R.id.drawer_status_stalled -> StatusFilter.STALLED
+                    R.id.drawer_status_checking -> StatusFilter.CHECKING
+                    R.id.drawer_status_moving -> StatusFilter.MOVING
                     R.id.drawer_status_error -> StatusFilter.ERROR
+                    R.id.drawer_status_downloading_metadata -> StatusFilter.DOWNLOADING_METADATA
                     else -> null
                 }
             )
@@ -413,7 +430,52 @@ class MainActivity : AppCompatActivity() {
         d.addTagButton.setOnClickListener { showAddCategoryDialog() }
     }
 
-    private fun showAddCategoryDialog() {
+    /**
+     * Assign or clear a category on the selected torrents, qBittorrent-
+     * context-menu style: pick an existing category, create a new one, or
+     * remove the assignment entirely.
+     */
+    private fun showSetCategoryDialog(hashes: List<String>) {
+        val existing = viewModel.state.value.categories
+        val options = mutableListOf<String>()
+        options += getString(R.string.category_new)
+        if (existing.isNotEmpty()) {
+            options += existing
+            options += getString(R.string.category_remove)
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.set_category)
+            .setItems(options.toTypedArray()) { _, which ->
+                val picked = options[which]
+                when {
+                    picked == getString(R.string.category_new) ->
+                        promptCategoryName { name -> applyCategory(hashes, name) }
+
+                    picked == getString(R.string.category_remove) ->
+                        applyCategory(hashes, "")
+
+                    else -> applyCategory(hashes, picked)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun applyCategory(hashes: List<String>, category: String) {
+        lifecycleScope.launch {
+            val result = runCatching {
+                ServiceLocator.repository(this@MainActivity).setCategory(hashes, category)
+            }
+            Toast.makeText(
+                this@MainActivity,
+                if (result.isSuccess) R.string.category_applied else R.string.category_apply_failed,
+                Toast.LENGTH_SHORT,
+            ).show()
+            viewModel.refresh()
+        }
+    }
+
+    private fun promptCategoryName(onName: (String) -> Unit) {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         MaterialAlertDialogBuilder(this)
@@ -421,15 +483,85 @@ class MainActivity : AppCompatActivity() {
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val name = input.text?.toString()?.trim().orEmpty()
-                if (name.isNotEmpty()) {
+                if (name.isNotEmpty()) onName(name)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** Long-press a category chip to rename or delete it. */
+    private fun showManageCategoryDialog(name: String) {
+        val options = arrayOf(
+            getString(R.string.category_rename),
+            getString(R.string.category_delete),
+        )
+        MaterialAlertDialogBuilder(this)
+            .setTitle(name)
+            .setItems(options) { _, which ->
+                if (which == 0) showRenameCategoryDialog(name) else confirmDeleteCategory(name)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showRenameCategoryDialog(name: String) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_input, null)
+        view.findViewById<TextInputEditText>(R.id.input)?.setText(name)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.category_rename)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newName = input.text?.toString()?.trim().orEmpty()
+                if (newName.isNotEmpty() && newName != name) {
                     lifecycleScope.launch {
-                        runCatching { ServiceLocator.repository(this@MainActivity).createCategory(name, "") }
+                        // Renaming = create the new category, move the torrents,
+                        // then drop the old one (the WebUI does the same dance
+                        // because the API has no direct rename).
+                        runCatching {
+                            val repo = ServiceLocator.repository(this@MainActivity)
+                            val hashes = viewModel.state.value.torrents
+                                .filter { it.category == name }
+                                .map { it.hash }
+                            repo.createCategory(newName, "")
+                            if (hashes.isNotEmpty()) repo.setCategory(hashes, newName)
+                            repo.removeCategory(name)
+                        }
                         viewModel.refresh()
                     }
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun confirmDeleteCategory(name: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.category_delete)
+            .setMessage(getString(R.string.category_delete_confirm, name))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                lifecycleScope.launch {
+                    runCatching {
+                        ServiceLocator.repository(this@MainActivity).removeCategory(name)
+                    }
+                    if (viewModel.category == name) {
+                        drawerBinding.drawerTagsChipGroup.clearCheck()
+                        viewModel.setCategory(null)
+                    }
+                    viewModel.refresh()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAddCategoryDialog() {
+        promptCategoryName { name ->
+            lifecycleScope.launch {
+                runCatching { ServiceLocator.repository(this@MainActivity).createCategory(name, "") }
+                viewModel.refresh()
+            }
+        }
     }
 
     private fun updateDrawerCategories(names: List<String>) {
@@ -444,6 +576,10 @@ class MainActivity : AppCompatActivity() {
                 .inflate(R.layout.item_tag_chip, group, false) as Chip
             chip.text = name
             chip.tag = name
+            chip.setOnLongClickListener {
+                showManageCategoryDialog(name)
+                true
+            }
             group.addView(chip)
         }
     }

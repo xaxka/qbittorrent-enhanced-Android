@@ -40,7 +40,8 @@ data class TorrentInfo(
     @SerializedName("private") val isPrivate: Boolean = false,
 ) {
     val isPaused: Boolean
-        get() = state.equals("pausedDL", ignoreCase = true) || state.equals("pausedUP", ignoreCase = true)
+        get() = state.equals("pausedDL", ignoreCase = true) || state.equals("pausedUP", ignoreCase = true) ||
+                state.equals("stoppedDL", ignoreCase = true) || state.equals("stoppedUP", ignoreCase = true)
 
     val isActive: Boolean
         get() = dlSpeed > 0 || upSpeed > 0 ||
@@ -48,7 +49,8 @@ data class TorrentInfo(
                 state.equals("uploading", ignoreCase = true) ||
                 state.equals("metaDL", ignoreCase = true) ||
                 state.equals("forcedDL", ignoreCase = true) ||
-                state.equals("forcedUP", ignoreCase = true)
+                state.equals("forcedUP", ignoreCase = true) ||
+                state.equals("moving", ignoreCase = true)
 }
 
 /**
@@ -186,6 +188,7 @@ data class TransferInfo(
     @SerializedName("up_info_data") val upInfoData: Long = 0L,
     @SerializedName("up_info_speed") val upInfoSpeed: Long = 0L,
     @SerializedName("up_rate_limit") val upRateLimit: Long = 0L,
+    @SerializedName("use_alt_speed_limits") val useAltSpeedLimits: Boolean = false,
 )
 
 data class QBCategory(

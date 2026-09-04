@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.qbt.NoxConfig
+import io.github.xixka.qbittorrent.util.ThemeUtils
 
 /**
  * Application preferences: server connection profile + local engine settings.
@@ -111,6 +112,19 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_UPDATE_CHECK_LAST, 0L)
         set(value) = sp.edit().putLong(KEY_UPDATE_CHECK_LAST, value).apply()
 
+    /**
+     * Material You dynamic colors, ON by default on devices that support
+     * them (Android 12+). Turning it off falls back to the static palette.
+     */
+    var dynamicColors: Boolean
+        get() = sp.getBoolean(KEY_DYNAMIC_COLORS, true)
+        set(value) = sp.edit().putBoolean(KEY_DYNAMIC_COLORS, value).apply()
+
+    /** Day/night mode: system (default), light or dark. */
+    var themeMode: String
+        get() = sp.getString(KEY_THEME_MODE, ThemeUtils.MODE_SYSTEM) ?: ThemeUtils.MODE_SYSTEM
+        set(value) = sp.edit().putString(KEY_THEME_MODE, value).apply()
+
     fun serverConfig(): ServerConfig =
         if (usingLocalEngine) {
             // Derived endpoint: always points at the bundled engine, so the
@@ -167,6 +181,8 @@ class Prefs(context: Context) {
         const val KEY_ENGINE_USERNAME = "engine_username"
         const val KEY_ENGINE_PASSWORD = "engine_password"
         const val KEY_UPDATE_CHECK_LAST = "update_check_last"
+        const val KEY_DYNAMIC_COLORS = "dynamic_colors"
+        const val KEY_THEME_MODE = "theme_mode"
     }
 }
 

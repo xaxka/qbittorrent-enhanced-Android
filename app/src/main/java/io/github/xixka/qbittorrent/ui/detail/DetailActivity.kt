@@ -17,6 +17,8 @@ import com.google.android.material.tabs.TabLayoutMediator
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ActivityDetailBinding
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
+import io.github.xixka.qbittorrent.util.ThemeUtils
+import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
 
@@ -36,6 +38,8 @@ class DetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Material You dynamic colors (default on, Android 12+)
+        ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // keep list pages clear of the navigation bar / display cutouts
