@@ -92,6 +92,17 @@ class BitTorrentPrefsFragment : QBPrefsTabFragment() {
         binding.bannedIpsInput.setText(str(prefs, "banned_IPs"))
         binding.shadowBanSwitch.isChecked = bool(prefs, "shadow_ban_enabled", false)
         binding.shadowBannedIpsInput.setText(str(prefs, "shadow_banned_IPs"))
+
+        // announce ip/port, extra trackers from URL, custom DHT bootstrap nodes,
+        // SSL torrent socket
+        binding.announceIpInput.setText(str(prefs, "announce_ip"))
+        binding.announcePortInput.setText(int(prefs, "announce_port", 0).toString())
+        binding.addTrackersFromUrlSwitch.isChecked =
+            bool(prefs, "add_trackers_from_url_enabled", false)
+        binding.addTrackersUrlInput.setText(str(prefs, "add_trackers_url"))
+        binding.dhtBootstrapNodesInput.setText(str(prefs, "dht_bootstrap_nodes"))
+        binding.btSslEnabledSwitch.isChecked = bool(prefs, "ssl_enabled", false)
+        binding.btSslPortInput.setText(int(prefs, "ssl_listen_port", 0).toString())
     }
 
     override fun collectValues(out: JsonObject) {
@@ -137,6 +148,16 @@ class BitTorrentPrefsFragment : QBPrefsTabFragment() {
         out.put("banned_IPs", binding.bannedIpsInput.text?.toString()?.trim().orEmpty())
         out.put("shadow_ban_enabled", binding.shadowBanSwitch.isChecked)
         out.put("shadow_banned_IPs", binding.shadowBannedIpsInput.text?.toString()?.trim().orEmpty())
+
+        out.put("announce_ip", binding.announceIpInput.text?.toString()?.trim().orEmpty())
+        binding.announcePortInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..65535 }?.let { out.put("announce_port", it) }
+        out.put("add_trackers_from_url_enabled", binding.addTrackersFromUrlSwitch.isChecked)
+        out.put("add_trackers_url", binding.addTrackersUrlInput.text?.toString()?.trim().orEmpty())
+        out.put("dht_bootstrap_nodes", binding.dhtBootstrapNodesInput.text?.toString()?.trim().orEmpty())
+        out.put("ssl_enabled", binding.btSslEnabledSwitch.isChecked)
+        binding.btSslPortInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..65535 }?.let { out.put("ssl_listen_port", it) }
     }
 
     override fun onDestroyView() {

@@ -24,17 +24,19 @@ data class DetailUiState(
     val loading: Boolean = true,
     val error: String? = null,
     val categories: List<QBCategory> = emptyList(),
+    val tags: List<String> = emptyList(),
     val info: TorrentInfo? = null,
     val properties: TorrentProperties? = null,
     val files: List<TorrentFile> = emptyList(),
     val trackers: List<Tracker> = emptyList(),
     val peers: List<Peer> = emptyList(),
+    val pieceStates: List<Int> = emptyList(),
     val activeTab: Int = 0,
 )
 
 /**
  * Detail screen state: polls the torrent overview plus the data of the
- * currently visible tab (files / trackers / peers).
+ * currently visible tab (files / trackers / peers / pieces).
  */
 class DetailViewModel(app: Application, private val initialHash: String) :
     AndroidViewModel(app) {
@@ -61,18 +63,22 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         pollJob = viewModelScope.launch {
             while (isActive) {
                 try {
-                    val props = repository.properties(hash)
+                    val props = runCatching { repository.properties(hash) }
+                        .getOrNull() ?: _state.value.properties
                     val info = runCatching {
                         repository.torrents().firstOrNull { it.hash == hash }
                     }.getOrNull() ?: _state.value.info
                     val cats = runCatching { repository.categories().values.toList() }
                         .getOrDefault(_state.value.categories)
+                    val tagList = runCatching { repository.tags() }
+                        .getOrDefault(_state.value.tags)
                     val tab = _state.value.activeTab
-                    val (files, trackers, peers) = when (tab) {
-                        FILES_TAB -> Triple(repository.files(hash), _state.value.trackers, emptyList())
-                        TRACKERS_TAB -> Triple(_state.value.files, repository.trackers(hash), emptyList())
-                        PEERS_TAB -> Triple(_state.value.files, _state.value.trackers, repository.peers(hash))
-                        else -> Triple(emptyList(), emptyList(), emptyList())
+                    val (files, trackers, peers, pieces) = when (tab) {
+                        FILES_TAB -> Quad(repository.files(hash), _state.value.trackers, emptyList(), _state.value.pieceStates)
+                        TRACKERS_TAB -> Quad(_state.value.files, repository.trackers(hash), emptyList(), _state.value.pieceStates)
+                        PEERS_TAB -> Quad(_state.value.files, _state.value.trackers, repository.peers(hash), _state.value.pieceStates)
+                        PIECES_TAB -> Quad(_state.value.files, _state.value.trackers, _state.value.peers, repository.pieceStates(hash))
+                        else -> Quad(emptyList(), emptyList(), emptyList(), _state.value.pieceStates)
                     }
                     _state.update {
                         it.copy(
@@ -80,10 +86,12 @@ class DetailViewModel(app: Application, private val initialHash: String) :
                             error = null,
                             info = info,
                             categories = cats,
+                            tags = tagList,
                             properties = props,
                             files = files,
                             trackers = trackers,
                             peers = peers,
+                            pieceStates = pieces,
                         )
                     }
                 } catch (e: Exception) {
@@ -104,6 +112,58 @@ class DetailViewModel(app: Application, private val initialHash: String) :
     fun toggleSuperSeeding() = launchAction { repository.toggleSuperSeeding(listOf(hash)) }
     fun toggleFirstLast() = launchAction { repository.toggleFirstLastPiecePriority(listOf(hash)) }
     fun setCategory(name: String) = launchAction { repository.setCategory(listOf(hash), name) }
+
+    /** Rename the torrent (qBittorrent rename dialog). */
+    fun rename(name: String) = launchAction {
+        repository.renameTorrent(hash, name)
+        _state.update { s ->
+            val info = s.info
+            if (info != null) s.copy(info = info.copy(name = name)) else s
+        }
+    }
+
+    /** Move the torrent to another save location. */
+    fun setLocation(location: String) = launchAction {
+        repository.setLocation(listOf(hash), location)
+        _state.update { s ->
+            val props = s.properties
+            if (props != null) s.copy(properties = props.copy(savePath = location)) else s
+        }
+    }
+
+    /** Per-torrent download limit, bytes/s (0 = unlimited). */
+    fun setDownloadLimit(bytesPerSec: Long) = launchAction {
+        repository.setTorrentDownloadLimit(listOf(hash), bytesPerSec)
+    }
+
+    /** Per-torrent upload limit, bytes/s (0 = unlimited). */
+    fun setUploadLimit(bytesPerSec: Long) = launchAction {
+        repository.setTorrentUploadLimit(listOf(hash), bytesPerSec)
+    }
+
+    /** Share limits: ratio, seeding time (minutes), inactive seeding time (minutes). */
+    fun setShareLimits(ratioLimit: Double, seedingTimeLimit: Int, inactiveSeedingTimeLimit: Int) =
+        launchAction {
+            repository.setShareLimits(listOf(hash), ratioLimit, seedingTimeLimit, inactiveSeedingTimeLimit)
+        }
+
+    /** Direct super-seeding switch (shows the real state, unlike the toggle). */
+    fun setSuperSeeding(value: Boolean) = launchAction {
+        repository.setSuperSeeding(listOf(hash), value)
+    }
+
+    fun addTags(tags: List<String>) = launchAction { repository.addTags(listOf(hash), tags) }
+
+    fun removeTag(tag: String) = launchAction { repository.removeTags(listOf(hash), listOf(tag)) }
+
+    fun addTracker(url: String) = launchAction { repository.addTrackers(hash, url) }
+    fun removeTracker(url: String) = launchAction { repository.removeTrackers(hash, url) }
+
+    /** Replace a tracker URL (origUrl -> newUrl). */
+    fun editTracker(origUrl: String, newUrl: String) = launchAction {
+        repository.editTracker(hash, origUrl, newUrl)
+    }
+
     suspend fun categories(): Map<String, io.github.xixka.qbittorrent.model.QBCategory> =
         runCatching { repository.categories() }.getOrDefault(emptyMap())
 
@@ -121,17 +181,23 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         }
     }
 
-    fun addTracker(url: String) = launchAction { repository.addTrackers(hash, url) }
-    fun removeTracker(url: String) = launchAction { repository.removeTrackers(hash, url) }
-
     private fun launchAction(block: suspend () -> Unit) {
         viewModelScope.launch { runCatching { block() } }
     }
+
+    /** Local quad tuple to keep the tab polling readable. */
+    private data class Quad(
+        val files: List<TorrentFile>,
+        val trackers: List<Tracker>,
+        val peers: List<Peer>,
+        val pieces: List<Int>,
+    )
 
     companion object {
         const val FILES_TAB = 1
         const val TRACKERS_TAB = 2
         const val PEERS_TAB = 3
+        const val PIECES_TAB = 4
 
         fun factory(app: Application, hash: String): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

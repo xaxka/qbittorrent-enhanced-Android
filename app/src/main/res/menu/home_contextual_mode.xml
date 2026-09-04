@@ -16,6 +16,12 @@
         android:contentDescription="@string/set_category" />
 
     <item
+        android:id="@+id/set_tags_torrent_menu"
+        android:icon="@drawable/ic_label_24px"
+        android:title="@string/set_tags"
+        android:contentDescription="@string/set_tags" />
+
+    <item
         android:id="@+id/force_recheck_torrent_menu"
         android:icon="@drawable/ic_repeat_24px"
         android:title="@string/force_recheck_torrent"

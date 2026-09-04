@@ -1,86 +1,68 @@
 # qbittorrentAndroid
 
-Native Android client for [qBittorrent](https://github.com/qbittorrent/qBittorrent) in
-two editions sharing one code base:
+[English](README_EN.md)
 
-| Edition | Package | Description |
-|---------|---------|-------------|
-| **qBittorrent** (`standard` flavor) | `io.github.xixka.qbittorrent` | Pure remote-control client. Talks the **unmodified qBittorrent Web API v2** (default port **8080**, configurable host/port/username/password, optional HTTPS with trust-all for self-signed certs). |
-| **qBittorrent Enhanced** (`enhanced` flavor) | `io.github.xixka.qbittorrent.enhanced` | Same client, plus a **bundled local `qbittorrent-enhanced-nox` engine** compiled from source by CI (bionic dynamic-linked build; started as a child process and controlled through the very same Web API). |
+qBittorrent Android 原生客户端（同一代码库、两个发行版）：
 
-The UI is a **native Material 3 interface in the style of
-[LibreTorrent](https://github.com/proninyaroslav/libretorrent)** — no WebView, no
-WebUI embedding.
+| 发行版 | 包名 | 说明 |
+|--------|------|------|
+| **qBittorrent**（`standard`） | `io.github.xixka.qbittorrent` | 纯远程控制客户端，通过**原版 qBittorrent Web API v2** 连接任意 qBittorrent 服务器（默认端口 **8080**，可自定义地址/端口/用户名/密码，支持自签名证书）。 |
+| **qBittorrent Enhanced**（`enhanced`） | `io.github.xixka.qbittorrent.enhanced` | 在标准版基础上**内置本地 `qbittorrent-enhanced-nox` 引擎**（由 CI 从源码交叉编译，作为子进程启动，同样通过 Web API 控制）——安装即用，无需服务器。 |
 
-## Features
+界面为 **原生 Material 3（Material You 动态配色默认开启）**，交互风格参照
+[LibreTorrent](https://github.com/proninyaroslav/libretorrent)——无 WebView、不嵌入
+WebUI。所有功能实现参照 [qBitController](https://github.com/Bartuzen/qBitController)
+与 LibreTorrent。
 
-* Login against any qBittorrent 4.x/5.x WebUI (SID cookie flow, auto re-login)
-* Torrent list with LibreTorrent-style cards: progress, state, speeds, seeds/peers, ratio
-* Status filter tabs, sorting, categories
-* Add torrents from URL / magnet link / local `.torrent` file (intent-sharing supported)
-* Pause / resume / force start / recheck / reannounce
-* Delete with optional file removal
-* File priorities (skip / normal / high / maximum), sequential download, super seeding
-* Torrent details: overview properties, content files, trackers (add/remove), peers
-* Global speed limits, alternative speed limits toggle
-* **Full qBittorrent preferences editor** (Settings → *Open qBittorrent settings*):
-  reads the live configuration of the connected qBittorrent instance and writes
-  edits back through the exact WebUI Options API — speed limits & scheduler,
-  queueing, seeding limits, connection/proxy settings, WebUI binding &
-  credentials, key libtorrent tunables — with 13 languages
-* Multi-select bulk actions with a contextual action bar
-* Enhanced edition: local engine management (start/stop, run at boot, LAN access mode)
-* Enhanced edition: the bundled engine **starts together with the app** and the client
-  auto-connects to it (127.0.0.1 + seeded WebUI credentials) — zero manual setup,
-  and no engine-URL questions at all unless the user opts into a remote server
-* Edge-to-edge Material 3 layout, LibreTorrent-parity (inset-aware list, drawer, dividers)
-* **In-app update check** against the GitHub Releases published by CI
-  (menu → *Check for updates*, plus a non-intrusive daily automatic check)
-* **13 languages**: English, 简体中文, 繁體中文, Русский, Deutsch, Français, Español,
-  Português (Brasil), 日本語, 한국어, Türkçe, Italiano, Tiếng Việt — with per-app
-  language support (Android 13+)
-* Official qBittorrent launcher icon (adaptive + themed monochrome)
+## 功能
 
-## Remote control API
+* 登录任意 qBittorrent 4.x/5.x WebUI（SID Cookie 流程，自动重登录）
+* 种子列表：LibreTorrent 风格卡片（进度、状态、速度、种子/节点、分享率）
+* 筛选与排序：13 种状态筛选（全部/下载中/做种/已完成/已暂停/活动/停滞/校验/移动…）、
+  11 种排序（名称/大小/进度/剩余时间/分享率/下载速度/上传速度/已上传/添加时间/完成时间/节点数）、
+  按添加日期过滤、**分类与标签双过滤维度**
+* 添加种子：链接 / 磁力 / 本地 `.torrent` 文件（支持系统分享），qBitController 级
+  参数设置（重命名、分类、保存路径、内容布局、停止条件、限速/分享限制、添加后暂停等）
+* 批量操作：暂停/恢复/强制开始/重新校验/强制汇报/删除（可同时删除文件）、设置分类与标签
+* **种子详情页**：总览（重命名、修改保存位置）、内容文件（优先级）、Tracker
+  （增/删/改）、节点、**块（Pieces）状态热图**；单种子限速与分享限制、超级做种
+* **统计面板**：用户/缓存/性能统计（qBitController 同款数据，LibreTorrent 风格呈现）
+* **RSS 订阅**：订阅树管理（增/删/改/移动）、文章阅读、标记已读、一键下载，
+  **自动下载规则**（包含/排除关键词、正则、智能剧集过滤、分类、保存路径、生效源）
+* **搜索引擎**：调用服务器搜索插件，按分类检索，结果一键下载；插件管理
+  （安装/卸载/更新/启停）
+* **日志查看器**：引擎运行日志（log/main），按级别过滤
+* **多服务器管理**：qBitController 式服务器配置档案，一键切换、编辑、删除；
+  Enhanced 版可随时在内置引擎与远程服务器之间切换
+* **完整 qBittorrent 设置编辑器**（设置 → *qBittorrent 设置*）：
+  读取在线引擎的全部配置并写回——**覆盖 qBittorrent Enhanced WebUI Options
+  全部 217 个配置项**（下载/速度/BitTorrent/连接/WebUI/RSS/高级七个分页），
+  修改实时生效无需重启；CI 设有专门的 `prefs-coverage` 校验步骤保证配置覆盖
+  不回退
+* 全局速度限制与备用速度限制（抽屉内传输统计下方即可调整）
+* Enhanced 专属：引擎随应用启动、**开机自启**、手动停止、**看门狗保活**
+  （引擎意外退出时自动重启）、局域网 WebUI 访问
+* 沉浸式全面屏布局（边到边、手势导航栏内边距自适应）
+* **应用内更新检查**：对照 CI 发布的 GitHub Releases（手动检查 + 每日静默检查）
+* **13 种语言**：简体中文、繁體中文、English、Русский、Deutsch、Français、Español、
+  Português (Brasil)、日本語、한국어、Türkçe、Italiano、Tiếng Việt（支持 Android 13+
+  按应用设置语言）
+* 官方 qBittorrent 启动图标（自适应 + 单色主题图标）
 
-The client implements the upstream Web API v2 unchanged, e.g.:
+## 下载
 
-* `POST /api/v2/auth/login`
-* `GET  /api/v2/torrents/info`, `properties`, `files`, `trackers`, `peers`
-* `POST /api/v2/torrents/add|pause|resume|delete|recheck|reannounce|filePrio|…`
-* `GET  /api/v2/transfer/info`, `POST /api/v2/transfer/setDownloadLimit|…`
-* `GET  /api/v2/app/preferences`, `POST /api/v2/app/setPreferences` (live options editor)
+APK 由 GitHub Actions 自动编译、签名并发布到
+[Releases](https://github.com/xixka/qbittorrentAndroid/releases)：
 
-Server address, port (default 8080), base path, username and password are configured
-in **Settings**; nothing is hard-coded and no credentials are stored in the repository.
+* Enhanced 版按 **ABI 拆分**：`arm64-v8a`、`armeabi-v7a`、`x86_64`
+  （各自带 versionCode 偏移，按设备架构选择；通用包仅用于标准版）
+* 所有发布的 APK 均**已签名**（仓库内置公开 CI 密钥 `app/ci-signing.keystore`，
+  仅用于侧载更新签名一致性，不是机密），可直接覆盖升级
+* 应用内"检查更新"会读取 CI 发布的版本信息并跳转到对应架构的 APK
 
-## Building
+源码编译由 CI 完成，无需本地搭建环境；工作流见
+`.github/workflows/android.yml`。
 
-CI (`.github/workflows/android.yml`) cross-compiles `qbittorrent-enhanced-nox`
-from the pinned qBittorrent-Enhanced-Edition source with the bionic pipeline of
-[OpenListAndroid](https://github.com/xaxka/OpenListAndroid) (NDK r27c, Qt 6.8
-static, OpenSSL 3.5, libtorrent 1.2, zlib-ng), packages it as
-`libqbittorrent-nox.so` + `libc++_shared.so` into jniLibs, then builds both flavors.
-A fast `compile-check` job builds the standard debug APK first so Kotlin/resource
-errors surface within minutes:
+## 许可
 
-```
-./gradlew assembleStandardRelease assembleEnhancedRelease
-```
-
-### Release artifacts
-
-* Enhanced edition is split **per ABI**: `arm64-v8a`, `armeabi-v7a`, `x86_64`
-  (each with its own `versionCode` offset; the universal APK is kept for the
-  ABI-independent standard edition only).
-* All published APKs are **signed** with the committed CI key
-  (`app/ci-signing.keystore` — a public, sideload-only key that guarantees a
-  stable signature so releases can update each other in place; it is *not* a
-  secret). There are no unsigned APKs.
-* The in-app update checker reads the version info (`Version: YY.MM.DD
-  (versionCode N)` + asset names) from the GitHub `dev` release that CI
-  republishes on every build.
-
-## License
-
-AGPL-3.0 (see `LICENSE`). Third-party attributions in `NOTICE.md`.
+AGPL-3.0（见 `LICENSE`）。第三方归属见 `NOTICE.md`。

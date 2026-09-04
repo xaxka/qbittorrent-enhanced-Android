@@ -15,6 +15,29 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/rename_torrent_menu"
+        android:icon="@drawable/ic_edit_24px"
+        android:title="@string/rename_torrent"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/change_location_menu"
+        android:icon="@drawable/ic_drive_file_move_24px"
+        android:title="@string/change_save_location"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/torrent_limits_menu"
+        android:icon="@drawable/ic_speed_24px"
+        android:title="@string/torrent_limits_title"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/super_seeding_menu"
+        android:title="@string/super_seeding"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/force_recheck_torrent_menu"
         android:title="@string/force_recheck_torrent"
         app:showAsAction="never" />
@@ -28,6 +51,7 @@
         android:id="@+id/share_magnet_menu"
         android:title="@string/share_magnet"
         app:showAsAction="never" />
+
     <item
         android:id="@+id/add_trackers_menu"
         android:title="@string/add_trackers"

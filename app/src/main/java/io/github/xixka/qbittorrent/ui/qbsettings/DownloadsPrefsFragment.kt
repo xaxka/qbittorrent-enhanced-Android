@@ -23,6 +23,7 @@ class DownloadsPrefsFragment : QBPrefsTabFragment() {
     private lateinit var contentLayout: DropdownField
     private lateinit var stopCondition: DropdownField
     private lateinit var autoDelete: DropdownField
+    private lateinit var contentRemoveOption: DropdownField
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,6 +61,14 @@ class DownloadsPrefsFragment : QBPrefsTabFragment() {
                 getString(R.string.qbt_auto_delete_never),
                 getString(R.string.qbt_auto_delete_added),
                 getString(R.string.qbt_auto_delete_downloaded),
+            ),
+        )
+        contentRemoveOption = DropdownField(
+            requireContext(),
+            binding.contentRemoveOptionDropdown,
+            listOf(
+                getString(R.string.qbt_remove_option_trash),
+                getString(R.string.qbt_remove_option_delete),
             ),
         )
     }
@@ -102,6 +111,21 @@ class DownloadsPrefsFragment : QBPrefsTabFragment() {
             bool(prefs, "autorun_on_torrent_added_enabled", false)
         binding.autorunOnAddedProgramInput.setText(str(prefs, "autorun_on_torrent_added_program"))
         binding.scanDirsInput.setText(scanDirsToLines(prefs))
+
+        // content removal / safety / mail notifications
+        contentRemoveOption.select(
+            if (str(prefs, "torrent_content_remove_option", "MoveToTrash") == "Delete") 1 else 0
+        )
+        binding.markOfTheWebSwitch.isChecked = bool(prefs, "mark_of_the_web", false)
+        binding.recheckCompletedSwitch.isChecked = bool(prefs, "recheck_completed_torrents", false)
+        binding.mailEnabledSwitch.isChecked = bool(prefs, "mail_notification_enabled", false)
+        binding.mailSenderInput.setText(str(prefs, "mail_notification_sender"))
+        binding.mailToInput.setText(str(prefs, "mail_notification_email"))
+        binding.mailSmtpInput.setText(str(prefs, "mail_notification_smtp"))
+        binding.mailSslSwitch.isChecked = bool(prefs, "mail_notification_ssl_enabled", false)
+        binding.mailAuthSwitch.isChecked = bool(prefs, "mail_notification_auth_enabled", false)
+        binding.mailUsernameInput.setText(str(prefs, "mail_notification_username"))
+        binding.mailPasswordInput.setText(str(prefs, "mail_notification_password"))
     }
 
     override fun collectValues(out: JsonObject) {
@@ -143,6 +167,36 @@ class DownloadsPrefsFragment : QBPrefsTabFragment() {
             binding.autorunOnAddedProgramInput.text?.toString()?.trim().orEmpty(),
         )
         out.add("scan_dirs", scanDirsToJson(binding.scanDirsInput.text?.toString().orEmpty()))
+
+        out.put(
+            "torrent_content_remove_option",
+            if (contentRemoveOption.selectedOr(0) == 1) "Delete" else "MoveToTrash",
+        )
+        out.put("mark_of_the_web", binding.markOfTheWebSwitch.isChecked)
+        out.put("recheck_completed_torrents", binding.recheckCompletedSwitch.isChecked)
+        out.put("mail_notification_enabled", binding.mailEnabledSwitch.isChecked)
+        out.put(
+            "mail_notification_sender",
+            binding.mailSenderInput.text?.toString()?.trim().orEmpty(),
+        )
+        out.put(
+            "mail_notification_email",
+            binding.mailToInput.text?.toString()?.trim().orEmpty(),
+        )
+        out.put(
+            "mail_notification_smtp",
+            binding.mailSmtpInput.text?.toString()?.trim().orEmpty(),
+        )
+        out.put("mail_notification_ssl_enabled", binding.mailSslSwitch.isChecked)
+        out.put("mail_notification_auth_enabled", binding.mailAuthSwitch.isChecked)
+        out.put(
+            "mail_notification_username",
+            binding.mailUsernameInput.text?.toString()?.trim().orEmpty(),
+        )
+        out.put(
+            "mail_notification_password",
+            binding.mailPasswordInput.text?.toString()?.trim().orEmpty(),
+        )
     }
 
     override fun onDestroyView() {

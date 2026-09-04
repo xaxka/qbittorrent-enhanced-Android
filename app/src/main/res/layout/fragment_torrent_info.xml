@@ -146,7 +146,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
-                            app:constraint_referenced_ids="sequential_download,download_first_last_pieces"
+                            app:constraint_referenced_ids="sequential_download,download_first_last_pieces,super_seeding"
                             app:flow_horizontalAlign="start"
                             app:flow_horizontalBias="-1"
                             app:flow_horizontalGap="16dp"
@@ -169,6 +169,13 @@
                             android:layout_height="wrap_content"
                             android:checked="false"
                             android:text="@string/download_first_last_pieces" />
+
+                        <CheckBox
+                            android:id="@+id/super_seeding"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false"
+                            android:text="@string/super_seeding" />
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
 

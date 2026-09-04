@@ -2,18 +2,33 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/share_url_menu"
+    <item
+        android:id="@+id/add_tracker_menu"
+        android:icon="@drawable/ic_add_24px"
+        android:title="@string/add_tracker_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/share_url_menu"
         android:icon="@drawable/ic_share_24px"
-        app:showAsAction="ifRoom"
-        android:title="@string/share_tracker_url" />
+        android:title="@string/share"
+        app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/delete_tracker_url"
+    <item
+        android:id="@+id/edit_tracker_url"
+        android:icon="@drawable/ic_edit_24px"
+        android:title="@string/edit_tracker_url"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/delete_tracker_url"
         android:icon="@drawable/ic_delete_24px"
-        app:showAsAction="ifRoom"
-        android:title="@string/delete" />
+        android:title="@string/delete"
+        app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/select_all_trackers_menu"
+    <item
+        android:id="@+id/select_all_trackers_menu"
         android:icon="@drawable/ic_select_all_24px"
-        app:showAsAction="ifRoom"
-        android:title="@string/select_all" />
+        android:title="@string/select_all"
+        app:showAsAction="never" />
 </menu>

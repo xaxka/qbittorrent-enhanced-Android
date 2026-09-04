@@ -23,6 +23,8 @@ class Prefs(context: Context) {
     private val sp: SharedPreferences =
         context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
 
+    private val gson = com.google.gson.Gson()
+
     var serverHost: String
         get() = sp.getString(KEY_HOST, if (BuildConfig.IS_ENHANCED) LOCAL_ENGINE_HOST else "") ?: ""
         set(value) = sp.edit().putString(KEY_HOST, value.trim()).apply()
@@ -92,6 +94,16 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_ENGINE_AUTOSTART, BuildConfig.IS_ENHANCED)
         set(value) = sp.edit().putBoolean(KEY_ENGINE_AUTOSTART, value).apply()
 
+    /**
+     * Engine watchdog: when the app runs against the bundled engine and no
+     * remote server is configured, periodically re-probe the engine and
+     * restart it if the process died — the service then keeps the download
+     * session alive even without the UI.
+     */
+    var engineWatchdog: Boolean
+        get() = sp.getBoolean(KEY_ENGINE_WATCHDOG, BuildConfig.IS_ENHANCED)
+        set(value) = sp.edit().putBoolean(KEY_ENGINE_WATCHDOG, value).apply()
+
     // Credentials of the bundled engine's WebUI. Kept separate from the
     // remote-server credentials so switching between engine and remote
     // never overwrites either profile.
@@ -125,6 +137,85 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_THEME_MODE, ThemeUtils.MODE_SYSTEM) ?: ThemeUtils.MODE_SYSTEM
         set(value) = sp.edit().putString(KEY_THEME_MODE, value).apply()
 
+    // ---- remote server profiles (qBitController-style multi-server) ----
+
+    /**
+     * All configured remote servers, qBitController style. Each entry is a
+     * full connection profile; [activeServerId] selects the one in use.
+     */
+    var serversJson: String
+        get() = sp.getString(KEY_SERVERS_JSON, "") ?: ""
+        set(value) = sp.edit().putString(KEY_SERVERS_JSON, value).apply()
+
+    var activeServerId: Long
+        get() = sp.getLong(KEY_ACTIVE_SERVER, 0L)
+        set(value) = sp.edit().putLong(KEY_ACTIVE_SERVER, value).apply()
+
+    /** "Bundled engine" is modeled as a pseudo profile with this id. */
+    val localEngineProfileId: Long get() = -1L
+
+    fun serverProfiles(): List<ServerProfile> {
+        val migrated = migrateLegacyServer()
+        val json = serversJson
+        val list = if (json.isBlank()) emptyList() else runCatching {
+            gson.fromJson(json, Array<ServerProfile>::class.java).toList()
+        }.getOrDefault(emptyList())
+        return if (migrated && list.isNotEmpty()) list else list
+    }
+
+    fun saveServerProfile(profile: ServerProfile): List<ServerProfile> {
+        val list = serverProfiles().toMutableList()
+        val idx = list.indexOfFirst { it.id == profile.id }
+        if (idx >= 0) list[idx] = profile else list.add(profile)
+        val updated = list.sortedBy { it.name.lowercase() }
+        serversJson = gson.toJson(updated.toTypedArray())
+        return updated
+    }
+
+    fun deleteServerProfile(id: Long): List<ServerProfile> {
+        val updated = serverProfiles().filterNot { it.id == id }
+        serversJson = gson.toJson(updated.toTypedArray())
+        if (activeServerId == id) {
+            activeServerId = updated.firstOrNull()?.id ?: 0L
+        }
+        return updated
+    }
+
+    fun activeServer(): ServerProfile? {
+        val list = serverProfiles()
+        return list.firstOrNull { it.id == activeServerId } ?: list.firstOrNull()
+    }
+
+    fun switchServer(id: Long) {
+        activeServerId = id
+        ServiceLocator.resetClient()
+    }
+
+    /**
+     * One-time migration of the legacy single-server fields into the profile
+     * list (returns true when the legacy values were just consumed).
+     */
+    private fun migrateLegacyServer(): Boolean {
+        if (sp.getBoolean(KEY_SERVERS_MIGRATED, false)) return false
+        sp.edit().putBoolean(KEY_SERVERS_MIGRATED, true).apply()
+        val host = sp.getString(KEY_HOST, "") ?: ""
+        if (host.isBlank() || BuildConfig.IS_ENHANCED) return false
+        val profile = ServerProfile(
+            id = 1L,
+            name = host,
+            host = host,
+            port = sp.getInt(KEY_PORT, ServerConfig.DEFAULT_PORT),
+            https = sp.getBoolean(KEY_HTTPS, false),
+            basePath = sp.getString(KEY_BASE_PATH, "") ?: "",
+            username = sp.getString(KEY_USERNAME, "admin") ?: "admin",
+            password = sp.getString(KEY_PASSWORD, "") ?: "",
+            trustAllCerts = sp.getBoolean(KEY_TRUST_ALL, false),
+        )
+        serversJson = gson.toJson(arrayOf(profile))
+        if (activeServerId == 0L) activeServerId = 1L
+        return true
+    }
+
     fun serverConfig(): ServerConfig =
         if (usingLocalEngine) {
             // Derived endpoint: always points at the bundled engine, so the
@@ -139,15 +230,20 @@ class Prefs(context: Context) {
                 trustAllCerts = false,
             )
         } else {
-            ServerConfig(
-                host = serverHost,
-                port = serverPort,
-                https = serverHttps,
-                basePath = serverBasePath,
-                username = username,
-                password = password,
-                trustAllCerts = serverTrustAll,
-            )
+            val p = activeServer()
+            if (p != null) {
+                ServerConfig(
+                    host = p.host,
+                    port = p.port,
+                    https = p.https,
+                    basePath = p.basePath,
+                    username = p.username,
+                    password = p.password,
+                    trustAllCerts = p.trustAllCerts,
+                )
+            } else {
+                ServerConfig(host = "")
+            }
         }
 
     fun registerChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
@@ -183,7 +279,36 @@ class Prefs(context: Context) {
         const val KEY_UPDATE_CHECK_LAST = "update_check_last"
         const val KEY_DYNAMIC_COLORS = "dynamic_colors"
         const val KEY_THEME_MODE = "theme_mode"
+        const val KEY_SERVERS_JSON = "servers_json"
+        const val KEY_ACTIVE_SERVER = "active_server_id"
+        const val KEY_SERVERS_MIGRATED = "servers_migrated"
+        const val KEY_ENGINE_WATCHDOG = "engine_watchdog"
     }
+}
+
+/** One saved remote-server connection profile (qBitController parity). */
+data class ServerProfile(
+    val id: Long,
+    val name: String,
+    val host: String,
+    val port: Int = ServerConfig.DEFAULT_PORT,
+    val https: Boolean = false,
+    val basePath: String = "",
+    val username: String = "admin",
+    val password: String = "",
+    val trustAllCerts: Boolean = false,
+) {
+    fun toServerConfig(): ServerConfig = ServerConfig(
+        host = host,
+        port = port,
+        https = https,
+        basePath = basePath,
+        username = username,
+        password = password,
+        trustAllCerts = trustAllCerts,
+    )
+
+    fun displayName(): String = name.ifBlank { host }
 }
 
 /**
@@ -220,5 +345,14 @@ object ServiceLocator {
     @Synchronized
     fun resetClient() {
         client?.reset()
+    }
+
+    /**
+     * One-off repository for an ad-hoc [config] — used by the server editor's
+     * "test connection" button before the profile is saved.
+     */
+    fun testRepository(@Suppress("UNUSED_PARAMETER") context: Context, config: ServerConfig): TorrentRepository {
+        val testClient = QBApiClient { config }
+        return TorrentRepository(testClient)
     }
 }

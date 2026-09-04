@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.xixka.qbittorrent.api.QBAuthException
 import io.github.xixka.qbittorrent.data.ServiceLocator
+import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TransferInfo
@@ -35,6 +36,10 @@ data class ListUiState(
     val allCount: Int = 0,
     val transfer: TransferInfo? = null,
     val categories: List<String> = emptyList(),
+    val tags: List<String> = emptyList(),
+    /** local-engine states (Enhanced): engine running / failed / starting. */
+    val engineRunning: Boolean = false,
+    val engineFailed: Boolean = false,
 )
 
 /**
@@ -71,11 +76,17 @@ enum class StatusFilter(val states: Set<String>? = null, val speedBased: Int = 0
 }
 
 enum class DateAddedFilter { NONE, TODAY, YESTERDAY, WEEK, MONTH, YEAR }
-enum class SortField { DATE_ADDED, NAME, SIZE, PROGRESS, ETA, PEERS }
+enum class SortField {
+    DATE_ADDED, NAME, SIZE, PROGRESS, ETA, PEERS, RATIO,
+    DL_SPEED, UP_SPEED, UPLOADED, COMPLETION_DATE,
+}
 
 /** State sets shared by [StatusFilter.RESUMED]. */
 private val STOPPED_STATES =
     setOf("stoppeddl", "stoppedup", "pauseddl", "pausedup")
+
+private const val RUNNING = "RUNNING"
+private const val FAILED = "FAILED"
 
 class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -91,6 +102,8 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     var dateFilter = DateAddedFilter.NONE
         private set
     var category: String? = null
+        private set
+    var tag: String? = null
         private set
     var sortField = SortField.DATE_ADDED
         private set
@@ -144,6 +157,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             val categories = runCatching {
                 repository.categories().keys.filter { it.isNotBlank() }.sorted()
             }.getOrDefault(emptyList())
+            val tagList = runCatching { repository.tags() }.getOrDefault(emptyList())
             _state.update {
                 it.copy(
                     loading = false,
@@ -155,20 +169,45 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     allCount = torrents.size,
                     transfer = transfer,
                     categories = categories,
+                    tags = tagList,
                 )
             }
         } catch (e: QBAuthException) {
-            _state.update { it.copy(loading = false, connected = false, authError = true) }
+            // local engine: while it is coming up, don't flag an auth error
+            val engine = engineState()
+            _state.update {
+                it.copy(
+                    loading = false,
+                    connected = false,
+                    authError = !prefs.usingLocalEngine || engine == FAILED,
+                    engineRunning = engine == RUNNING,
+                    engineFailed = engine == FAILED,
+                )
+            }
         } catch (e: Exception) {
+            val engine = engineState()
             val msg = when (e) {
                 is UnknownHostException -> "Unknown host"
                 is ConnectException -> "Connection refused"
                 is SocketTimeoutException -> "Timeout"
                 else -> e.message ?: "error"
             }
-            _state.update { it.copy(loading = false, connected = false, error = msg) }
+            // For the local engine a connection refusal during startup is
+            // expected: only surface it once the engine actually FAILED.
+            _state.update {
+                it.copy(
+                    loading = false,
+                    connected = false,
+                    error = if (engine == RUNNING) msg else null,
+                    engineRunning = engine == RUNNING,
+                    engineFailed = engine == FAILED,
+                )
+            }
         }
     }
+
+    private fun engineState(): String? =
+        if (prefs.usingLocalEngine) LocalEngineManager.state.name else null
 
     fun setStatusFilter(filter: StatusFilter?) {
         statusFilter = filter ?: StatusFilter.ALL
@@ -182,6 +221,11 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setCategory(category: String?) {
         this.category = category
+        refilter()
+    }
+
+    fun setTag(tag: String?) {
+        this.tag = tag
         refilter()
     }
 
@@ -261,24 +305,32 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
 
+        tag?.let { t ->
+            result = if (t.isEmpty()) {
+                result.filter { it.tags.isBlank() }
+            } else {
+                result.filter { t in it.tags.split(',').map { x -> x.trim() } }
+            }
+        }
+
         if (searchQuery.isNotBlank()) {
             result = result.filter { it.name.contains(searchQuery.trim(), ignoreCase = true) }
         }
 
-        val sorted = when (sortField) {
-            SortField.DATE_ADDED ->
-                if (sortDescending) result.sortedByDescending { it.addedOn } else result.sortedBy { it.addedOn }
-            else -> {
-                val cmp = when (sortField) {
-                    SortField.NAME -> compareBy<TorrentInfo> { it.name.lowercase() }
-                    SortField.SIZE -> compareBy { it.size }
-                    SortField.PROGRESS -> compareBy { it.progress }
-                    SortField.ETA -> compareBy { it.eta }
-                    else -> compareBy { it.numLeechsTotal + it.numSeedsTotal }
-                }
-                if (sortDescending) result.sortedWith(cmp.reversed()) else result.sortedWith(cmp)
-            }
+        val cmp: java.util.Comparator<TorrentInfo> = when (sortField) {
+            SortField.DATE_ADDED -> compareBy { it.addedOn }
+            SortField.NAME -> compareBy { it.name.lowercase() }
+            SortField.SIZE -> compareBy { it.size }
+            SortField.PROGRESS -> compareBy { it.progress }
+            SortField.ETA -> compareBy { it.eta }
+            SortField.PEERS -> compareBy { it.numLeechsTotal + it.numSeedsTotal }
+            SortField.RATIO -> compareBy { it.ratio }
+            SortField.DL_SPEED -> compareBy { it.dlSpeed }
+            SortField.UP_SPEED -> compareBy { it.upSpeed }
+            SortField.UPLOADED -> compareBy { it.uploaded }
+            SortField.COMPLETION_DATE -> compareBy { it.completionOn }
         }
+        val sorted = if (sortDescending) result.sortedWith(cmp.reversed()) else result.sortedWith(cmp)
         return sorted.toList()
     }
 

@@ -74,6 +74,27 @@ class TrackersFragment : Fragment() {
             .show()
     }
 
+    /**
+     * Replace a tracker URL (qBitController parity): the engine maps
+     * origUrl -> newUrl in one call.
+     */
+    private fun showEditTrackerDialog(origUrl: String) {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(origUrl)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.edit_tracker_url)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newUrl = input?.text?.toString()?.trim().orEmpty()
+                if (newUrl.isNotEmpty() && newUrl != origUrl) {
+                    viewModel.editTracker(origUrl, newUrl)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun toggleTracker(url: String) {
         if (!selected.add(url)) selected.remove(url)
         adapter.notifyDataSetChanged()
@@ -115,6 +136,13 @@ class TrackersFragment : Fragment() {
             R.id.delete_tracker_url -> {
                 selected.forEach { viewModel.removeTracker(it) }
                 selected.clear()
+                mode.finish()
+                true
+            }
+
+            R.id.edit_tracker_url -> {
+                val single = selected.singleOrNull()
+                if (single != null) showEditTrackerDialog(single)
                 mode.finish()
                 true
             }

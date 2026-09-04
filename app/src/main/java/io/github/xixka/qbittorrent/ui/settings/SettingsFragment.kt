@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -17,52 +17,48 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
+import io.github.xixka.qbittorrent.data.ServerProfile
 import io.github.xixka.qbittorrent.data.ServiceLocator
-import io.github.xixka.qbittorrent.databinding.ActivitySettingsBinding
+import io.github.xixka.qbittorrent.databinding.FragmentSettingsListBinding
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.qbt.LocalEngineService
+import io.github.xixka.qbittorrent.ui.log.LogActivity
 import io.github.xixka.qbittorrent.ui.qbsettings.QBSettingsActivity
+import io.github.xixka.qbittorrent.ui.rss.RssActivity
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
-import io.github.xixka.qbittorrent.util.WindowInsetsSide
-import io.github.xixka.qbittorrent.util.applyWindowInsets
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 /**
- * Settings hub, styled after LibreTorrent's settings screen: a preference
- * list with icon rows, section headers and subpages. Everything that used to
- * live in the home screen's three-dot menu lives here (about, update check,
- * engine on/off, connection), so the overflow menu stays focused on torrent
- * actions.
+ * Settings hub, LibreTorrent-style preference list. Shown IN PLACE by the
+ * bottom navigation of MainActivity (no separate activity), with subpages
+ * for the qBittorrent options editor, server connections, RSS, log viewer
+ * and engine controls.
  */
-class SettingsActivity : AppCompatActivity() {
+class SettingsFragment : Fragment() {
 
-    private lateinit var binding: ActivitySettingsBinding
+    private var _binding: FragmentSettingsListBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var adapter: SettingsRowAdapter
 
-    private val prefs by lazy { ServiceLocator.prefs(this) }
-
-    /** Rows that depend on live state (engine, poll interval…) are rebuilt on demand. */
     private val rows = mutableListOf<Any>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        ThemeUtils.applyDynamicColors(this, prefs.dynamicColors)
-        binding = ActivitySettingsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        applyWindowInsets(
-            child = binding.settingsList,
-            sideMask = WindowInsetsSide.LEFT or WindowInsetsSide.RIGHT or WindowInsetsSide.BOTTOM,
-        )
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = FragmentSettingsListBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.settingsToolbar.setTitle(R.string.settings)
         adapter = SettingsRowAdapter(::onRowClick)
-        binding.settingsList.layoutManager = LinearLayoutManager(this)
+        binding.settingsList.layoutManager = LinearLayoutManager(requireContext())
         binding.settingsList.adapter = adapter
-        rebuildRows()
     }
 
     override fun onResume() {
@@ -70,9 +66,17 @@ class SettingsActivity : AppCompatActivity() {
         rebuildRows()
     }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
+    private val prefs get() = ServiceLocator.prefs(requireContext())
+
     // ---------------- rows ----------------
 
     private fun rebuildRows() {
+        val ctx = requireContext()
         rows.clear()
         rows += Header(R.string.settings_qbt_section)
         rows += Item(
@@ -80,6 +84,18 @@ class SettingsActivity : AppCompatActivity() {
             icon = R.drawable.ic_tune_24px,
             title = getString(R.string.settings_qbt_open),
             summary = getString(R.string.settings_qbt_open_sub),
+        )
+        rows += Item(
+            id = ID_RSS,
+            icon = R.drawable.ic_rss_feed_24px,
+            title = getString(R.string.rss_title),
+            summary = getString(R.string.rss_title_sub),
+        )
+        rows += Item(
+            id = ID_LOG,
+            icon = R.drawable.ic_article_24px,
+            title = getString(R.string.log_title),
+            summary = getString(R.string.log_title_sub),
         )
 
         rows += Header(R.string.settings_appearance)
@@ -110,7 +126,7 @@ class SettingsActivity : AppCompatActivity() {
             title = getString(R.string.settings_poll_label),
             summary = getString(R.string.pref_poll_interval_sub, prefs.pollIntervalSec),
         )
-        if (BuildConfig.IS_ENHANCED && LocalEngineManager.isSupported(this)) {
+        if (BuildConfig.IS_ENHANCED && LocalEngineManager.isSupported(ctx)) {
             rows += Item(
                 id = ID_ENGINE_AUTOSTART,
                 icon = R.drawable.ic_power_settings_new_24px,
@@ -118,6 +134,14 @@ class SettingsActivity : AppCompatActivity() {
                 summary = getString(R.string.settings_engine_autostart_sub),
                 switch = true,
                 checked = prefs.engineAutoStart,
+            )
+            rows += Item(
+                id = ID_ENGINE_WATCHDOG,
+                icon = R.drawable.ic_rule_24px,
+                title = getString(R.string.settings_engine_watchdog_label),
+                summary = getString(R.string.settings_engine_watchdog_sub),
+                switch = true,
+                checked = prefs.engineWatchdog,
             )
             rows += Item(
                 id = ID_ENGINE_TOGGLE,
@@ -130,6 +154,7 @@ class SettingsActivity : AppCompatActivity() {
                     when (LocalEngineManager.state) {
                         LocalEngineManager.State.RUNNING -> R.string.engine_status_running
                         LocalEngineManager.State.STARTING -> R.string.engine_status_starting
+                        LocalEngineManager.State.FAILED -> R.string.engine_status_failed
                         else -> R.string.engine_status_stopped
                     }
                 ),
@@ -139,10 +164,20 @@ class SettingsActivity : AppCompatActivity() {
         rows += Header(R.string.settings_connection)
         rows += Item(
             id = ID_SERVER,
-            icon = R.drawable.ic_wifi_tethering_24px,
+            icon = R.drawable.ic_dns_24px,
             title = getString(R.string.settings_server_connection),
             summary = connectionSummary(),
         )
+        if (BuildConfig.IS_ENHANCED) {
+            rows += Item(
+                id = ID_USE_REMOTE,
+                icon = R.drawable.ic_wifi_tethering_24px,
+                title = getString(R.string.settings_use_remote),
+                summary = getString(R.string.settings_use_remote_sub),
+                switch = true,
+                checked = prefs.useRemoteServer,
+            )
+        }
 
         rows += Header(R.string.settings_about)
         rows += Item(
@@ -169,10 +204,19 @@ class SettingsActivity : AppCompatActivity() {
     private fun connectionSummary(): String =
         if (prefs.usingLocalEngine) {
             getString(R.string.settings_server_connection_engine)
-        } else if (prefs.serverHost.isBlank()) {
-            getString(R.string.settings_server_connection_not_configured)
         } else {
-            getString(R.string.settings_server_connection_fmt, prefs.serverHost, prefs.serverPort)
+            val profiles = prefs.serverProfiles()
+            when {
+                profiles.isEmpty() -> getString(R.string.settings_server_connection_not_configured)
+                else -> {
+                    val active = prefs.activeServer()
+                    getString(
+                        R.string.settings_server_connection_fmt,
+                        active?.displayName() ?: "",
+                        profiles.size,
+                    )
+                }
+            }
         }
 
     private fun themeLabel(mode: String): String = when (mode) {
@@ -184,12 +228,15 @@ class SettingsActivity : AppCompatActivity() {
     // ---------------- interactions ----------------
 
     private fun onRowClick(item: Item, checked: Boolean) {
+        val ctx = requireContext()
         when (item.id) {
-            ID_QB_SETTINGS -> startActivity(Intent(this, QBSettingsActivity::class.java))
+            ID_QB_SETTINGS -> startActivity(Intent(ctx, QBSettingsActivity::class.java))
+            ID_RSS -> startActivity(Intent(ctx, RssActivity::class.java))
+            ID_LOG -> startActivity(Intent(ctx, LogActivity::class.java))
 
             ID_DYNAMIC_COLORS -> {
                 prefs.dynamicColors = checked
-                recreate()
+                activity?.recreate()
             }
 
             ID_THEME -> showThemeDialog()
@@ -197,17 +244,23 @@ class SettingsActivity : AppCompatActivity() {
             ID_POLL_INTERVAL -> showPollIntervalDialog()
 
             ID_ENGINE_AUTOSTART -> prefs.engineAutoStart = checked
+            ID_ENGINE_WATCHDOG -> prefs.engineWatchdog = checked
 
             ID_ENGINE_TOGGLE -> {
                 if (LocalEngineManager.isRunning()) {
-                    LocalEngineService.stop(this)
+                    LocalEngineService.stop(ctx)
                 } else {
-                    LocalEngineService.start(this)
+                    LocalEngineService.start(ctx)
                 }
                 binding.settingsList.postDelayed({ rebuildRows() }, 800)
             }
 
-            ID_SERVER -> startActivity(Intent(this, ServerSettingsActivity::class.java))
+            ID_SERVER -> startActivity(Intent(ctx, ServerSettingsActivity::class.java))
+            ID_USE_REMOTE -> {
+                prefs.useRemoteServer = checked
+                ServiceLocator.resetClient()
+                rebuildRows()
+            }
 
             ID_CHECK_UPDATE -> checkUpdate()
 
@@ -221,7 +274,7 @@ class SettingsActivity : AppCompatActivity() {
         val modes = listOf(ThemeUtils.MODE_SYSTEM, ThemeUtils.MODE_LIGHT, ThemeUtils.MODE_DARK)
         val labels = modes.map { themeLabel(it) }.toTypedArray()
         val current = modes.indexOf(prefs.themeMode).coerceAtLeast(0)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.pref_theme)
             .setSingleChoiceItems(labels, current) { dialog, which ->
                 prefs.themeMode = modes[which]
@@ -234,13 +287,13 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showPollIntervalDialog() {
-        val layout = LayoutInflater.from(this)
+        val layout = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_input, null)
         layout.findViewById<TextInputLayout>(R.id.inputLayout)?.hint =
             getString(R.string.settings_poll_label)
         val input = layout.findViewById<TextInputEditText>(R.id.input)
         input?.setText(prefs.pollIntervalSec.toString())
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.settings_poll_label)
             .setView(layout)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -253,11 +306,11 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    // ---------------- update check (moved from the home overflow menu) ----------------
+    // ---------------- update check ----------------
 
     private fun checkUpdate() {
         prefs.lastUpdateCheck = System.currentTimeMillis()
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val result = runCatching { UpdateChecker.check() }
             result
                 .onSuccess { update ->
@@ -269,7 +322,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun showUpdateToast() {
         android.widget.Toast.makeText(
-            this,
+            requireContext(),
             getString(R.string.update_up_to_date, BuildConfig.VERSION_NAME),
             android.widget.Toast.LENGTH_SHORT,
         ).show()
@@ -277,7 +330,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun showUpdateDialog(update: UpdateChecker.Update) {
         val notes = if (update.notes.isBlank()) "" else "\n\n" + update.notes.take(600)
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.update_available_title))
             .setMessage(getString(R.string.update_available_message, update.version) + notes)
             .setPositiveButton(R.string.update_download) { _, _ ->
@@ -297,7 +350,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun showAboutDialog() {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.about)
             .setMessage(
                 getString(R.string.about_message) +
@@ -305,11 +358,6 @@ class SettingsActivity : AppCompatActivity() {
             )
             .setPositiveButton(android.R.string.ok, null)
             .show()
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
     }
 
     // ---------------- adapter ----------------
@@ -415,5 +463,9 @@ class SettingsActivity : AppCompatActivity() {
         private const val ID_VERSION = 8
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10
+        private const val ID_RSS = 11
+        private const val ID_LOG = 12
+        private const val ID_ENGINE_WATCHDOG = 13
+        private const val ID_USE_REMOTE = 14
     }
 }

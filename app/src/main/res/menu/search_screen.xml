@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/search_plugins_menu"
+        android:icon="@drawable/ic_extension_24px"
+        android:title="@string/search_plugins"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/search_stop_menu"
+        android:icon="@drawable/ic_stop_circle_24px"
+        android:title="@string/search_stop"
+        app:showAsAction="ifRoom" />
+</menu>

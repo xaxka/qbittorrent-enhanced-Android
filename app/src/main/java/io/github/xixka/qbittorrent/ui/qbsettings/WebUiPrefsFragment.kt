@@ -60,6 +60,14 @@ class WebUiPrefsFragment : QBPrefsTabFragment() {
         binding.useHttpsSwitch.isChecked = bool(prefs, "use_https", false)
         binding.httpsCertPathInput.setText(str(prefs, "web_ui_https_cert_path"))
         binding.httpsKeyPathInput.setText(str(prefs, "web_ui_https_key_path"))
+
+        // WebUI locale / refresh rate / instance name / SSRF / status extras
+        binding.webUiLocaleInput.setText(str(prefs, "locale"))
+        binding.webUiRefreshInput.setText(int(prefs, "refresh_interval", 1500).toString())
+        binding.appInstanceNameInput.setText(str(prefs, "app_instance_name"))
+        binding.ssrfMitigationSwitch.isChecked = bool(prefs, "ssrf_mitigation", true)
+        binding.statusBarIpSwitch.isChecked = bool(prefs, "status_bar_external_ip", true)
+        binding.performanceWarningSwitch.isChecked = bool(prefs, "performance_warning", false)
     }
 
     override fun collectValues(out: JsonObject) {
@@ -95,6 +103,14 @@ class WebUiPrefsFragment : QBPrefsTabFragment() {
         out.put("use_https", binding.useHttpsSwitch.isChecked)
         out.put("web_ui_https_cert_path", binding.httpsCertPathInput.text?.toString()?.trim().orEmpty())
         out.put("web_ui_https_key_path", binding.httpsKeyPathInput.text?.toString()?.trim().orEmpty())
+
+        out.put("locale", binding.webUiLocaleInput.text?.toString()?.trim().orEmpty())
+        binding.webUiRefreshInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it >= 0 }?.let { out.put("refresh_interval", it) }
+        out.put("app_instance_name", binding.appInstanceNameInput.text?.toString()?.trim().orEmpty())
+        out.put("ssrf_mitigation", binding.ssrfMitigationSwitch.isChecked)
+        out.put("status_bar_external_ip", binding.statusBarIpSwitch.isChecked)
+        out.put("performance_warning", binding.performanceWarningSwitch.isChecked)
     }
 
     /** Custom HTTP headers as `Name: value` lines, one per line. */

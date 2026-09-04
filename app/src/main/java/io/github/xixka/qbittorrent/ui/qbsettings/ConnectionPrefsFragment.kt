@@ -24,6 +24,7 @@ class ConnectionPrefsFragment : QBPrefsTabFragment() {
     private val binding get() = _binding!!
 
     private lateinit var proxyType: DropdownField
+    private lateinit var dyndnsService: DropdownField
 
     /** Proxy type order/indices, mapped to names and legacy numeric codes. */
     private val proxyNames = listOf("None", "HTTP", "SOCKS5", "SOCKS4")
@@ -48,6 +49,15 @@ class ConnectionPrefsFragment : QBPrefsTabFragment() {
                 getString(R.string.qbt_proxy_http),
                 getString(R.string.qbt_proxy_socks5),
                 getString(R.string.qbt_proxy_socks4),
+            ),
+        )
+        dyndnsService = DropdownField(
+            requireContext(),
+            binding.dyndnsServiceDropdown,
+            listOf(
+                getString(R.string.qbt_dyndns_none),
+                getString(R.string.qbt_dyndns_dyndns),
+                getString(R.string.qbt_dyndns_noip),
             ),
         )
     }
@@ -95,6 +105,24 @@ class ConnectionPrefsFragment : QBPrefsTabFragment() {
         binding.i2pOutboundQuantityInput.setText(int(prefs, "i2p_outbound_quantity", 3).toString())
         binding.i2pInboundLengthInput.setText(int(prefs, "i2p_inbound_length", 3).toString())
         binding.i2pOutboundLengthInput.setText(int(prefs, "i2p_outbound_length", 3).toString())
+
+        // connection tuning + DynDNS
+        binding.connectionSpeedInput.setText(int(prefs, "connection_speed", 0).toString())
+        binding.outgoingPortsMinInput.setText(int(prefs, "outgoing_ports_min", 0).toString())
+        binding.outgoingPortsMaxInput.setText(int(prefs, "outgoing_ports_max", 0).toString())
+        binding.upnpLeaseInput.setText(int(prefs, "upnp_lease_duration", 0).toString())
+        binding.peerTosInput.setText(int(prefs, "peer_tos", 0).toString())
+        binding.dyndnsEnabledSwitch.isChecked = bool(prefs, "dyndns_enabled", false)
+        dyndnsService.select(
+            when (QBPrefBindings.enumInt(prefs, "dyndns_service", -1)) {
+                0 -> 1 // DynDNS
+                1 -> 2 // No-IP
+                else -> 0 // None
+            }
+        )
+        binding.dyndnsDomainInput.setText(str(prefs, "dyndns_domain"))
+        binding.dyndnsUsernameInput.setText(str(prefs, "dyndns_username"))
+        binding.dyndnsPasswordInput.setText(str(prefs, "dyndns_password"))
     }
 
     override fun collectValues(out: JsonObject) {
@@ -146,6 +174,29 @@ class ConnectionPrefsFragment : QBPrefsTabFragment() {
             ?.takeIf { it in 0..7 }?.let { out.put("i2p_inbound_length", it) }
         binding.i2pOutboundLengthInput.text?.toString()?.trim()?.toIntOrNull()
             ?.takeIf { it in 0..7 }?.let { out.put("i2p_outbound_length", it) }
+
+        binding.connectionSpeedInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it >= 0 }?.let { out.put("connection_speed", it) }
+        binding.outgoingPortsMinInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..65535 }?.let { out.put("outgoing_ports_min", it) }
+        binding.outgoingPortsMaxInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it in 0..65535 }?.let { out.put("outgoing_ports_max", it) }
+        binding.upnpLeaseInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.takeIf { it >= 0 }?.let { out.put("upnp_lease_duration", it) }
+        binding.peerTosInput.text?.toString()?.trim()?.toIntOrNull()
+            ?.let { out.put("peer_tos", it) }
+        out.put("dyndns_enabled", binding.dyndnsEnabledSwitch.isChecked)
+        out.put(
+            "dyndns_service",
+            when (dyndnsService.selectedOr(0)) {
+                1 -> 0 // DynDNS
+                2 -> 1 // No-IP
+                else -> -1 // None
+            },
+        )
+        out.put("dyndns_domain", binding.dyndnsDomainInput.text?.toString()?.trim().orEmpty())
+        out.put("dyndns_username", binding.dyndnsUsernameInput.text?.toString()?.trim().orEmpty())
+        out.put("dyndns_password", binding.dyndnsPasswordInput.text?.toString()?.trim().orEmpty())
     }
 
     override fun onDestroyView() {

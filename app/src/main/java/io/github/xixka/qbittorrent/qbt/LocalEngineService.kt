@@ -18,16 +18,25 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  * Foreground service keeping the local qbittorrent-enhanced-nox engine alive.
+ *
+ * Includes a watchdog loop (enabled by default in the Enhanced edition, see
+ * Settings): as long as no remote server is configured the service
+ * re-probes the engine WebUI every 30 seconds and restarts the engine
+ * process when it died — the download session keeps running without the UI.
  */
 class LocalEngineService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    private var watchdogJob: kotlinx.coroutines.Job? = null
+
+    override fun onBind(intent: IBinder?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -36,6 +45,7 @@ class LocalEngineService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
+            stopWatchdog()
             LocalEngineManager.stop()
             stopSelf()
             return START_NOT_STICKY
@@ -52,19 +62,63 @@ class LocalEngineService : Service() {
                 )
             }
             if (LocalEngineManager.state == LocalEngineManager.State.FAILED) {
-                stopSelf()
+                // keep the service alive: the watchdog retries periodically,
+                // and the UI surfaces the failure via the state machine
+                startWatchdog()
             } else {
                 // the client endpoint is derived from the engine settings
                 // (see Prefs.serverConfig); drop cached connections so the
                 // client binds to the freshly started engine
                 ServiceLocator.resetClient()
                 startForegroundCompat()
+                startWatchdog()
             }
         }
         return START_STICKY
     }
 
+    /**
+     * Engine watchdog: probes the engine every WATCHDOG_INTERVAL_MS and
+     * restarts it when the process is gone. Only active when the app drives
+     * the bundled engine (no remote server connection configured).
+     */
+    private fun startWatchdog() {
+        if (watchdogJob?.isActive == true) return
+        watchdogJob = scope.launch {
+            var failures = 0
+            while (isActive) {
+                delay(WATCHDOG_INTERVAL_MS)
+                val prefs = ServiceLocator.prefs(this@LocalEngineService)
+                if (!prefs.engineWatchdog || prefs.useRemoteServer) continue
+                val alive = LocalEngineManager.isRunning()
+                if (!alive) {
+                    // capped backoff: reset the counter after a long streak so
+                    // the watchdog never gives up entirely
+                    if (failures >= MAX_WATCHDOG_FAILURES) failures = 0
+                    failures++
+                    runCatching {
+                        LocalEngineManager.start(
+                            context = this@LocalEngineService,
+                            port = prefs.enginePort,
+                            lanAccess = prefs.engineLanAccess,
+                            savePath = prefs.engineSavePath,
+                        )
+                        ServiceLocator.resetClient()
+                    }
+                } else {
+                    failures = 0
+                }
+            }
+        }
+    }
+
+    private fun stopWatchdog() {
+        watchdogJob?.cancel()
+        watchdogJob = null
+    }
+
     override fun onDestroy() {
+        stopWatchdog()
         LocalEngineManager.stop()
         scope.cancel()
         super.onDestroy()
@@ -111,6 +165,12 @@ class LocalEngineService : Service() {
         const val CHANNEL_ID = "local_engine"
         const val NOTIFICATION_ID = 42
         const val ACTION_STOP = "io.github.xixka.qbittorrent.engine.STOP"
+
+        /** Watchdog probe cadence (30 s). */
+        private const val WATCHDOG_INTERVAL_MS = 30_000L
+
+        /** After this many consecutive failed restarts, restart the counter. */
+        private const val MAX_WATCHDOG_FAILURES = 20
 
         fun start(context: Context) {
             context.startForegroundService(

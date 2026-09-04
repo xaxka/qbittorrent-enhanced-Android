@@ -23,7 +23,12 @@ class PeersAdapter : ListAdapter<Peer, PeersAdapter.ViewHolder>(DIFF) {
         fun bind(peer: Peer) {
             binding.ip.text = peer.ip
             binding.port.text = String.format(Locale.ROOT, "Port: %d", peer.port)
-            binding.progress.setProgress((peer.progress * 100).toInt())
+            // progress arrives 0..1 on older servers and 0..100 on qB 5.1+;
+            // the tolerant fraction + clamp keeps the progress bar valid
+            binding.progress.setProgress(
+                (peer.progressFraction * 100).toInt().coerceIn(0, 100),
+            )
+            binding.progress.max = 100
             binding.relevance.text = String.format(
                 Locale.ROOT,
                 "%s %.1f%%",

@@ -21,8 +21,9 @@ import kotlinx.coroutines.launch
 
 /**
  * Overview tab, ported from LibreTorrent's TorrentDetailsInfoFragment
- * (GPL-3.0): stacked filled cards — name, save path, options, size/hash,
- * dates, comment, category chips.
+ * (GPL-3.0): stacked filled cards — name (rename), save path (relocate),
+ * options (sequential / first-last / super seeding), category + tag chips,
+ * size/hash, dates, comment.
  */
 class InfoFragment : Fragment() {
 
@@ -43,16 +44,17 @@ class InfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // qBittorrent can rename torrents, but the API call is not wired yet
-        binding.editNameButton.visibility = View.GONE
-        // save path is read-only over the remote API
-        binding.folderChooserButton.visibility = View.GONE
+        // rename / relocate / per-torrent limits live in the toolbar menu —
+        // the buttons here open the same dialogs directly
+        binding.editNameButton.setOnClickListener { showRenameDialog() }
+        binding.folderChooserButton.setOnClickListener { showLocationDialog() }
         binding.freeSpace.visibility = View.GONE
 
         binding.sequentialDownload.setOnCheckedChangeListener { _, _ -> viewModel.toggleSequential() }
         binding.downloadFirstLastPieces.setOnCheckedChangeListener { _, _ -> viewModel.toggleFirstLast() }
+        binding.superSeeding.setOnCheckedChangeListener { _, checked -> viewModel.setSuperSeeding(checked) }
 
-        binding.addTagButton.setOnClickListener { showAddCategoryDialog() }
+        binding.addTagButton.setOnClickListener { showAddTagDialog() }
 
         observeState()
     }
@@ -89,8 +91,20 @@ class InfoFragment : Fragment() {
         binding.downloadFirstLastPieces.isChecked = info.firstLastPiecePrio
         binding.downloadFirstLastPieces.setOnCheckedChangeListener { _, _ -> viewModel.toggleFirstLast() }
 
-        renderCategories(state.categories)
+        binding.superSeeding.setOnCheckedChangeListener(null)
+        binding.superSeeding.isChecked = state.properties?.superSeeding ?: info.superSeeding
+        binding.superSeeding.setOnCheckedChangeListener { _, checked -> viewModel.setSuperSeeding(checked) }
+
+        val signature = "${state.info?.category}|${state.info?.tags}|${state.tags.joinToString(",")}"
+        if (signature != lastChipsSignature) {
+            lastChipsSignature = signature
+            renderCategories(state.categories)
+            renderTags(state)
+        }
     }
+
+    /** Avoids re-inflating chips on every 3-second background poll. */
+    private var lastChipsSignature: String? = null
 
     private fun renderCategories(categories: List<QBCategory>) {
         val info = viewModel.state.value.info ?: return
@@ -121,21 +135,73 @@ class InfoFragment : Fragment() {
         group.addView(chip)
     }
 
-    private fun showAddCategoryDialog() {
+    /** Torrent tags: the torrent's own tags + the server's other tags. */
+    private fun renderTags(state: DetailUiState) {
+        val info = state.info ?: return
+        val own = info.tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        val others = state.tags.filter { it !in own }
+        val group = binding.tagsChipGroup
+        val inflater = layoutInflater
+        for (tag in own) {
+            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            chip.text = tag
+            chip.isChecked = true
+            chip.setOnClickListener { viewModel.removeTag(tag) }
+            group.addView(chip)
+        }
+        for (tag in others) {
+            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            chip.text = tag
+            chip.isChecked = false
+            chip.setOnClickListener { viewModel.addTags(listOf(tag)) }
+            group.addView(chip)
+        }
+    }
+
+    private fun showRenameDialog() {
+        val info = viewModel.state.value.info ?: return
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(info.name)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.rename_torrent)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val name = input?.text?.toString()?.trim().orEmpty()
+                if (name.isNotEmpty()) viewModel.rename(name)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showLocationDialog() {
+        val state = viewModel.state.value
+        val current = state.properties?.savePath ?: state.info?.savePath.orEmpty()
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(current)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.change_save_location)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val path = input?.text?.toString()?.trim().orEmpty()
+                if (path.isNotEmpty()) viewModel.setLocation(path)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAddTagDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.add_category)
+            .setTitle(R.string.add_tag)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val name = input.text?.toString()?.trim().orEmpty()
+                val name = input?.text?.toString()?.trim().orEmpty()
                 if (name.isNotEmpty()) {
-                    viewModel.setCategory(name)
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.speed_limits_saved,
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    viewModel.addTags(listOf(name))
+                    Toast.makeText(requireContext(), R.string.tag_applied, Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

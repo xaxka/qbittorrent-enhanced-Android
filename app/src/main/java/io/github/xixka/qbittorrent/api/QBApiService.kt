@@ -1,8 +1,14 @@
 package io.github.xixka.qbittorrent.api
 
 import com.google.gson.JsonObject
+import io.github.xixka.qbittorrent.model.LogEntry
+import io.github.xixka.qbittorrent.model.MainData
 import io.github.xixka.qbittorrent.model.PeerSyncResponse
 import io.github.xixka.qbittorrent.model.QBCategory
+import io.github.xixka.qbittorrent.model.RssRule
+import io.github.xixka.qbittorrent.model.SearchPlugin
+import io.github.xixka.qbittorrent.model.SearchResults
+import io.github.xixka.qbittorrent.model.SearchStartResponse
 import io.github.xixka.qbittorrent.model.TorrentFile
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
@@ -229,4 +235,226 @@ interface QBApiService {
         @Field("hash") hash: String,
         @Field("urls") urls: String,
     ): Response<ResponseBody>
+    // =====================================================================
+    // Extended endpoints (qBitController parity): tags, per-torrent limits,
+    // rename/location, tracker edit, pieces, maindata, log, RSS, search.
+    // =====================================================================
+
+    /** Global server state + statistics snapshot (`GET /api/v2/sync/maindata`). */
+    @GET("api/v2/sync/maindata")
+    suspend fun mainData(): MainData
+
+    // ---------- tags ----------
+
+    @GET("api/v2/torrents/tags")
+    suspend fun tags(): List<String>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/createTags")
+    suspend fun createTags(@Field("tags") tags: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/deleteTags")
+    suspend fun deleteTags(@Field("tags") tags: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/addTags")
+    suspend fun addTags(
+        @Field("hashes") hashes: String,
+        @Field("tags") tags: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/removeTags")
+    suspend fun removeTags(
+        @Field("hashes") hashes: String,
+        @Field("tags") tags: String,
+    ): Response<ResponseBody>
+
+    // ---------- per-torrent rename / location / limits ----------
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/rename")
+    suspend fun renameTorrent(
+        @Field("hash") hash: String,
+        @Field("name") name: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setLocation")
+    suspend fun setLocation(
+        @Field("hashes") hashes: String,
+        @Field("location") location: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setDownloadLimit")
+    suspend fun setTorrentDownloadLimit(
+        @Field("hashes") hashes: String,
+        @Field("limit") limit: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setUploadLimit")
+    suspend fun setTorrentUploadLimit(
+        @Field("hashes") hashes: String,
+        @Field("limit") limit: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setShareLimits")
+    suspend fun setShareLimits(
+        @Field("hashes") hashes: String,
+        @Field("ratioLimit") ratioLimit: String,
+        @Field("seedingTimeLimit") seedingTimeLimit: String,
+        @Field("inactiveSeedingTimeLimit") inactiveSeedingTimeLimit: String,
+    ): Response<ResponseBody>
+
+    /** Direct super-seeding switch (the toggle variant cannot show state). */
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setSuperSeeding")
+    suspend fun setSuperSeeding(
+        @Field("hashes") hashes: String,
+        @Field("value") value: String,
+    ): Response<ResponseBody>
+
+    // ---------- trackers edit ----------
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/editTracker")
+    suspend fun editTracker(
+        @Field("hash") hash: String,
+        @Field("origUrl") origUrl: String,
+        @Field("newUrl") newUrl: String,
+    ): Response<ResponseBody>
+
+    // ---------- pieces ----------
+
+    /** Per-piece state list: 0 missing, 1 downloading, 2 done. */
+    @GET("api/v2/torrents/pieceStates")
+    suspend fun pieceStates(@Query("hash") hash: String): List<Int>
+
+    // ---------- log ----------
+
+    @GET("api/v2/log/main")
+    suspend fun logMain(
+        @Query("last_known_id") lastKnownId: Long = -1,
+        @Query("normal") normal: Boolean = true,
+        @Query("info") info: Boolean = true,
+        @Query("warning") warning: Boolean = true,
+        @Query("critical") critical: Boolean = true,
+    ): List<LogEntry>
+
+    // ---------- RSS ----------
+
+    /** Tree of feeds/folders; with `withData` the feeds embed their articles. */
+    @GET("api/v2/rss/items")
+    suspend fun rssItems(@Query("withData") withData: Boolean = false): JsonObject
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/markAsRead")
+    suspend fun rssMarkAsRead(
+        @Field("itemPath") itemPath: String,
+        @Field("articleId") articleId: String?,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/refreshItem")
+    suspend fun rssRefreshItem(@Field("itemPath") itemPath: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/addFeed")
+    suspend fun rssAddFeed(
+        @Field("url") url: String,
+        @Field("path") path: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/setFeedURL")
+    suspend fun rssSetFeedUrl(
+        @Field("path") path: String,
+        @Field("url") url: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/addFolder")
+    suspend fun rssAddFolder(@Field("path") path: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/moveItem")
+    suspend fun rssMoveItem(
+        @Field("itemPath") itemPath: String,
+        @Field("destPath") destPath: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/removeItem")
+    suspend fun rssRemoveItem(@Field("path") path: String): Response<ResponseBody>
+
+    @GET("api/v2/rss/rules")
+    suspend fun rssRules(): Map<String, RssRule>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/setRule")
+    suspend fun rssSetRule(
+        @Field("ruleName") ruleName: String,
+        @Field("ruleDef") ruleDefinition: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/renameRule")
+    suspend fun rssRenameRule(
+        @Field("ruleName") ruleName: String,
+        @Field("newRuleName") newRuleName: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/rss/removeRule")
+    suspend fun rssRemoveRule(@Field("ruleName") ruleName: String): Response<ResponseBody>
+
+    // ---------- search engine ----------
+
+    @FormUrlEncoded
+    @POST("api/v2/search/start")
+    suspend fun searchStart(
+        @Field("pattern") pattern: String,
+        @Field("category") category: String,
+        @Field("plugins") plugins: String,
+    ): SearchStartResponse
+
+    @FormUrlEncoded
+    @POST("api/v2/search/stop")
+    suspend fun searchStop(@Field("id") id: Int): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/search/delete")
+    suspend fun searchDelete(@Field("id") id: Int): Response<ResponseBody>
+
+    @GET("api/v2/search/results")
+    suspend fun searchResults(
+        @Query("id") id: Int,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 500,
+    ): SearchResults
+
+    @GET("api/v2/search/plugins")
+    suspend fun searchPlugins(): List<SearchPlugin>
+
+    @FormUrlEncoded
+    @POST("api/v2/search/enablePlugin")
+    suspend fun searchEnablePlugin(
+        @Field("names") names: String,
+        @Field("enable") enable: Boolean,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/search/installPlugin")
+    suspend fun searchInstallPlugin(@Field("sources") sources: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/search/uninstallPlugin")
+    suspend fun searchUninstallPlugin(@Field("names") names: String): Response<ResponseBody>
+
+    @POST("api/v2/search/updatePlugins")
+    suspend fun searchUpdatePlugins(): Response<ResponseBody>
 }

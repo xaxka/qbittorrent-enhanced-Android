@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:focusable="true"
             app:layout_scrollFlags="scroll|enterAlways|snap"
-            app:tabContentStart="52dp"
+            app:tabContentStart="0dp"
             app:tabMode="scrollable" />
     </com.google.android.material.appbar.AppBarLayout>
 

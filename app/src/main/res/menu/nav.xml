@@ -7,6 +7,12 @@
         android:title="@string/torrents" />
 
     <item
+        android:id="@+id/rss_nav"
+        android:contentDescription="@string/rss_title"
+        android:icon="@drawable/ic_rss_feed_24px"
+        android:title="@string/rss_title" />
+
+    <item
         android:id="@+id/settings_nav"
         android:contentDescription="@string/settings"
         android:icon="@drawable/ic_settings_24px"

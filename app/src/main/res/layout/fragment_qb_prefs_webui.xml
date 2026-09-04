@@ -331,7 +331,60 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textNoSuggestions" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_webui_locale">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/webUiLocaleInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_webui_refresh">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/webUiRefreshInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_app_instance_name">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/appInstanceNameInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/ssrfMitigationSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/qbt_ssrf_mitigation" />
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/statusBarIpSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/qbt_statusbar_ip" />
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/performanceWarningSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/qbt_perf_warning" />
     </LinearLayout>
 </ScrollView>
+

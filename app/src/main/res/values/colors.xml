@@ -154,5 +154,13 @@
     <color name="colorOnOk_highContrast">#FFFFFF</color>
     <color name="colorOkContainer_highContrast">#B1F1C1</color>
     <color name="colorOnOkContainer_highContrast">#12512E</color>
+    <color name="colorWarn">#8F5A00</color>
+    <color name="colorOnWarn">#FFFFFF</color>
+    <color name="colorWarnContainer">#FFDF9B</color>
+    <color name="colorOnWarnContainer">#2C1E00</color>
+    <color name="colorPieceHave">#2E6A44</color>
+    <color name="colorPiecePartial">#E8A100</color>
+    <color name="colorPieceMissing">#D6D0D7</color>
+    <color name="colorPieceMissingDark">#3A3740</color>
     <color name="launcher_background">#1B5BB7</color>
 </resources>

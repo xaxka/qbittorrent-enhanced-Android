@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Engine log screen (qBitController LogScreen parity, LibreTorrent UI). -->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coordinator_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        app:liftOnScroll="false"
+        app:statusBarForeground="?attr/colorSurface">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:menu="@menu/log"
+            app:navigationIcon="@drawable/ic_arrow_back_24px"
+            app:title="@string/log_title" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/type_chip_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="4dp"
+            app:selectionRequired="true"
+            app:singleLine="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_all"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:checked="true"
+                android:text="@string/log_filter_all" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_normal"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/log_type_normal" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_info"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/log_type_info" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_warning"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/log_type_warning" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_critical"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/log_type_critical" />
+        </com.google.android.material.chip.ChipGroup>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+        android:id="@+id/log_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingVertical="8dp"
+        android:paddingBottom="24dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="?attr/actionBarSize"
+        app:icon="@drawable/ic_lists_24px"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:text="@string/log_empty" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

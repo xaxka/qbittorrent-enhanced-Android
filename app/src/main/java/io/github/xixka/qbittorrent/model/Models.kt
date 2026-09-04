@@ -37,7 +37,8 @@ data class TorrentInfo(
     @SerializedName("f_l_piece_prio") val firstLastPiecePrio: Boolean = false,
     @SerializedName("force_start") val forceStart: Boolean = false,
     @SerializedName("super_seeding") val superSeeding: Boolean = false,
-    @SerializedName("private") val isPrivate: Boolean = false,
+    /** The engine answers null while metadata is not fetched yet. */
+    @SerializedName("private") val isPrivate: Boolean? = false,
 ) {
     val isPaused: Boolean
         get() = state.equals("pausedDL", ignoreCase = true) || state.equals("pausedUP", ignoreCase = true) ||
@@ -194,4 +195,156 @@ data class TransferInfo(
 data class QBCategory(
     @SerializedName("name") val name: String = "",
     @SerializedName("savePath") val savePath: String = "",
+)
+
+
+// ---------------------------------------------------------------------------
+// sync/maindata -> server_state (qBitController StatisticsDialog parity)
+// ---------------------------------------------------------------------------
+
+/**
+ * Global server statistics from `GET /api/v2/sync/maindata` (`server_state`).
+ * Mirrors qBitController's ServerState model field by field.
+ */
+data class ServerState(
+    @SerializedName("alltime_ul") val allTimeUpload: Long = 0L,
+    @SerializedName("alltime_dl") val allTimeDownload: Long = 0L,
+    @SerializedName("global_ratio") val globalRatio: String = "",
+    @SerializedName("total_wasted_session") val sessionWaste: Long = 0L,
+    @SerializedName("total_peer_connections") val connectedPeers: Long = 0L,
+    @SerializedName("read_cache_hits") val readCacheHits: String = "",
+    @SerializedName("total_buffers_size") val bufferSize: Long = 0L,
+    @SerializedName("write_cache_overload") val writeCacheOverload: String = "",
+    @SerializedName("read_cache_overload") val readCacheOverload: String = "",
+    @SerializedName("queued_io_jobs") val queuedIOJobs: Long = 0L,
+    @SerializedName("average_time_queue") val averageTimeInQueue: Long = 0L,
+    @SerializedName("total_queued_size") val queuedSize: Long = 0L,
+    @SerializedName("dl_info_data") val downloadSession: Long = 0L,
+    @SerializedName("dl_info_speed") val downloadSpeed: Long = 0L,
+    @SerializedName("dl_rate_limit") val downloadSpeedLimit: Long = 0L,
+    @SerializedName("up_info_data") val uploadSession: Long = 0L,
+    @SerializedName("up_info_speed") val uploadSpeed: Long = 0L,
+    @SerializedName("up_rate_limit") val uploadSpeedLimit: Long = 0L,
+    @SerializedName("use_alt_speed_limits") val useAlternativeSpeedLimits: Boolean = false,
+    @SerializedName("free_space_on_disk") val freeSpace: Long = 0L,
+)
+
+/** Wrapper of the sync/maindata payload (server_state + full update marker). */
+data class MainData(
+    @SerializedName("server_state") val serverState: ServerState? = null,
+)
+
+// ---------------------------------------------------------------------------
+// RSS (qBitController parity)
+// ---------------------------------------------------------------------------
+
+/**
+ * One article of a feed, from `GET /api/v2/rss/items?withData=true`.
+ */
+data class RssArticle(
+    @SerializedName("id") val id: String = "",
+    @SerializedName("title") val title: String = "",
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("torrentUrl") val torrentUrl: String = "",
+    @SerializedName("link") val link: String = "",
+    @SerializedName("isRead") val isRead: Boolean = false,
+    /** Seconds since epoch — the engine emits a plain number. */
+    @SerializedName("date") val date: Long = 0L,
+)
+
+/**
+ * A node in the RSS tree (`GET /api/v2/rss/items`): either a feed (has uid/url)
+ * or a folder (has children). Parsed manually because the tree shape is
+ * dynamic — see TorrentRepository.parseRssTree.
+ */
+data class RssFeedNode(
+    val name: String,
+    val uid: String? = null,
+    val url: String? = null,
+    val children: List<RssFeedNode> = emptyList(),
+    /** Slash path of the parent folder chain (for building API item paths). */
+    val path: List<String> = emptyList(),
+    val articles: List<RssArticle> = emptyList(),
+    val hasUnread: Boolean = false,
+) {
+    val isFeed: Boolean get() = uid != null
+
+    /** Backslash-joined path the Web API uses to address this item. */
+    val apiPath: String get() = (path + name).joinToString("\\")
+}
+
+/**
+ * An automated download rule from `GET /api/v2/rss/rules`.
+ */
+data class RssRule(
+    @SerializedName("enabled") val enabled: Boolean = true,
+    @SerializedName("mustContain") val mustContain: String = "",
+    @SerializedName("mustNotContain") val mustNotContain: String = "",
+    @SerializedName("useRegex") val useRegex: Boolean = false,
+    @SerializedName("episodeFilter") val episodeFilter: String = "",
+    @SerializedName("ignoreDays") val ignoreDays: Int = 0,
+    @SerializedName("addPaused") val addPaused: Boolean? = null,
+    @SerializedName("assignedCategory") val assignedCategory: String = "",
+    @SerializedName("savePath") val savePath: String = "",
+    @SerializedName("torrentContentLayout") val contentLayout: String? = null,
+    @SerializedName("smartFilter") val smartFilter: Boolean = false,
+    @SerializedName("affectedFeeds") val affectedFeeds: List<String> = emptyList(),
+)
+
+// ---------------------------------------------------------------------------
+// Log (qBitController parity)
+// ---------------------------------------------------------------------------
+
+data class LogEntry(
+    @SerializedName("id") val id: Long = 0L,
+    @SerializedName("message") val message: String = "",
+    /** Seconds since epoch. */
+    @SerializedName("timestamp") val timestamp: Long = 0L,
+    /** 1 NORMAL, 2 INFO, 4 WARNING, 8 CRITICAL. */
+    @SerializedName("type") val type: Int = 1,
+) {
+    val typeRes: Int
+        get() = when (type) {
+            2 -> io.github.xixka.qbittorrent.R.string.log_type_info
+            4 -> io.github.xixka.qbittorrent.R.string.log_type_warning
+            8 -> io.github.xixka.qbittorrent.R.string.log_type_critical
+            else -> io.github.xixka.qbittorrent.R.string.log_type_normal
+        }
+
+    val isWarning: Boolean get() = type and 4 != 0
+    val isCritical: Boolean get() = type and 8 != 0
+    val isInfo: Boolean get() = type == 2
+}
+
+// ---------------------------------------------------------------------------
+// Search engine (qBitController parity)
+// ---------------------------------------------------------------------------
+
+data class SearchStartResponse(
+    @SerializedName("id") val id: Int = -1,
+)
+
+data class SearchResultEntry(
+    @SerializedName("descrLink") val descriptionLink: String = "",
+    @SerializedName("fileName") val fileName: String = "",
+    @SerializedName("fileSize") val fileSize: Long? = null,
+    @SerializedName("fileUrl") val fileUrl: String = "",
+    @SerializedName("nbLeechers") val leechers: Int? = null,
+    @SerializedName("nbSeeders") val seeders: Int? = null,
+    @SerializedName("siteUrl") val siteUrl: String = "",
+)
+
+data class SearchResults(
+    @SerializedName("results") val results: List<SearchResultEntry> = emptyList(),
+    /** "Running" while the engine is still collecting results. */
+    @SerializedName("status") val status: String = "Stopped",
+    @SerializedName("total") val total: Int = 0,
+)
+
+data class SearchPlugin(
+    @SerializedName("name") val name: String = "",
+    @SerializedName("fullName") val fullName: String = "",
+    @SerializedName("version") val version: String = "",
+    @SerializedName("enabled") val enabled: Boolean = false,
+    @SerializedName("supportedCategories") val supportedCategories: Map<String, String> = emptyMap(),
 )

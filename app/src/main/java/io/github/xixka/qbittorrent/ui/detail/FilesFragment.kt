@@ -103,7 +103,11 @@ class FilesFragment : Fragment() {
             R.id.change_priority_menu -> {
                 val indexes = adapter.selectedIndexes()
                 if (indexes.isNotEmpty()) {
-                    changePriority(indexes.map { viewModel.state.value.files[it] })
+                    // file.index is the torrent's own file id, not a list
+                    // position — resolve via the current snapshot
+                    val files = viewModel.state.value.files
+                    val selected = indexes.mapNotNull { idx -> files.firstOrNull { it.index == idx } }
+                    if (selected.isNotEmpty()) changePriority(selected)
                 }
                 true
             }

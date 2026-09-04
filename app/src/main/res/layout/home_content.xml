@@ -66,8 +66,7 @@
             android:layout_marginTop="@dimen/search_bar_top_margin"
             android:hint="@string/search"
             android:minWidth="@dimen/search_bar_max_width"
-            app:menu="@menu/home"
-            app:navigationIcon="@drawable/ic_menu_24px" />
+                app:navigationIcon="@drawable/ic_menu_24px" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Elevation needs to be greater than AppBarLayout's elevation -->

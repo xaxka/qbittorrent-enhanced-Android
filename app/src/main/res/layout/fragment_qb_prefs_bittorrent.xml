@@ -395,7 +395,106 @@
                 android:gravity="top"
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:minLines="2" />
-        </com.google.android.material.textfield.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>        <TextView
+            style="@style/TextAppearance.App.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/qbt_section_announce" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_announce_ip">
 
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/announceIpInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_announce_port">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/announcePortInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            style="@style/TextAppearance.App.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/qbt_section_extra_trackers" />
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/addTrackersFromUrlSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/qbt_add_trackers_from_url" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_add_trackers_url">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/addTrackersUrlInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri|multiLine" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            style="@style/TextAppearance.App.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/qbt_section_dht" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_dht_bootstrap_nodes">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dhtBootstrapNodesInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri|multiLine" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            style="@style/TextAppearance.App.SectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/qbt_section_bt_ssl" />
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/btSslEnabledSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/qbt_bt_ssl_enabled" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/qbt_bt_ssl_port">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/btSslPortInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 </ScrollView>
+

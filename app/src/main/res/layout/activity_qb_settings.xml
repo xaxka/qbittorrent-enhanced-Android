@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
-            app:tabContentStart="52dp"
+            app:tabContentStart="0dp"
             app:tabMode="scrollable" />
     </com.google.android.material.appbar.AppBarLayout>
 

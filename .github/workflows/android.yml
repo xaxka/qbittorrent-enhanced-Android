@@ -170,12 +170,28 @@ jobs:
         run: ./gradlew assembleStandardDebug --stacktrace
 
   # ---------------------------------------------------------------------
+  # Settings completeness gate: the in-app preferences editor must cover
+  # EVERY round-trippable WebUI Options key of the pinned
+  # qbittorrent-enhanced engine (see config/qb_enhanced_prefs_required.txt
+  # and scripts/check_prefs_coverage.py for regeneration instructions).
+  # ---------------------------------------------------------------------
+  prefs-coverage:
+    name: Settings completeness (qBittorrent Enhanced config)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify complete preference coverage
+        run: python3 scripts/check_prefs_coverage.py
+
+  # ---------------------------------------------------------------------
   # Build both Android editions from the shared code base.
   # ---------------------------------------------------------------------
   build:
     name: Build qBittorrent / qBittorrent Enhanced
     runs-on: ubuntu-latest
-    needs: [qbt-nox, compile-check]
+    needs: [qbt-nox, compile-check, prefs-coverage]
     permissions:
       contents: write
     steps:

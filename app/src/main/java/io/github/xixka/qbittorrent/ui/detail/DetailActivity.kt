@@ -4,27 +4,38 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
+import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
-import io.github.xixka.qbittorrent.databinding.ActivityDetailBinding
-import io.github.xixka.qbittorrent.util.WindowInsetsSide
-import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.data.ServiceLocator
+import io.github.xixka.qbittorrent.databinding.ActivityDetailBinding
+import io.github.xixka.qbittorrent.databinding.DialogTorrentLimitsBinding
+import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.ThemeUtils
+import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.launch
 
 /**
- * Torrent details, ported from LibreTorrent's TorrentDetailsFragment:
- * toolbar with back navigation, scrollable tabs, ViewPager2 pages.
+ * Torrent details, ported from LibreTorrent's TorrentDetailsFragment
+ * (GPL-3.0): toolbar with back navigation, scrollable tabs, ViewPager2 pages
+ * (overview / files / trackers / peers / pieces) and the full qBittorrent
+ * per-torrent action set: rename, change location, speed & share limits,
+ * super seeding, tracker management.
  */
 class DetailActivity : AppCompatActivity() {
 
@@ -37,7 +48,7 @@ class DetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         // Material You dynamic colors (default on, Android 12+)
         ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
         binding = ActivityDetailBinding.inflate(layoutInflater)
@@ -49,6 +60,7 @@ class DetailActivity : AppCompatActivity() {
         binding.appBar.title = title
 
         binding.viewPager.adapter = DetailPagerAdapter(this)
+        binding.viewPager.offscreenPageLimit = 1
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.setText(TAB_TITLES[position])
         }.attach()
@@ -76,6 +88,26 @@ class DetailActivity : AppCompatActivity() {
             true
         }
 
+        R.id.rename_torrent_menu -> {
+            showRenameDialog()
+            true
+        }
+
+        R.id.change_location_menu -> {
+            showLocationDialog()
+            true
+        }
+
+        R.id.torrent_limits_menu -> {
+            showLimitsDialog()
+            true
+        }
+
+        R.id.super_seeding_menu -> {
+            showSuperSeedingDialog()
+            true
+        }
+
         R.id.force_recheck_torrent_menu -> {
             viewModel.recheck()
             true
@@ -96,7 +128,135 @@ class DetailActivity : AppCompatActivity() {
             true
         }
 
+        R.id.add_trackers_menu -> {
+            showAddTrackersDialog()
+            true
+        }
+
         else -> false
+    }
+
+    // ---------------- per-torrent dialogs (qBitController parity) ----------------
+
+    private fun showRenameDialog() {
+        val current = viewModel.state.value.info?.name ?: return
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(current)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.rename_torrent)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val name = input?.text?.toString()?.trim().orEmpty()
+                if (name.isNotEmpty()) viewModel.rename(name)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showLocationDialog() {
+        val current = viewModel.state.value.properties?.savePath
+            ?: viewModel.state.value.info?.savePath.orEmpty()
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(current)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.change_save_location)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val path = input?.text?.toString()?.trim().orEmpty()
+                if (path.isNotEmpty()) viewModel.setLocation(path)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /**
+     * Per-torrent speed + share limits, qBitController TorrentLimitsDialog
+     * parity: download/upload limits (KiB/s, 0 = unlimited) and share ratio /
+     * seeding time / inactive seeding time limits (-2 = global default).
+     */
+    private fun showLimitsDialog() {
+        val props = viewModel.state.value.properties
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_torrent_limits, null)
+        val dl = view.findViewById<TextInputEditText>(R.id.torrent_download_limit)
+        val ul = view.findViewById<TextInputEditText>(R.id.torrent_upload_limit)
+        val ratio = view.findViewById<TextInputEditText>(R.id.torrent_ratio_limit)
+        val seedTime = view.findViewById<TextInputEditText>(R.id.torrent_seeding_time_limit)
+        val inactiveSeed = view.findViewById<TextInputEditText>(R.id.torrent_inactive_seeding_time_limit)
+
+        val dlLimit = (props?.dlLimit ?: -1L).coerceAtLeast(-1L)
+        val upLimit = (props?.upLimit ?: -1L).coerceAtLeast(-1L)
+        dl?.setText(limitToText(dlLimit))
+        ul?.setText(limitToText(upLimit))
+
+        ratio?.setText("-2")
+        seedTime?.setText("-2")
+        inactiveSeed?.setText("-2")
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.torrent_limits_title)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                lifecycleScope.launch {
+                    runCatching {
+                        val dlBytes = textToLimit(dl?.text?.toString()) * 1024
+                        val ulBytes = textToLimit(ul?.text?.toString()) * 1024
+                        viewModel.setDownloadLimit(dlBytes)
+                        viewModel.setUploadLimit(ulBytes)
+                        viewModel.setShareLimits(
+                            ratio?.text?.toString()?.trim()?.toDoubleOrNull() ?: -2.0,
+                            seedTime?.text?.toString()?.trim()?.toIntOrNull() ?: -2,
+                            inactiveSeed?.text?.toString()?.trim()?.toIntOrNull() ?: -2,
+                        )
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** KiB/s text: -1 = unlimited, 0 = unlimited, n = n KiB/s. */
+    private fun limitToText(bytesPerSec: Long): String =
+        when {
+            bytesPerSec < 0 -> "-1"
+            bytesPerSec == 0L -> "-1"
+            else -> (bytesPerSec / 1024).coerceAtLeast(1).toString()
+        }
+
+    private fun textToLimit(text: String?): Long {
+        val v = text?.trim()?.toLongOrNull() ?: -1L
+        return if (v <= 0L) -1L else v
+    }
+
+    private fun showSuperSeedingDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_switch, null)
+        val sw = view.findViewById<MaterialSwitch>(R.id.dialog_switch)
+        sw?.isChecked = viewModel.state.value.properties?.superSeeding
+            ?: viewModel.state.value.info?.superSeeding ?: false
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.super_seeding)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                viewModel.setSuperSeeding(sw?.isChecked == true)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAddTrackersDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.add_trackers)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = input?.text?.toString()?.trim().orEmpty()
+                if (url.isNotEmpty()) viewModel.addTracker(url)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun confirmDelete() {
@@ -119,10 +279,11 @@ class DetailActivity : AppCompatActivity() {
             0 -> InfoFragment()
             1 -> FilesFragment()
             2 -> TrackersFragment()
-            else -> PeersFragment()
+            3 -> PeersFragment()
+            else -> PiecesFragment()
         }
 
-        override fun getItemCount() = 4
+        override fun getItemCount() = 5
     }
 
     companion object {
@@ -131,6 +292,7 @@ class DetailActivity : AppCompatActivity() {
             R.string.tab_files,
             R.string.tab_trackers,
             R.string.tab_peers,
+            R.string.tab_pieces,
         )
         private const val EXTRA_HASH = "hash"
         private const val EXTRA_NAME = "name"

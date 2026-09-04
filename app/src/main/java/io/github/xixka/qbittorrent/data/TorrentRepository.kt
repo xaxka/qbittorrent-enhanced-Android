@@ -2,8 +2,15 @@ package io.github.xixka.qbittorrent.data
 
 import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.api.QBApiClient
+import io.github.xixka.qbittorrent.model.LogEntry
+import io.github.xixka.qbittorrent.model.MainData
 import io.github.xixka.qbittorrent.model.Peer
 import io.github.xixka.qbittorrent.model.QBCategory
+import io.github.xixka.qbittorrent.model.RssRule
+import io.github.xixka.qbittorrent.model.SearchPlugin
+import io.github.xixka.qbittorrent.model.SearchResults
+import io.github.xixka.qbittorrent.model.SearchStartResponse
+import io.github.xixka.qbittorrent.model.ServerState
 import io.github.xixka.qbittorrent.model.TorrentFile
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
@@ -180,6 +187,146 @@ class TorrentRepository(private val client: QBApiClient) {
         client.withAuth { it.setUploadLimit(bytesPerSec.toString()) }
 
     suspend fun toggleAltSpeedLimits() = client.withAuth { it.toggleAltSpeedLimits() }
+
+    // ---------- extended surface (qBitController parity) ----------
+
+    /** Server state / statistics snapshot. */
+    suspend fun mainData(): MainData = client.withAuth { it.mainData() }
+
+    suspend fun serverState(): ServerState? =
+        runCatching { mainData().serverState }.getOrNull()
+
+    // tags
+
+    suspend fun tags(): List<String> = runCatching {
+        client.withAuth { it.tags() }
+    }.getOrDefault(emptyList())
+
+    suspend fun createTags(names: List<String>) =
+        client.withAuth { it.createTags(names.joinToString(",")) }
+
+    suspend fun deleteTags(names: List<String>) =
+        client.withAuth { it.deleteTags(names.joinToString(",")) }
+
+    suspend fun addTags(hashes: List<String>, tags: List<String>) =
+        client.withAuth { it.addTags(hashes.joinToString("|"), tags.joinToString(",")) }
+
+    suspend fun removeTags(hashes: List<String>, tags: List<String>) =
+        client.withAuth { it.removeTags(hashes.joinToString("|"), tags.joinToString(",")) }
+
+    // per-torrent management
+
+    suspend fun renameTorrent(hash: String, name: String) =
+        client.withAuth { it.renameTorrent(hash, name) }
+
+    suspend fun setLocation(hashes: List<String>, location: String) =
+        client.withAuth { it.setLocation(hashes.joinToString("|"), location) }
+
+    suspend fun setTorrentDownloadLimit(hashes: List<String>, bytesPerSec: Long) =
+        client.withAuth { it.setTorrentDownloadLimit(hashes.joinToString("|"), bytesPerSec.toString()) }
+
+    suspend fun setTorrentUploadLimit(hashes: List<String>, bytesPerSec: Long) =
+        client.withAuth { it.setTorrentUploadLimit(hashes.joinToString("|"), bytesPerSec.toString()) }
+
+    suspend fun setShareLimits(
+        hashes: List<String>,
+        ratioLimit: Double,
+        seedingTimeLimit: Int,
+        inactiveSeedingTimeLimit: Int,
+    ) = client.withAuth {
+        it.setShareLimits(
+            hashes.joinToString("|"),
+            ratioLimit.toString(),
+            seedingTimeLimit.toString(),
+            inactiveSeedingTimeLimit.toString(),
+        )
+    }
+
+    suspend fun setSuperSeeding(hashes: List<String>, value: Boolean) =
+        client.withAuth { it.setSuperSeeding(hashes.joinToString("|"), value.toString()) }
+
+    suspend fun editTracker(hash: String, origUrl: String, newUrl: String) =
+        client.withAuth { it.editTracker(hash, origUrl, newUrl) }
+
+    suspend fun pieceStates(hash: String): List<Int> =
+        runCatching { client.withAuth { it.pieceStates(hash) } }.getOrDefault(emptyList())
+
+    // log
+
+    suspend fun log(
+        lastKnownId: Long = -1,
+        normal: Boolean = true,
+        info: Boolean = true,
+        warning: Boolean = true,
+        critical: Boolean = true,
+    ): List<LogEntry> = client.withAuth { it.logMain(lastKnownId, normal, info, warning, critical) }
+
+    // RSS
+
+    /** Raw RSS tree (`withData` embeds the articles of every feed). */
+    suspend fun rssItems(withData: Boolean = false): JsonObject =
+        client.withAuth { it.rssItems(withData) }
+
+    suspend fun rssMarkAsRead(itemPath: String, articleId: String? = null) =
+        client.withAuth { it.rssMarkAsRead(itemPath, articleId) }
+
+    suspend fun rssRefreshItem(itemPath: String) =
+        client.withAuth { it.rssRefreshItem(itemPath) }
+
+    suspend fun rssAddFeed(url: String, path: String) =
+        client.withAuth { it.rssAddFeed(url, path) }
+
+    suspend fun rssSetFeedUrl(path: String, url: String) =
+        client.withAuth { it.rssSetFeedUrl(path, url) }
+
+    suspend fun rssAddFolder(path: String) =
+        client.withAuth { it.rssAddFolder(path) }
+
+    suspend fun rssMoveItem(itemPath: String, destPath: String) =
+        client.withAuth { it.rssMoveItem(itemPath, destPath) }
+
+    suspend fun rssRemoveItem(path: String) =
+        client.withAuth { it.rssRemoveItem(path) }
+
+    suspend fun rssRules(): Map<String, RssRule> =
+        runCatching { client.withAuth { it.rssRules() } }.getOrDefault(emptyMap())
+
+    suspend fun rssSetRule(name: String, rule: RssRule) =
+        client.withAuth {
+            it.rssSetRule(name, com.google.gson.Gson().toJson(rule))
+        }
+
+    suspend fun rssRenameRule(name: String, newName: String) =
+        client.withAuth { it.rssRenameRule(name, newName) }
+
+    suspend fun rssRemoveRule(name: String) =
+        client.withAuth { it.rssRemoveRule(name) }
+
+    // search engine
+
+    suspend fun searchStart(pattern: String, category: String, plugins: String): SearchStartResponse =
+        client.withAuth { it.searchStart(pattern, category, plugins) }
+
+    suspend fun searchStop(id: Int) = client.withAuth { it.searchStop(id) }
+
+    suspend fun searchDelete(id: Int) = client.withAuth { it.searchDelete(id) }
+
+    suspend fun searchResults(id: Int, offset: Int = 0, limit: Int = 500): SearchResults =
+        client.withAuth { it.searchResults(id, offset, limit) }
+
+    suspend fun searchPlugins(): List<SearchPlugin> =
+        runCatching { client.withAuth { it.searchPlugins() } }.getOrDefault(emptyList())
+
+    suspend fun searchEnablePlugin(names: List<String>, enable: Boolean) =
+        client.withAuth { it.searchEnablePlugin(names.joinToString("|"), enable) }
+
+    suspend fun searchInstallPlugin(sources: String) =
+        client.withAuth { it.searchInstallPlugin(sources) }
+
+    suspend fun searchUninstallPlugin(names: List<String>) =
+        client.withAuth { it.searchUninstallPlugin(names.joinToString("|")) }
+
+    suspend fun searchUpdatePlugins() = client.withAuth { it.searchUpdatePlugins() }
 }
 
 private fun String.toFormPart() = toRequestBody("text/plain".toMediaTypeOrNull())
