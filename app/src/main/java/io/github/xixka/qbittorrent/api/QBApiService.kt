@@ -14,6 +14,7 @@ import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
 import io.github.xixka.qbittorrent.model.Tracker
 import io.github.xixka.qbittorrent.model.TransferInfo
+import io.github.xixka.qbittorrent.model.WebSeed
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Response

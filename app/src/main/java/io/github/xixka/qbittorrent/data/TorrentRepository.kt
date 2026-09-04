@@ -3,6 +3,7 @@ package io.github.xixka.qbittorrent.data
 import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.api.QBApiException
+import io.github.xixka.qbittorrent.api.QBApiService
 import io.github.xixka.qbittorrent.model.LogEntry
 import io.github.xixka.qbittorrent.model.MainData
 import io.github.xixka.qbittorrent.model.Peer

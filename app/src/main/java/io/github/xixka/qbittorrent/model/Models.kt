@@ -51,6 +51,8 @@ data class TorrentInfo(
     @SerializedName("private") val isPrivate: Boolean? = false,
     /** Last chunk up/down (epoch seconds, 0 = never since start). */
     @SerializedName("last_activity") val lastActivity: Long = 0L,
+    /** Swarm availability (-1/absent while metadata is missing). */
+    @SerializedName("availability") val availability: Double = -1.0,
 ) {
     val isPaused: Boolean
         get() = state.equals("pausedDL", ignoreCase = true) || state.equals("pausedUP", ignoreCase = true) ||
