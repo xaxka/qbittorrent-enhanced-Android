@@ -20,31 +20,26 @@ import io.github.xixka.qbittorrent.databinding.FragmentWebSeedsBinding
 import kotlinx.coroutines.launch
 
 /**
- * Web seeds (HTTP sources) tab, qBitController TorrentWebSeedsTab parity:
- * list + add / edit / remove actions, selection via long-press like the
- * trackers tab. Web seeds let the torrent fetch data over plain HTTP in
- * addition to peers.
+ * Web seeds tab, qBC TorrentWebSeedsTab parity: URL cards with share /
+ * edit / delete / select-all selection mode. The add action lives in the
+ * toolbar (hosted by the activity).
  */
 class WebSeedsFragment : Fragment() {
 
     private var _binding: FragmentWebSeedsBinding? = null
     private val binding get() = _binding!!
 
-    // Resolve the shared state through the host activity so the
-    // hash-carrying factory is always used (see DetailActivity.detailViewModel).
-    private val viewModel: DetailViewModel
-        get() = (requireActivity() as DetailActivity).detailViewModel
-    private val adapter = WebSeedsAdapter(
-        isSelected = { it.url in selected },
-        onClick = { if (selected.isNotEmpty()) toggleWebSeed(it.url) },
-        onLongClick = { toggleWebSeed(it.url) },
-    )
-    private val selected = HashSet<String>()
+    private val viewModel: DetailWebSeedsViewModel
+        get() = (requireActivity() as DetailActivity).webSeedsViewModel
+
+    private val selected = LinkedHashSet<String>()
     private var actionMode: androidx.appcompat.view.ActionMode? = null
+
+    private lateinit var adapter: WebSeedsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
-        container: ViewGroup?,
+        container: ViewGroup,
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentWebSeedsBinding.inflate(inflater, container, false)
@@ -53,47 +48,45 @@ class WebSeedsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        adapter = WebSeedsAdapter(
+            selected = selected,
+            onClick = { if (selected.isNotEmpty()) toggleWebSeed(it.url) },
+            onLongClick = { toggleWebSeed(it.url) },
+        )
         binding.webSeedList.layoutManager = LinearLayoutManager(requireContext())
         binding.webSeedList.adapter = adapter
         binding.webSeedList.setEmptyView(binding.emptyViewWebSeedList)
+        binding.webSeedList.setLoadingView(null)
+
+        binding.webSeedsRefresh.setOnRefreshListener { viewModel.refresh() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state -> adapter.submitList(state.webSeeds) }
+                launch {
+                    viewModel.webSeeds.collect { webSeeds ->
+                        if (webSeeds != null) {
+                            selected.retainAll { url -> webSeeds.any { it.url == url } }
+                            adapter.submitList(webSeeds)
+                            if (selected.isEmpty()) actionMode?.finish()
+                        }
+                    }
+                }
+                launch {
+                    viewModel.isRefreshing.collect { binding.webSeedsRefresh.isRefreshing = it }
+                }
             }
         }
     }
 
-    private fun showAddWebSeedDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.add_web_seed_title)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val url = input.text?.toString()?.trim().orEmpty()
-                if (url.isNotEmpty()) viewModel.addWebSeeds(url)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+    override fun onResume() {
+        super.onResume()
+        viewModel.setScreenActive(true)
     }
 
-    /** Replace a web seed URL (engine maps origUrl -> newUrl in one call). */
-    private fun showEditWebSeedDialog(origUrl: String) {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(origUrl)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.edit_web_seed_url)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newUrl = input?.text?.toString()?.trim().orEmpty()
-                if (newUrl.isNotEmpty() && newUrl != origUrl) {
-                    viewModel.editWebSeed(origUrl, newUrl)
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+    override fun onPause() {
+        viewModel.setScreenActive(false)
+        super.onPause()
     }
 
     private fun toggleWebSeed(url: String) {
@@ -129,11 +122,6 @@ class WebSeedsFragment : Fragment() {
             mode: androidx.appcompat.view.ActionMode,
             item: MenuItem,
         ): Boolean = when (item.itemId) {
-            R.id.add_web_seed_menu -> {
-                showAddWebSeedDialog()
-                true
-            }
-
             R.id.share_web_seed_menu -> {
                 shareSelected()
                 true
@@ -154,7 +142,17 @@ class WebSeedsFragment : Fragment() {
             }
 
             R.id.select_all_web_seeds_menu -> {
-                viewModel.state.value.webSeeds.forEach { selected.add(it.url) }
+                adapter.currentList.forEach { selected.add(it.url) }
+                adapter.notifyDataSetChanged()
+                onSelectionChanged()
+                true
+            }
+
+            R.id.select_inverse_web_seeds_menu -> {
+                val old = selected.toSet()
+                selected.clear()
+                adapter.currentList.forEach { if (it.url !in old) selected.add(it.url) }
+                adapter.notifyDataSetChanged()
                 onSelectionChanged()
                 true
             }
@@ -169,8 +167,26 @@ class WebSeedsFragment : Fragment() {
         }
     }
 
+    /** Replace a web seed URL (engine maps origUrl -> newUrl in one call). */
+    private fun showEditWebSeedDialog(origUrl: String) {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(origUrl)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.edit_web_seed_url)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newUrl = input?.text?.toString()?.trim().orEmpty()
+                if (newUrl.isNotEmpty() && newUrl != origUrl) {
+                    viewModel.editWebSeed(origUrl, newUrl)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun shareSelected() {
-        val urls = viewModel.state.value.webSeeds
+        val urls = adapter.currentList
             .filter { it.url in selected }
             .joinToString("\n") { it.url }
         if (urls.isEmpty()) return

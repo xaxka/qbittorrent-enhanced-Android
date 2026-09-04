@@ -37,6 +37,8 @@ data class TorrentInfo(
     @SerializedName("f_l_piece_prio") val firstLastPiecePrio: Boolean = false,
     @SerializedName("force_start") val forceStart: Boolean = false,
     @SerializedName("super_seeding") val superSeeding: Boolean = false,
+    /** Automatic torrent management (qBC isAutomaticTorrentManagementEnabled). */
+    @SerializedName("auto_tmm") val autoTmm: Boolean = false,
     /**
      * Per-torrent share limits (engine semantics: -2 = follow the global
      * default, -1 = no limit, positive = the limit itself) and the action
@@ -88,6 +90,7 @@ data class TorrentProperties(
     @SerializedName("is_private") val isPrivate: Boolean = false,
     @SerializedName("last_seen_complete") val lastSeenComplete: Long = 0L,
     @SerializedName("nb_connections") val connections: Long = 0L,
+    @SerializedName("nb_connections_limit") val connectionsLimit: Long = -1L,
     @SerializedName("peers") val peers: Long = 0L,
     @SerializedName("peers_total") val peersTotal: Long = 0L,
     @SerializedName("piece_have") val piecesHave: Long = 0L,

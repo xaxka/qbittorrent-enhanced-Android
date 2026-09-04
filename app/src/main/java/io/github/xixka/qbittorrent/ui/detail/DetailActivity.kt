@@ -1,14 +1,15 @@
 package io.github.xixka.qbittorrent.ui.detail
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.text.InputType
-import android.view.LayoutInflater
-import android.view.View
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -19,101 +20,156 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.materialswitch.MaterialSwitch
-import com.google.android.material.tabs.TabLayout
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityDetailBinding
-import io.github.xixka.qbittorrent.databinding.DialogTorrentLimitsBinding
-import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.databinding.DialogTorrentOptionsBinding
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Torrent details, ported from LibreTorrent's TorrentDetailsFragment
- * (GPL-3.0): toolbar with back navigation, scrollable tabs, ViewPager2 pages
- * (overview / files / trackers / peers / pieces) and the full qBittorrent
- * per-torrent action set: rename, change location, speed & share limits,
- * super seeding, tracker management.
+ * Torrent detail screen, qBC TorrentScreen parity: five pages (overview /
+ * files / trackers / peers / web seeds) inside a ViewPager2 that keeps
+ * every page alive (qBC beyondViewportPageCount), per-tab ViewModels that
+ * load immediately and poll only while visible, and the qBC action set in
+ * the toolbar — resume/pause, delete, options, category, tags, rename,
+ * force recheck/reannounce, force start, super seeding, copy and export,
+ * plus the current tab's add action.
  */
 class DetailActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailBinding
-    private val viewModel: DetailViewModel by viewModels {
-        DetailViewModel.factory(application, intent.getStringExtra(EXTRA_HASH) ?: "")
+    private val viewModelFactory by lazy {
+        DetailViewModelFactory(application, intent.getStringExtra(EXTRA_HASH) ?: "")
     }
 
-    private val title by lazy { intent.getStringExtra(EXTRA_NAME) ?: "" }
+    val overviewViewModel: DetailOverviewViewModel by viewModels { viewModelFactory }
+    val filesViewModel: DetailFilesViewModel by viewModels { viewModelFactory }
+    val trackersViewModel: DetailTrackersViewModel by viewModels { viewModelFactory }
+    val peersViewModel: DetailPeersViewModel by viewModels { viewModelFactory }
+    val webSeedsViewModel: DetailWebSeedsViewModel by viewModels { viewModelFactory }
 
-    /**
-     * Shared detail state for the tab fragments. They resolve the ViewModel
-     * through this property INSTEAD of activityViewModels() — the plain
-     * activityViewModels() delegate would fall back to the default factory,
-     * which cannot construct the (Application, String) signature and crashed
-     * the app the moment a torrent was tapped ("Cannot create an instance of
-     * class DetailViewModel"). Going through here always uses the hash-aware
-     * factory registered above.
-     */
-    val detailViewModel: DetailViewModel
-        get() = viewModel
+    private var currentTab = 0
+
+    private val exportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/x-bittorrent"),
+    ) { uri -> if (uri != null) writeExport(uri) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        // Material You dynamic colors (default on, Android 12+)
         ThemeUtils.applyDynamicColors(this, ServiceLocator.prefs(this).dynamicColors)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        // keep list pages clear of the navigation bar / display cutouts
         applyWindowInsets(child = binding.viewPager, sideMask = WindowInsetsSide.BOTTOM)
 
-        // LibreTorrent-style: plain MaterialToolbar with app:menu, no setSupportActionBar
-        binding.appBar.title = title
+        binding.appBar.title = intent.getStringExtra(EXTRA_NAME) ?: ""
 
+        // qBC: every page is pre-created so each tab's data starts loading
+        // the moment the screen opens — files no longer appear seconds late.
         binding.viewPager.adapter = DetailPagerAdapter(this)
-        binding.viewPager.offscreenPageLimit = 1
+        binding.viewPager.offscreenPageLimit = TAB_TITLES.size - 1
+
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.setText(TAB_TITLES[position])
         }.attach()
 
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) = viewModel.setTab(tab.position)
-            override fun onTabUnselected(tab: TabLayout.Tab) {}
-            override fun onTabReselected(tab: TabLayout.Tab) {}
-        })
+        binding.viewPager.registerOnPageChangeCallback(
+            object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    currentTab = position
+                    rebuildMenu()
+                }
+            },
+        )
 
         binding.appBar.setNavigationOnClickListener { finishAfterTransition() }
         binding.appBar.setOnMenuItemClickListener { item -> onMenuItem(item.itemId) }
+        rebuildMenu()
 
-        // qBitController parity: the pause/resume toolbar action reflects
-        // the torrent's live state — play icon + "Resume" while stopped,
-        // pause icon + "Pause" while running (previously a static pause
-        // icon that did the opposite of what it showed when paused).
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { st ->
-                    val paused = st.info?.isPaused ?: false
-                    binding.appBar.menu.findItem(R.id.pause_resume_torrent_menu)?.apply {
-                        setIcon(
-                            if (paused) R.drawable.ic_play_arrow_24px
-                            else R.drawable.ic_pause_24px
-                        )
-                        setTitle(if (paused) R.string.resume_torrent else R.string.pause_torrent)
+                launch {
+                    overviewViewModel.torrent.collect { torrent ->
+                        if (torrent != null) {
+                            binding.appBar.title = torrent.name
+                            updateMenuState(torrent)
+                        }
                     }
                 }
+                launch {
+                    overviewViewModel.eventFlow.collect { event ->
+                        showEvent(event)
+                        if (event is DetailEvent.Message &&
+                            event.res == R.string.torrent_error_not_found
+                        ) {
+                            finish()
+                        }
+                    }
+                }
+                launch { filesViewModel.eventFlow.collect(::showEvent) }
+                launch { trackersViewModel.eventFlow.collect(::showEvent) }
+                launch { peersViewModel.eventFlow.collect(::showEvent) }
+                launch { webSeedsViewModel.eventFlow.collect(::showEvent) }
             }
+        }
+    }
+
+    /** qBC TorrentScreen action bar: overview set + current tab extras. */
+    private fun rebuildMenu() {
+        val menu = binding.appBar.menu
+        menu.clear()
+        menuInflater.inflate(R.menu.torrent_detail, menu)
+        when (currentTab) {
+            TAB_TRACKERS -> menuInflater.inflate(R.menu.torrent_detail_trackers, menu)
+            TAB_PEERS -> menuInflater.inflate(R.menu.torrent_detail_peers, menu)
+            TAB_WEBSEEDS -> menuInflater.inflate(R.menu.torrent_detail_web_seeds, menu)
+        }
+        overviewViewModel.torrent.value?.let { updateMenuState(it) }
+    }
+
+    private fun updateMenuState(torrent: io.github.xixka.qbittorrent.model.TorrentInfo) {
+        val menu = binding.appBar.menu
+        val paused = torrent.isPaused
+        menu.findItem(R.id.pause_resume_torrent_menu)?.apply {
+            setIcon(
+                if (paused) R.drawable.ic_play_arrow_24px
+                else R.drawable.ic_pause_24px
+            )
+            setTitle(if (paused) R.string.resume_torrent else R.string.pause_torrent)
+        }
+        menu.findItem(R.id.force_start_menu)?.isChecked = torrent.forceStart
+        menu.findItem(R.id.super_seeding_menu)?.isChecked =
+            overviewViewModel.properties.value?.superSeeding ?: torrent.superSeeding
+    }
+
+    private fun showEvent(event: DetailEvent) {
+        when (event) {
+            is DetailEvent.Message -> Snackbar.make(
+                binding.coordinatorLayout, getString(event.res), Snackbar.LENGTH_SHORT
+            ).show()
+
+            is DetailEvent.Error -> Snackbar.make(
+                binding.coordinatorLayout, event.message, Snackbar.LENGTH_LONG
+            ).show()
         }
     }
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
         R.id.pause_resume_torrent_menu -> {
-            if (viewModel.state.value.info?.isPaused == true) viewModel.resume() else viewModel.pause()
+            val torrent = overviewViewModel.torrent.value
+            if (torrent?.isPaused == true) overviewViewModel.resume()
+            else overviewViewModel.pause()
             true
         }
 
@@ -122,48 +178,90 @@ class DetailActivity : AppCompatActivity() {
             true
         }
 
+        R.id.torrent_options_menu -> {
+            showOptionsDialog()
+            true
+        }
+
+        R.id.category_menu -> {
+            showCategoryDialog()
+            true
+        }
+
+        R.id.tags_menu -> {
+            showTagsDialog()
+            true
+        }
+
         R.id.rename_torrent_menu -> {
             showRenameDialog()
             true
         }
 
-        R.id.change_location_menu -> {
-            showLocationDialog()
-            true
-        }
-
-        R.id.torrent_limits_menu -> {
-            showLimitsDialog()
-            true
-        }
-
-        R.id.super_seeding_menu -> {
-            showSuperSeedingDialog()
-            true
-        }
-
         R.id.force_recheck_torrent_menu -> {
-            viewModel.recheck()
+            confirmRecheck()
             true
         }
 
         R.id.force_announce_torrent_menu -> {
-            viewModel.reannounce()
+            overviewViewModel.reannounce()
             true
         }
 
-        R.id.share_magnet_menu -> {
-            val hash = viewModel.hash
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, "magnet:?xt=urn:btih:$hash")
+        R.id.force_start_menu -> {
+            val item = binding.appBar.menu.findItem(R.id.force_start_menu)
+            item.isChecked = !item.isChecked
+            overviewViewModel.setForceStart(item.isChecked)
+            true
+        }
+
+        R.id.super_seeding_menu -> {
+            val item = binding.appBar.menu.findItem(R.id.super_seeding_menu)
+            item.isChecked = !item.isChecked
+            overviewViewModel.setSuperSeeding(item.isChecked)
+            true
+        }
+
+        R.id.copy_name_menu -> {
+            copyToClipboard(overviewViewModel.torrent.value?.name.orEmpty())
+            true
+        }
+
+        R.id.copy_hash_v1_menu -> {
+            copyToClipboard(overviewViewModel.properties.value?.infohashV1.orEmpty())
+            true
+        }
+
+        R.id.copy_hash_v2_menu -> {
+            copyToClipboard(overviewViewModel.properties.value?.infohashV2.orEmpty())
+            true
+        }
+
+        R.id.copy_magnet_menu -> {
+            val torrent = overviewViewModel.torrent.value
+            copyToClipboard(torrent?.magnetUri ?: "magnet:?xt=urn:btih:${overviewViewModel.hash}")
+            true
+        }
+
+        R.id.export_torrent_menu -> {
+            overviewViewModel.export { bytes ->
+                if (bytes == null) return@export
+                runOnUiThread {
+                    val name = (overviewViewModel.torrent.value?.name ?: "torrent") + ".torrent"
+                    exportLauncher.launch(name)
+                    pendingExport = bytes
+                }
             }
-            startActivity(Intent.createChooser(intent, getString(R.string.share_magnet)))
             true
         }
 
         R.id.add_trackers_menu -> {
             showAddTrackersDialog()
+            true
+        }
+
+        R.id.add_peers_menu -> {
+            showAddPeersDialog()
             true
         }
 
@@ -175,10 +273,10 @@ class DetailActivity : AppCompatActivity() {
         else -> false
     }
 
-    // ---------------- per-torrent dialogs (qBitController parity) ----------------
+    // ---------------- qBC dialogs ----------------
 
     private fun showRenameDialog() {
-        val current = viewModel.state.value.info?.name ?: return
+        val current = overviewViewModel.torrent.value?.name ?: return
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         input?.setText(current)
@@ -187,61 +285,45 @@ class DetailActivity : AppCompatActivity() {
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val name = input?.text?.toString()?.trim().orEmpty()
-                if (name.isNotEmpty()) viewModel.rename(name)
+                if (name.isNotEmpty()) overviewViewModel.rename(name)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    private fun showLocationDialog() {
-        val current = viewModel.state.value.properties?.savePath
-            ?: viewModel.state.value.info?.savePath.orEmpty()
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(current)
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.change_save_location)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val path = input?.text?.toString()?.trim().orEmpty()
-                if (path.isNotEmpty()) viewModel.setLocation(path)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
+    /** qBC TorrentOptionsDialog parity: TMM, paths, limits, share limits. */
+    private fun showOptionsDialog() {
+        val torrent = overviewViewModel.torrent.value ?: return
+        val props = overviewViewModel.properties.value
+        val view = DialogTorrentOptionsBinding.inflate(layoutInflater)
 
-    /**
-     * Per-torrent speed + share limits, qBitController TorrentLimitsDialog
-     * parity: download/upload limits (KiB/s, 0 = unlimited) and share ratio /
-     * seeding time / inactive seeding time limits (-2 = global default,
-     * -1 = no limit) plus the action taken when a limit is reached — all
-     * prefilled from the torrent's current state so a plain OK never
-     * silently resets custom limits.
-     */
-    private fun showLimitsDialog() {
-        val info = viewModel.state.value.info
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_torrent_limits, null)
-        val dl = view.findViewById<TextInputEditText>(R.id.torrent_download_limit)
-        val ul = view.findViewById<TextInputEditText>(R.id.torrent_upload_limit)
-        val ratio = view.findViewById<TextInputEditText>(R.id.torrent_ratio_limit)
-        val seedTime = view.findViewById<TextInputEditText>(R.id.torrent_seeding_time_limit)
-        val inactiveSeed = view.findViewById<TextInputEditText>(R.id.torrent_inactive_seeding_time_limit)
-        val action = view.findViewById<MaterialAutoCompleteTextView>(R.id.share_limit_action_dropdown)
+        view.autoTmmSwitch.isChecked = torrent.autoTmm
+        view.savePathInput.setText(props?.savePath ?: torrent.savePath)
+        view.downloadPathSwitch.isChecked = props?.downloadPath?.isNotBlank() == true
+        view.downloadPathInput.setText(props?.downloadPath.orEmpty())
 
-        val props = viewModel.state.value.properties
-        val dlLimit = (props?.dlLimit ?: -1L).coerceAtLeast(-1L)
-        val upLimit = (props?.upLimit ?: -1L).coerceAtLeast(-1L)
-        dl?.setText(limitToText(dlLimit))
-        ul?.setText(limitToText(upLimit))
+        view.torrentUploadLimit.setText(limitToText(props?.upLimit ?: -1L))
+        view.torrentDownloadLimit.setText(limitToText(props?.dlLimit ?: -1L))
 
-        // -2 = global default, -1 = no limit, n > 0 = the limit itself
-        ratio?.setText(
-            info?.ratioLimit?.let { if (it <= 0) it.toInt().toString() else formatLimit(it) } ?: "-2"
+        // -2 = global default, -1 = no limit, positive = custom
+        val ratioLimit = torrent.ratioLimit
+        val seedingTime = torrent.seedingTimeLimit
+        val mode = when {
+            ratioLimit <= -2.0 && seedingTime <= -2L -> R.id.share_limit_global
+            ratioLimit == -1.0 && seedingTime == -1L -> R.id.share_limit_disable
+            else -> R.id.share_limit_custom
+        }
+        view.shareLimitMode.check(mode)
+        view.torrentRatioLimit.setText(
+            if (ratioLimit > 0) formatLimit(ratioLimit) else ""
         )
-        seedTime?.setText(info?.seedingTimeLimit?.toString() ?: "-2")
-        inactiveSeed?.setText(info?.inactiveSeedingTimeLimit?.toString() ?: "-2")
+        view.torrentSeedingTimeLimit.setText(
+            if (seedingTime > 0) seedingTime.toString() else ""
+        )
+        view.torrentInactiveSeedingTimeLimit.setText(
+            if (torrent.inactiveSeedingTimeLimit > 0) torrent.inactiveSeedingTimeLimit.toString() else ""
+        )
 
-        // Action taken when a limit is reached (qB 5.x requires it on save)
         val actions = listOf(
             getString(R.string.share_limit_action_default) to "Default",
             getString(R.string.qbt_ratio_act_stop) to "Stop",
@@ -249,102 +331,159 @@ class DetailActivity : AppCompatActivity() {
             getString(R.string.qbt_ratio_act_superseeding) to "EnableSuperSeeding",
             getString(R.string.qbt_ratio_act_remove_content) to "RemoveWithContent",
         )
-        val currentAction = actions.firstOrNull { it.second == info?.shareLimitAction }
+        val currentAction = actions.firstOrNull { it.second == torrent.shareLimitAction }
             ?: actions.first()
-        action?.setText(currentAction.first, false)
-        action?.setAdapter(
+        var selectedAction = currentAction.second
+        view.shareLimitActionDropdown.setText(currentAction.first, false)
+        view.shareLimitActionDropdown.setAdapter(
             ArrayAdapter(this, android.R.layout.simple_list_item_1, actions.map { it.first })
         )
-        var selectedAction = currentAction.second
-        action?.setOnItemClickListener { _, _, position, _ ->
+        view.shareLimitActionDropdown.setOnItemClickListener { _, position, _ ->
             selectedAction = actions[position].second
         }
 
+        view.sequentialSwitch.isChecked = torrent.sequential
+        view.firstLastSwitch.isChecked = torrent.firstLastPiecePrio
+
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.torrent_limits_title)
-            .setView(view)
+            .setTitle(R.string.torrent_action_options)
+            .setView(view.root)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val ratioValue = ratio?.text?.toString()?.trim()?.toDoubleOrNull() ?: -2.0
-                val seedValue = seedTime?.text?.toString()?.trim()?.toIntOrNull() ?: -2
-                val inactiveValue = inactiveSeed?.text?.toString()?.trim()?.toIntOrNull() ?: -2
-                viewModel.setShareLimits(ratioValue, seedValue, inactiveValue, selectedAction) { e ->
-                    Toast.makeText(
-                        this,
-                        getString(R.string.qbt_save_failed_fmt, e.message ?: ""),
-                        Toast.LENGTH_LONG,
-                    ).show()
+                // paths + TMM
+                val savePath = view.savePathInput.text?.toString()?.trim().orEmpty()
+                if (savePath.isNotEmpty() && savePath != (props?.savePath ?: torrent.savePath)) {
+                    overviewViewModel.setLocation(savePath)
                 }
-                lifecycleScope.launch {
-                    runCatching {
-                        val dlBytes = textToLimit(dl?.text?.toString()) * 1024
-                        val ulBytes = textToLimit(ul?.text?.toString()) * 1024
-                        viewModel.setDownloadLimit(dlBytes)
-                        viewModel.setUploadLimit(ulBytes)
-                    }
+                if (view.autoTmmSwitch.isChecked != torrent.autoTmm) {
+                    overviewViewModel.setAutoTmm(view.autoTmmSwitch.isChecked)
+                }
+                if (view.downloadPathSwitch.isChecked) {
+                    val dlPath = view.downloadPathInput.text?.toString()?.trim().orEmpty()
+                    if (dlPath.isNotBlank()) overviewViewModel.setDownloadPath(dlPath)
+                }
+
+                // speed limits (KiB/s -> bytes/s, 0 = unlimited)
+                overviewViewModel.setDownloadLimit(textToLimit(view.torrentDownloadLimit.text?.toString()) * 1024)
+                overviewViewModel.setUploadLimit(textToLimit(view.torrentUploadLimit.text?.toString()) * 1024)
+
+                // share limits
+                val ratio = when (view.shareLimitMode.checkedRadioButtonId) {
+                    R.id.share_limit_global -> -2.0
+                    R.id.share_limit_disable -> -1.0
+                    else -> view.torrentRatioLimit.text?.toString()?.trim()
+                        ?.toDoubleOrNull()?.takeIf { it >= 0 } ?: -2.0
+                }
+                val seedTime = when (view.shareLimitMode.checkedRadioButtonId) {
+                    R.id.share_limit_global -> -2
+                    R.id.share_limit_disable -> -1
+                    else -> view.torrentSeedingTimeLimit.text?.toString()?.trim()
+                        ?.toIntOrNull()?.takeIf { it >= 0 } ?: -2
+                }
+                val inactive = when (view.shareLimitMode.checkedRadioButtonId) {
+                    R.id.share_limit_global -> -2
+                    R.id.share_limit_disable -> -1
+                    else -> view.torrentInactiveSeedingTimeLimit.text?.toString()?.trim()
+                        ?.toIntOrNull()?.takeIf { it >= 0 } ?: -2
+                }
+                overviewViewModel.setShareLimits(ratio, seedTime, inactive, selectedAction)
+
+                if (view.sequentialSwitch.isChecked != torrent.sequential) {
+                    overviewViewModel.toggleSequential()
+                }
+                if (view.firstLastSwitch.isChecked != torrent.firstLastPiecePrio) {
+                    overviewViewModel.toggleFirstLastPiece()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    /** Compact number rendering for prefilled share limits (2.5 not 2.5000001). */
-    private fun formatLimit(v: Double): String =
-        if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
+    /** qBC SetCategoryDialog parity: single-choice category chips. */
+    private fun showCategoryDialog() {
+        overviewViewModel.loadCategories()
+        val torrent = overviewViewModel.torrent.value ?: return
+        val view = layoutInflater.inflate(R.layout.dialog_chips, null)
+        val group = view.findViewById<ChipGroup>(R.id.chips_group)
+        var selected: String? = torrent.category.ifBlank { null }
 
-    /** KiB/s text: -1 = unlimited, 0 = unlimited, n = n KiB/s. */
-    private fun limitToText(bytesPerSec: Long): String =
-        when {
-            bytesPerSec < 0 -> "-1"
-            bytesPerSec == 0L -> "-1"
-            else -> (bytesPerSec / 1024).coerceAtLeast(1).toString()
+        lifecycleScope.launch {
+            val categories = overviewViewModel.categories.first { it != null } ?: return@launch
+            if (categories.isEmpty()) {
+                view.findViewById<android.widget.TextView>(R.id.empty_text)?.run {
+                    text = getString(R.string.torrent_no_categories)
+                    visibility = android.view.View.VISIBLE
+                }
+            }
+            categories.forEach { (name, _) ->
+                val chip = layoutInflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+                chip.text = name
+                chip.isCheckable = true
+                chip.isChecked = name == selected
+                chip.setOnClickListener {
+                    selected = if (selected == name) null else name
+                }
+                group.addView(chip)
+            }
         }
 
-    private fun textToLimit(text: String?): Long {
-        val v = text?.trim()?.toLongOrNull() ?: -1L
-        return if (v <= 0L) -1L else v
-    }
-
-    private fun showSuperSeedingDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_switch, null)
-        val sw = view.findViewById<MaterialSwitch>(R.id.dialog_switch)
-        sw?.isChecked = viewModel.state.value.properties?.superSeeding
-            ?: viewModel.state.value.info?.superSeeding ?: false
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.super_seeding)
+            .setTitle(R.string.torrent_action_category)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                viewModel.setSuperSeeding(sw?.isChecked == true)
+                if (selected != torrent.category.ifBlank { null }) {
+                    overviewViewModel.setCategory(selected)
+                }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    private fun showAddTrackersDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+    /** qBC SetTagsDialog parity: multi-select tag chips. */
+    private fun showTagsDialog() {
+        overviewViewModel.loadTags()
+        val torrent = overviewViewModel.torrent.value ?: return
+        val view = layoutInflater.inflate(R.layout.dialog_chips, null)
+        val group = view.findViewById<ChipGroup>(R.id.chips_group)
+        val current = torrent.tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        val selected = current.toMutableSet()
+
+        lifecycleScope.launch {
+            val tags = overviewViewModel.tags.first { it != null } ?: return@launch
+            if (tags.isEmpty()) {
+                view.findViewById<android.widget.TextView>(R.id.empty_text)?.run {
+                    text = getString(R.string.torrent_no_tags)
+                    visibility = android.view.View.VISIBLE
+                }
+            }
+            tags.forEach { tag ->
+                val chip = layoutInflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+                chip.text = tag
+                chip.isCheckable = true
+                chip.isChecked = tag in selected
+                chip.setOnClickListener {
+                    if (!selected.add(tag)) selected.remove(tag)
+                }
+                group.addView(chip)
+            }
+        }
+
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.add_trackers)
+            .setTitle(R.string.torrent_action_tags)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val url = input?.text?.toString()?.trim().orEmpty()
-                if (url.isNotEmpty()) viewModel.addTracker(url)
+                if (selected != current.toSet()) {
+                    overviewViewModel.setTags(selected.toList())
+                }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    private fun showAddWebSeedsDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+    private fun confirmRecheck() {
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.add_web_seed_title)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val url = input?.text?.toString()?.trim().orEmpty()
-                if (url.isNotEmpty()) viewModel.addWebSeeds(url)
-            }
+            .setTitle(R.string.force_recheck_torrent)
+            .setMessage(R.string.torrent_force_recheck_confirm)
+            .setPositiveButton(android.R.string.ok) { _, _ -> overviewViewModel.recheck() }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
@@ -356,10 +495,96 @@ class DetailActivity : AppCompatActivity() {
             .setTitle(R.string.delete_dialog_title)
             .setView(view)
             .setPositiveButton(R.string.delete) { _, _ ->
-                viewModel.delete(deleteFiles.isChecked) { finish() }
+                overviewViewModel.delete(deleteFiles.isChecked) { finish() }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun showAddTrackersDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_URI
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.torrent_trackers_action_add)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = input?.text?.toString()?.trim().orEmpty()
+                if (url.isNotEmpty()) trackersViewModel.addTrackers(url)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** qBC AddPeersDialog parity: one "host:port" per line or | separated. */
+    private fun showAddPeersDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_URI
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.torrent_peers_action_add)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val raw = input?.text?.toString()?.orEmpty()
+                val peers = raw.split('\n', '|').map { it.trim() }.filter { it.isNotEmpty() }
+                if (peers.isNotEmpty()) peersViewModel.addPeers(peers)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAddWebSeedsDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_URI
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.add_web_seed_title)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = input?.text?.toString()?.trim().orEmpty()
+                if (url.isNotEmpty()) webSeedsViewModel.addWebSeeds(url)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("torrent", text))
+        Toast.makeText(this, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+    }
+
+    private var pendingExport: ByteArray? = null
+
+    private fun writeExport(uri: Uri) {
+        val bytes = pendingExport ?: return
+        pendingExport = null
+        runCatching {
+            contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
+        }.onSuccess {
+            Snackbar.make(binding.coordinatorLayout, R.string.torrent_export_success, Snackbar.LENGTH_SHORT).show()
+        }.onFailure {
+            Snackbar.make(binding.coordinatorLayout, R.string.torrent_export_error, Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    /** Compact number rendering for prefilled share limits. */
+    private fun formatLimit(v: Double): String =
+        if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
+
+    /** KiB/s text: -1 = unlimited, 0 = unlimited, n = n KiB/s. */
+    private fun limitToText(bytesPerSec: Long): String = when {
+        bytesPerSec < 0 -> "-1"
+        bytesPerSec == 0L -> "-1"
+        else -> (bytesPerSec / 1024).coerceAtLeast(1).toString()
+    }
+
+    private fun textToLimit(text: String?): Long {
+        val v = text?.trim()?.toLongOrNull() ?: -1L
+        return if (v <= 0L) -1L else v
     }
 
     private class DetailPagerAdapter(activity: FragmentActivity) :
@@ -370,11 +595,10 @@ class DetailActivity : AppCompatActivity() {
             1 -> FilesFragment()
             2 -> TrackersFragment()
             3 -> PeersFragment()
-            4 -> PiecesFragment()
             else -> WebSeedsFragment()
         }
 
-        override fun getItemCount() = 6
+        override fun getItemCount() = TAB_TITLES.size
     }
 
     companion object {
@@ -383,9 +607,11 @@ class DetailActivity : AppCompatActivity() {
             R.string.tab_files,
             R.string.tab_trackers,
             R.string.tab_peers,
-            R.string.tab_pieces,
             R.string.tab_web_seeds,
         )
+        private const val TAB_TRACKERS = 2
+        private const val TAB_PEERS = 3
+        private const val TAB_WEBSEEDS = 4
         private const val EXTRA_HASH = "hash"
         private const val EXTRA_NAME = "name"
 

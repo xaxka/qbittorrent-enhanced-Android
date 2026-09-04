@@ -1,26 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Peers tab, qBC TorrentPeersTab parity: card list with pull-to-refresh. -->
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/ThemeOverlay.App.Surface"
+    android:id="@+id/peers_refresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
-        android:id="@+id/peer_list"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingVertical="8dp"
-        android:clipToPadding="false"
-        android:paddingHorizontal="4dp"
-        tools:listitem="@layout/item_peers_list" />
+        android:layout_height="match_parent">
 
-    <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
-        android:id="@+id/empty_view_peer_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="?attr/actionBarSize"
-        app:icon="@drawable/ic_hub_24px"
-        app:text="@string/peer_list_empty"
-        tools:visibility="gone" />
-</RelativeLayout>
+        <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+            android:id="@+id/peer_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            tools:listitem="@layout/item_qbc_peer" />
+
+        <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
+            android:id="@+id/empty_view_peer_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:icon="@drawable/ic_hub_24px"
+            app:text="@string/detail_peers_empty"
+            tools:visibility="gone" />
+    </FrameLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

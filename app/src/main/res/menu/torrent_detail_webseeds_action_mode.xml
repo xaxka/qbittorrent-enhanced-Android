@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Web seeds selection action mode: share / edit / delete + select all /
+     inverse. Add-web-seed lives in the toolbar. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <item
-        android:id="@+id/add_web_seed_menu"
-        android:icon="@drawable/ic_add_24px"
-        android:title="@string/add_web_seed_title"
-        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/share_web_seed_menu"
@@ -29,6 +25,11 @@
     <item
         android:id="@+id/select_all_web_seeds_menu"
         android:icon="@drawable/ic_select_all_24px"
-        android:title="@string/select_all"
+        android:title="@string/action_select_all"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/select_inverse_web_seeds_menu"
+        android:title="@string/action_select_inverse"
         app:showAsAction="never" />
 </menu>

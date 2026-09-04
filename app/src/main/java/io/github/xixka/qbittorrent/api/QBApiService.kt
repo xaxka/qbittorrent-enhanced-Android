@@ -95,6 +95,8 @@ interface QBApiService {
         @Query("category") category: String? = null,
         @Query("sort") sort: String? = null,
         @Query("reverse") reverse: Boolean? = null,
+        /** qBC parity: restrict the response to these hashes (| separated). */
+        @Query("hashes") hashes: String? = null,
     ): List<TorrentInfo>
 
     @GET("api/v2/torrents/properties")
@@ -320,13 +322,27 @@ interface QBApiService {
         @Field("name") name: String,
     ): Response<ResponseBody>
 
-    /** qBitController parity: rename a single file inside the torrent. */
+    /**
+     * qBitController parity: rename one file inside the torrent. The engine
+     * (qB 5.x, torrentscontroller.cpp renameFileAction) requires oldPath +
+     * newPath — the legacy id+name form is gone, so both are the full
+     * torrent-relative path.
+     */
     @FormUrlEncoded
     @POST("api/v2/torrents/renameFile")
     suspend fun renameFile(
         @Field("hash") hash: String,
-        @Field("id") fileId: String,
-        @Field("name") name: String,
+        @Field("oldPath") oldPath: String,
+        @Field("newPath") newPath: String,
+    ): Response<ResponseBody>
+
+    /** qBC parity: rename a folder inside the torrent (recursive). */
+    @FormUrlEncoded
+    @POST("api/v2/torrents/renameFolder")
+    suspend fun renameFolder(
+        @Field("hash") hash: String,
+        @Field("oldPath") oldPath: String,
+        @Field("newPath") newPath: String,
     ): Response<ResponseBody>
 
     @FormUrlEncoded
@@ -361,12 +377,27 @@ interface QBApiService {
         @Field("shareLimitAction") shareLimitAction: String,
     ): Response<ResponseBody>
 
-    /** Direct super-seeding switch (the toggle variant cannot show state). */
     @FormUrlEncoded
     @POST("api/v2/torrents/setSuperSeeding")
     suspend fun setSuperSeeding(
         @Field("hashes") hashes: String,
         @Field("value") value: String,
+    ): Response<ResponseBody>
+
+    /** qBC parity: automatic torrent management switch. */
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setAutoManagement")
+    suspend fun setAutoManagement(
+        @Field("hashes") hashes: String,
+        @Field("enable") enable: String,
+    ): Response<ResponseBody>
+
+    /** qBC parity: separate path for incomplete torrents (engine param "id"). */
+    @FormUrlEncoded
+    @POST("api/v2/torrents/setDownloadPath")
+    suspend fun setDownloadPath(
+        @Field("id") hashes: String,
+        @Field("path") path: String,
     ): Response<ResponseBody>
 
     // ---------- trackers edit ----------
@@ -384,6 +415,27 @@ interface QBApiService {
     /** Per-piece state list: 0 missing, 1 downloading, 2 done. */
     @GET("api/v2/torrents/pieceStates")
     suspend fun pieceStates(@Query("hash") hash: String): List<Int>
+
+    // ---------- peers management (qBC parity) ----------
+
+    /** Manually connect to peers ("host:port" values, | separated). */
+    @FormUrlEncoded
+    @POST("api/v2/torrents/addPeers")
+    suspend fun addPeers(
+        @Field("hashes") hashes: String,
+        @Field("peers") peers: String,
+    ): Response<ResponseBody>
+
+    /** Ban peers globally ("host:port" values, | separated). */
+    @FormUrlEncoded
+    @POST("api/v2/transfer/banPeers")
+    suspend fun banPeers(
+        @Field("peers") peers: String,
+    ): Response<ResponseBody>
+
+    /** qBC parity: export the .torrent file bytes of one torrent. */
+    @GET("api/v2/torrents/export")
+    suspend fun exportTorrent(@Query("hash") hash: String): Response<ResponseBody>
 
     // ---------- log ----------
 

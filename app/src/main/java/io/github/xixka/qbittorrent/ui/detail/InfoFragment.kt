@@ -5,36 +5,39 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import java.util.Locale
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.FragmentTorrentInfoBinding
-import io.github.xixka.qbittorrent.model.QBCategory
+import io.github.xixka.qbittorrent.databinding.SheetPieceMapBinding
+import io.github.xixka.qbittorrent.model.TorrentInfo
+import io.github.xixka.qbittorrent.model.TorrentProperties
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.TorrentStates
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
- * Overview tab, ported from LibreTorrent's TorrentDetailsInfoFragment
- * (GPL-3.0): stacked filled cards — name (rename), save path (relocate),
- * options (sequential / first-last / super seeding), category + tag chips,
- * size/hash, dates, comment.
+ * Overview tab, qBC TorrentOverviewTab parity: name, progress card
+ * (category/tags chips + progress line + state-colored bar + speeds),
+ * pieces bar card (tap = piece-map bottom sheet), Information and
+ * Transfer cards. Data comes from the tab-scoped DetailOverviewViewModel
+ * which polls only while this page is the visible one.
  */
 class InfoFragment : Fragment() {
 
     private var _binding: FragmentTorrentInfoBinding? = null
     private val binding get() = _binding!!
 
-    // Resolve the shared state through the host activity so the
-    // hash-carrying factory is always used (see DetailActivity.detailViewModel).
-    private val viewModel: DetailViewModel
-        get() = (requireActivity() as DetailActivity).detailViewModel
+    private val viewModel: DetailOverviewViewModel
+        get() = (requireActivity() as DetailActivity).overviewViewModel
+
+    private var lastChipsSignature: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,110 +51,223 @@ class InfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // rename / relocate / per-torrent limits live in the toolbar menu —
-        // the buttons here open the same dialogs directly
-        binding.editNameButton.setOnClickListener { showRenameDialog() }
-        binding.folderChooserButton.setOnClickListener { showLocationDialog() }
-        binding.freeSpace.visibility = View.GONE
+        binding.overviewRefresh.setOnRefreshListener { viewModel.refresh() }
 
-        binding.sequentialDownload.setOnCheckedChangeListener { _, _ -> viewModel.toggleSequential() }
-        binding.downloadFirstLastPieces.setOnCheckedChangeListener { _, _ -> viewModel.toggleFirstLast() }
-        binding.superSeeding.setOnCheckedChangeListener { _, checked -> viewModel.setSuperSeeding(checked) }
+        binding.piecesCard.setOnClickListener { showPieceMapSheet() }
 
-        binding.addTagButton.setOnClickListener { showAddTagDialog() }
-
-        observeState()
-    }
-
-    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    render(state)
+                launch {
+                    viewModel.torrent.collect { torrent ->
+                        if (torrent != null) render(torrent, viewModel.properties.value)
+                    }
+                }
+                launch {
+                    viewModel.properties.collect { props ->
+                        val torrent = viewModel.torrent.value
+                        if (torrent != null && props != null) render(torrent, props)
+                    }
+                }
+                launch {
+                    viewModel.pieces.collect { binding.pieceBar.submit(it) }
+                }
+                launch {
+                    viewModel.isRefreshing.collect { binding.overviewRefresh.isRefreshing = it }
                 }
             }
         }
     }
 
-    private fun render(state: DetailUiState) {
-        val info = state.info ?: return
-        renderTransferRows(state)
-        binding.name.text = info.name
-        binding.savePath.text = state.properties?.savePath ?: info.savePath
-        binding.size.text = Format.size(info.size)
-        binding.hashSum.text = info.hash
-        binding.dateAdded.text = Format.epochDate(info.addedOn)
-        binding.createDate.text =
-            state.properties?.creationDate?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"
-        binding.torrentCreatedInProgram.text =
-            state.properties?.createdBy?.takeIf { it.isNotBlank() } ?: "—"
-        binding.comment.text =
-            state.properties?.comment?.takeIf { it.isNotBlank() } ?: "—"
+    override fun onResume() {
+        super.onResume()
+        viewModel.setScreenActive(true)
+    }
 
-        binding.sequentialDownload.setOnCheckedChangeListener(null)
-        binding.sequentialDownload.isChecked = info.sequential
-        binding.sequentialDownload.setOnCheckedChangeListener { _, _ -> viewModel.toggleSequential() }
+    override fun onPause() {
+        viewModel.setScreenActive(false)
+        super.onPause()
+    }
 
-        binding.downloadFirstLastPieces.setOnCheckedChangeListener(null)
-        binding.downloadFirstLastPieces.isChecked = info.firstLastPiecePrio
-        binding.downloadFirstLastPieces.setOnCheckedChangeListener { _, _ -> viewModel.toggleFirstLast() }
+    private fun render(torrent: TorrentInfo, props: TorrentProperties?) {
+        val context = binding.root.context
 
-        binding.superSeeding.setOnCheckedChangeListener(null)
-        binding.superSeeding.isChecked = state.properties?.superSeeding ?: info.superSeeding
-        binding.superSeeding.setOnCheckedChangeListener { _, checked -> viewModel.setSuperSeeding(checked) }
+        binding.torrentName.text = torrent.name
 
-        val signature = "${state.info?.category}|${state.info?.tags}|${state.tags.joinToString(",")}"
+        // ---- progress card ----
+        val signature = "${torrent.category}|${torrent.tags}"
         if (signature != lastChipsSignature) {
             lastChipsSignature = signature
-            renderCategories(state.categories)
-            renderTags(state)
+            renderChips(torrent)
+        }
+
+        val progressPercent = (torrent.progress * 100).let {
+            if (torrent.progress >= 1.0) "100" else String.format(Locale.ROOT, "%.1f", it)
+        }
+        binding.progressText.text = context.getString(
+            R.string.torrent_item_progress_format,
+            Format.size(torrent.completed),
+            Format.size(torrent.size),
+            progressPercent,
+            String.format(Locale.ROOT, "%.2f", torrent.ratio),
+        )
+        binding.etaText.text =
+            if (torrent.eta in 1..8639999) Format.duration(torrent.eta) else ""
+
+        binding.progressIndicator.apply {
+            setProgress((torrent.progress * 100).toInt().coerceIn(0, 100))
+            val (color, track) = stateColor(torrent.state)
+            setIndicatorColor(intArrayOf(color))
+            trackColor = track
+        }
+
+        binding.stateText.setText(TorrentStates.labelRes(torrent.state))
+        binding.speedText.text = buildString {
+            if (torrent.dlSpeed > 0) append("↓ ").append(Format.speed(torrent.dlSpeed))
+            if (torrent.dlSpeed > 0 && torrent.upSpeed > 0) append("  ")
+            if (torrent.upSpeed > 0) append("↑ ").append(Format.speed(torrent.upSpeed))
+        }
+
+        // ---- Information card (qBC field order) ----
+        renderRows(
+            binding.informationRows,
+            listOf(
+                R.string.torrent_overview_total_size to Format.size(props?.totalSize ?: torrent.size),
+                R.string.torrent_added_date to Format.epochDate(torrent.addedOn),
+                R.string.detail_private to getString(
+                    if (torrent.isPrivate == true) R.string.detail_yes else R.string.detail_no
+                ),
+                R.string.torrent_overview_hash_v1 to (props?.infohashV1?.ifBlank { torrent.hash } ?: torrent.hash),
+                R.string.torrent_overview_hash_v2 to (props?.infohashV2?.ifBlank { "—" } ?: "—"),
+                R.string.torrent_option_save_path to (props?.savePath ?: torrent.savePath),
+                R.string.torrent_comment to (props?.comment?.ifBlank { "—" } ?: "—"),
+                R.string.torrent_overview_pieces to (
+                    if (props != null && props.piecesNum > 0) context.getString(
+                        R.string.torrent_overview_pieces_format,
+                        props.piecesNum.toInt(),
+                        Format.size(props.pieceSize),
+                        props.piecesHave.toInt(),
+                    ) else "—"
+                    ),
+                R.string.detail_completed_on to
+                    (torrent.completionOn.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+                R.string.torrent_created_in_program to (props?.createdBy?.ifBlank { "—" } ?: "—"),
+                R.string.torrent_create_date to
+                    (props?.creationDate?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+            ),
+        )
+
+        // ---- Transfer card (qBC field order) ----
+        val timeActive = Format.duration(props?.timeActive ?: 0L)
+        val timeActiveText = if ((props?.seedingTime ?: 0L) > 0) {
+            context.getString(
+                R.string.torrent_overview_time_active_seeding_time_format,
+                timeActive,
+                Format.duration(props.seedingTime),
+            )
+        } else {
+            timeActive
+        }
+        renderRows(
+            binding.transferRows,
+            listOf(
+                R.string.detail_time_active to timeActiveText,
+                R.string.detail_downloaded_total to context.getString(
+                    R.string.torrent_overview_downloaded_format,
+                    Format.size(torrent.downloaded),
+                    Format.size(torrent.downloadedSession),
+                ),
+                R.string.detail_uploaded_total to context.getString(
+                    R.string.torrent_overview_uploaded_format,
+                    Format.size(torrent.uploaded),
+                    Format.size(torrent.uploadedSession),
+                ),
+                R.string.torrent_overview_reannounce_in to
+                    ((props?.reannounce ?: 0L).takeIf { it > 0 }?.let { Format.duration(it) } ?: "—"),
+                R.string.detail_last_activity to
+                    (torrent.lastActivity.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+                R.string.detail_last_seen_complete to
+                    (props?.lastSeenComplete?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+                R.string.detail_connections to context.getString(
+                    R.string.torrent_overview_connections_format,
+                    (props?.connections ?: 0L).toInt(),
+                    (props?.connectionsLimit ?: -1L).let { if (it > 0) it.toString() else "∞" },
+                ),
+                R.string.detail_seeds to context.getString(
+                    R.string.torrent_overview_seeds_format,
+                    (props?.seeds ?: torrent.numSeeds.toLong()).toInt(),
+                    (props?.seedsTotal ?: torrent.numSeedsTotal.toLong()).toInt(),
+                ),
+                R.string.detail_peers to context.getString(
+                    R.string.torrent_overview_peers_format,
+                    (props?.peers ?: torrent.numLeechs.toLong()).toInt(),
+                    (props?.peersTotal ?: torrent.numLeechsTotal.toLong()).toInt(),
+                ),
+                R.string.detail_wasted to Format.size(props?.totalWasted ?: 0L),
+                R.string.detail_availability to
+                    (torrent.availability.takeIf { it >= 0 }
+                        ?.let { String.format(Locale.ROOT, "%.3f", it) } ?: "—"),
+            ),
+        )
+    }
+
+    /** qBC state colors: downloading = primary, uploading = tertiary, paused = outline. */
+    private fun stateColor(state: String): Pair<Int, Int> {
+        val theme = binding.root.context.theme
+        fun attr(resId: Int): Int {
+            val typedValue = android.util.TypedValue()
+            theme.resolveAttribute(resId, typedValue, true)
+            return typedValue.data
+        }
+
+        fun track(base: Int) = (base and 0x00FFFFFF) or 0x61000000
+
+        return when (state.lowercase()) {
+            "uploading", "forcedup" -> {
+                val c = attr(com.google.android.material.R.attr.colorTertiary)
+                c to track(c)
+            }
+
+            "stoppedup", "pausedup", "stoppeddl", "pauseddl" -> {
+                val c = attr(com.google.android.material.R.attr.colorOutline)
+                c to track(c)
+            }
+
+            "error", "missingfiles" -> {
+                val c = attr(com.google.android.material.R.attr.colorError)
+                c to track(c)
+            }
+
+            else -> {
+                val c = attr(com.google.android.material.R.attr.colorPrimary)
+                c to track(c)
+            }
         }
     }
 
-    /** Avoids re-inflating chips on every 3-second background poll. */
-    private var lastChipsSignature: String? = null
+    /** Display-only category + tags chips (qBC Progress card). */
+    private fun renderChips(torrent: TorrentInfo) {
+        val group = binding.tagsChipGroup
+        group.removeAllViews()
+        val inflater = layoutInflater
+        if (torrent.category.isNotBlank()) {
+            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            chip.text = torrent.category
+            chip.isClickable = false
+            chip.isCheckable = false
+            group.addView(chip)
+        }
+        torrent.tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }.forEach { tag ->
+            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            chip.text = tag
+            chip.isClickable = false
+            chip.isCheckable = false
+            group.addView(chip)
+        }
+        group.visibility = if (group.childCount == 0) View.GONE else View.VISIBLE
+    }
 
-    /**
-     * qBitController overview parity: the transfer statistics card —
-     * progress, speeds, traffic totals, ratio, wasted, seeds/peers, ETA,
-     * time active, seeded for, completed on, private flag. Rows are reused
-     * across polls (texts updated in place, never re-inflated).
-     */
-    private fun renderTransferRows(state: DetailUiState) {
-        val info = state.info ?: return
-        val props = state.properties
-        val rows: List<Pair<Int, String>> = listOf(
-            R.string.detail_progress to "${(info.progress * 100).let { if (it < 10 && it > 0) String.format(Locale.ROOT, "%.1f", it) else it.toInt().toString() }}%",
-            R.string.detail_eta to if (info.eta in 1..8639999) Format.duration(info.eta) else "—",
-            R.string.detail_speed to "↓ ${Format.speed(info.dlSpeed)} • ↑ ${Format.speed(info.upSpeed)}",
-            R.string.detail_downloaded_total to Format.size(info.downloaded),
-            R.string.detail_uploaded_total to Format.size(info.uploaded),
-            R.string.detail_session_downloaded to Format.size(props?.downloadedSession ?: 0L),
-            R.string.detail_session_uploaded to Format.size(props?.uploadedSession ?: 0L),
-            R.string.detail_ratio to String.format(Locale.ROOT, "%.2f", info.ratio),
-            R.string.detail_wasted to Format.size(props?.totalWasted ?: 0L),
-            R.string.detail_seeds to "${info.numSeeds} / ${info.numSeedsTotal}",
-            R.string.detail_peers to "${info.numLeechs} / ${info.numLeechsTotal}",
-            R.string.detail_time_active to Format.duration(props?.timeActive ?: 0L),
-            R.string.detail_seeded_for to Format.duration(props?.seedingTime ?: 0L),
-            R.string.detail_completed_on to
-                (info.completionOn.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
-            // qBitController overview parity: swarm availability, last
-            // activity, last seen complete, v2 info hash, connection count
-            R.string.detail_availability to
-                (info.availability.takeIf { it >= 0 }?.let { String.format(Locale.ROOT, "%.3f", it) } ?: "—"),
-            R.string.detail_last_activity to
-                (info.lastActivity.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
-            R.string.detail_last_seen_complete to
-                (state.properties?.lastSeenComplete?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
-            R.string.detail_info_hash_v2 to
-                (state.properties?.infohashV2?.takeIf { it.isNotBlank() } ?: "—"),
-            R.string.detail_connections to (props?.connections ?: 0L).toString(),
-            R.string.detail_private to getString(
-                if (info.isPrivate == true) R.string.detail_yes else R.string.detail_no
-            ),
-        )
-        val container = binding.transferRows
+    /** Reuses row views across polls (texts updated in place). */
+    private fun renderRows(container: ViewGroup, rows: List<Pair<Int, String>>) {
         if (container.childCount != rows.size) {
             container.removeAllViews()
             rows.forEach { layoutInflater.inflate(R.layout.item_detail_param, container, true) }
@@ -163,106 +279,32 @@ class InfoFragment : Fragment() {
         }
     }
 
-    private fun renderCategories(categories: List<QBCategory>) {
-        val info = viewModel.state.value.info ?: return
-        val group = binding.tagsChipGroup
-        group.removeAllViews()
-        val inflater = layoutInflater
-        val current = info.category
-        if (categories.isEmpty()) {
-            if (current.isBlank()) return
-            addChip(inflater, group, current, checked = true)
-            return
-        }
-        for (c in categories) {
-            addChip(inflater, group, c.name, checked = c.name == current)
-        }
-        if (current.isBlank()) {
-            addChip(inflater, group, getString(R.string.no_categories), checked = false)
-        }
-    }
+    /** qBC PiecesBottomSheet parity: heatmap + legend + per-piece summary. */
+    private fun showPieceMapSheet() {
+        val sheetBinding = SheetPieceMapBinding.inflate(layoutInflater)
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(sheetBinding.root)
 
-    private fun addChip(inflater: LayoutInflater, group: com.google.android.material.chip.ChipGroup, name: String, checked: Boolean) {
-        val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
-        chip.text = name
-        chip.isChecked = checked
-        chip.setOnClickListener {
-            viewModel.setCategory(if (checked) "" else name)
+        val pieces = viewModel.pieces.value
+        val props = viewModel.properties.value
+        val have = pieces.count { it == 2 }
+        sheetBinding.piecesSummary.text = when {
+            pieces.isEmpty() && props != null && props.piecesNum > 0 -> getString(
+                R.string.pieces_summary,
+                props.piecesHave.toInt(),
+                props.piecesNum.toInt(),
+                Format.size(props.pieceSize),
+            )
+            pieces.isEmpty() -> getString(R.string.pieces_unavailable)
+            else -> getString(
+                R.string.pieces_summary,
+                have,
+                pieces.size,
+                if (props != null && props.pieceSize > 0) Format.size(props.pieceSize) else "—",
+            )
         }
-        group.addView(chip)
-    }
-
-    /** Torrent tags: the torrent's own tags + the server's other tags. */
-    private fun renderTags(state: DetailUiState) {
-        val info = state.info ?: return
-        val own = info.tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }
-        val others = state.tags.filter { it !in own }
-        val group = binding.tagsChipGroup
-        val inflater = layoutInflater
-        for (tag in own) {
-            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
-            chip.text = tag
-            chip.isChecked = true
-            chip.setOnClickListener { viewModel.removeTag(tag) }
-            group.addView(chip)
-        }
-        for (tag in others) {
-            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
-            chip.text = tag
-            chip.isChecked = false
-            chip.setOnClickListener { viewModel.addTags(listOf(tag)) }
-            group.addView(chip)
-        }
-    }
-
-    private fun showRenameDialog() {
-        val info = viewModel.state.value.info ?: return
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(info.name)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.rename_torrent)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val name = input?.text?.toString()?.trim().orEmpty()
-                if (name.isNotEmpty()) viewModel.rename(name)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showLocationDialog() {
-        val state = viewModel.state.value
-        val current = state.properties?.savePath ?: state.info?.savePath.orEmpty()
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(current)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.change_save_location)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val path = input?.text?.toString()?.trim().orEmpty()
-                if (path.isNotEmpty()) viewModel.setLocation(path)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showAddTagDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.add_tag)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val name = input?.text?.toString()?.trim().orEmpty()
-                if (name.isNotEmpty()) {
-                    viewModel.addTags(listOf(name))
-                    Toast.makeText(requireContext(), R.string.tag_applied, Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        sheetBinding.pieceHeatmap.submit(pieces)
+        dialog.show()
     }
 
     override fun onDestroyView() {

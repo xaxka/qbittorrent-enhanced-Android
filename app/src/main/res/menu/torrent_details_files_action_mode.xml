@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Files selection action mode, qBC parity: priority + rename as actions,
+     select all / select inverse in the overflow. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/rename_file_menu"
-        android:icon="@drawable/ic_edit_24px"
-        android:title="@string/rename_file"
+        android:id="@+id/change_priority_menu"
+        android:icon="@drawable/ic_sort_24px"
+        android:title="@string/torrent_files_action_priority"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/change_priority_menu"
-        android:title="@string/change_priority"
-        app:showAsAction="never" />
+        android:id="@+id/rename_file_menu"
+        android:icon="@drawable/ic_edit_24px"
+        android:title="@string/torrent_files_action_rename"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/select_all_files_menu"
         android:icon="@drawable/ic_select_all_24px"
-        app:showAsAction="ifRoom"
-        android:title="@string/select_all" />
+        android:title="@string/action_select_all"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/select_inverse_files_menu"
+        android:title="@string/action_select_inverse"
+        app:showAsAction="never" />
 </menu>

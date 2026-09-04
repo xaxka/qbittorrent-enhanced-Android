@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Web seeds tab extra actions, appended to the detail toolbar. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/add_web_seeds_menu"
+        android:icon="@drawable/ic_add_24px"
+        android:title="@string/add_web_seed_title"
+        app:showAsAction="ifRoom" />
+</menu>

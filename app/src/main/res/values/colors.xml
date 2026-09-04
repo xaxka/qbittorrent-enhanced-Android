@@ -163,4 +163,10 @@
     <color name="colorPieceMissing">#D6D0D7</color>
     <color name="colorPieceMissingDark">#3A3740</color>
     <color name="launcher_background">#1B5BB7</color>
+    <!-- qBC file priority colors (Color.kt parity) -->
+    <color name="colorFilePrioritySkipped">#57606A</color>
+    <color name="colorFilePriorityNormal">#2DA44E</color>
+    <color name="colorFilePriorityHigh">#FF5722</color>
+    <color name="colorFilePriorityMaximum">#CF222E</color>
+    <color name="colorFilePriorityMixed">#03A9F4</color>
 </resources>

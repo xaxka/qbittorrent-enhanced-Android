@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Torrent detail toolbar: the qBitController TorrentScreen action set.
+     Overview actions stay visible on every tab (qBC merges the current
+     tab's actions with the overview's); tab-specific extras (add trackers
+     / peers / web seeds) are appended by the activity on tab change. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/pause_resume_torrent_menu"
+        android:icon="@drawable/ic_pause_24px"
+        android:title="@string/pause_torrent"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/delete_torrent_menu"
+        android:icon="@drawable/ic_delete_24px"
+        android:title="@string/delete"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/torrent_options_menu"
+        android:icon="@drawable/ic_tune_24px"
+        android:title="@string/torrent_action_options"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/category_menu"
+        android:icon="@drawable/ic_label_24px"
+        android:title="@string/torrent_action_category"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/tags_menu"
+        android:icon="@drawable/ic_checklist_24px"
+        android:title="@string/torrent_action_tags"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/rename_torrent_menu"
+        android:icon="@drawable/ic_edit_24px"
+        android:title="@string/rename_torrent"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/force_recheck_torrent_menu"
+        android:icon="@drawable/ic_refresh_24px"
+        android:title="@string/force_recheck_torrent"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/force_announce_torrent_menu"
+        android:icon="@drawable/ic_wifi_tethering_24px"
+        android:title="@string/force_announce_torrent"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/force_start_menu"
+        android:checkable="true"
+        android:title="@string/torrent_action_force_start"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/super_seeding_menu"
+        android:checkable="true"
+        android:title="@string/super_seeding"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/copy_menu"
+        android:icon="@drawable/ic_content_copy_24px"
+        android:title="@string/torrent_action_copy"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/copy_name_menu"
+                android:title="@string/torrent_action_copy_name" />
+            <item
+                android:id="@+id/copy_hash_v1_menu"
+                android:title="@string/torrent_action_copy_hash_v1" />
+            <item
+                android:id="@+id/copy_hash_v2_menu"
+                android:title="@string/torrent_action_copy_hash_v2" />
+            <item
+                android:id="@+id/copy_magnet_menu"
+                android:title="@string/torrent_action_copy_magnet_uri" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/export_torrent_menu"
+        android:icon="@drawable/ic_download_24px"
+        android:title="@string/torrent_action_export"
+        app:showAsAction="never" />
+</menu>

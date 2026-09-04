@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Files tab, qBC TorrentFilesTab parity: tree list with pull-to-refresh. -->
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/ThemeOverlay.App.Surface"
+    android:id="@+id/files_refresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
-        android:id="@+id/file_list"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingVertical="8dp"
-        android:clipToPadding="false"
-        android:paddingHorizontal="4dp"
-        tools:itemCount="1"
-        tools:listitem="@layout/item_torrent_downloadable_file" />
+        android:layout_height="match_parent">
 
-    <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
-        android:id="@+id/empty_view_file_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="?attr/actionBarSize"
-        app:icon="@drawable/ic_lists_24px"
-        app:text="@string/file_list_empty"
-        tools:visibility="gone" />
-</RelativeLayout>
+        <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+            android:id="@+id/file_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp"
+            tools:itemCount="3"
+            tools:listitem="@layout/item_qbc_file" />
+
+        <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
+            android:id="@+id/empty_view_file_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:icon="@drawable/ic_lists_24px"
+            app:text="@string/detail_files_empty"
+            tools:visibility="gone" />
+    </FrameLayout>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -1,35 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One web seed card, qBC WebSeedItem parity: plain elevated card with the
+     URL as the title. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
-    style="@style/App.Components.ListItem"
+    style="@style/Widget.Material3.CardView.Elevated"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    app:cardCornerRadius="12dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/url"
+        style="?attr/textAppearanceTitleMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginVertical="12dp"
-        android:gravity="center_vertical"
-        android:minHeight="40dp"
-        android:orientation="vertical">
-
-        <!-- Workaround for the bug with item width stretching -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp" />
-
-        <TextView
-            android:id="@+id/url"
-            style="@style/App.Components.ListItem.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center_vertical"
-            android:maxLines="2"
-            tools:text="https://example.com/file.bin" />
-    </LinearLayout>
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        tools:text="https://example.com/file.bin" />
 </com.google.android.material.card.MaterialCardView>

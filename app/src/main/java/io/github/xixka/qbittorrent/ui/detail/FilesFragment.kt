@@ -16,24 +16,29 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.FragmentFilesBinding
-import io.github.xixka.qbittorrent.model.TorrentFile
+import io.github.xixka.qbittorrent.model.TorrentFileNode
 import kotlinx.coroutines.launch
 
 /**
- * Files tab, ported from LibreTorrent's DetailTorrentFilesFragment (GPL-3.0):
- * EmptyRecyclerView list + action mode with priority change / select all.
+ * Files tab, qBC TorrentFilesTab parity: the content as an expandable
+ * folder tree. Clicking a folder toggles it; long-press enters selection
+ * mode (priority / rename / select all / select inverse). Renaming works
+ * for both files and folders through the engine's oldPath/newPath API.
  */
 class FilesFragment : Fragment() {
 
     private var _binding: FragmentFilesBinding? = null
     private val binding get() = _binding!!
 
-    // Resolve the shared state through the host activity so the
-    // hash-carrying factory is always used (see DetailActivity.detailViewModel).
-    private val viewModel: DetailViewModel
-        get() = (requireActivity() as DetailActivity).detailViewModel
-    private lateinit var adapter: FilesAdapter
+    private val viewModel: DetailFilesViewModel
+        get() = (requireActivity() as DetailActivity).filesViewModel
+
+    private val expandedPaths = LinkedHashSet<String>()
+    private val selectedPaths = LinkedHashSet<String>()
     private var actionMode: androidx.appcompat.view.ActionMode? = null
+
+    private lateinit var adapter: FilesTreeAdapter
+    private var lastRoot: TorrentFileNode.Folder? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,46 +52,114 @@ class FilesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = FilesAdapter(
-            onSelect = { file ->
-                adapter.toggleSelection(file.index)
-                onSelectionChanged()
-            },
-            onClick = { file -> changePriority(listOf(file)) },
+        adapter = FilesTreeAdapter(
+            selected = selectedPaths,
+            expanded = expandedPaths,
+            onClick = ::onNodeClick,
+            onLongClick = ::onNodeLongClick,
+            onToggleExpand = ::toggleExpand,
         )
         binding.fileList.layoutManager = LinearLayoutManager(requireContext())
         binding.fileList.adapter = adapter
         binding.fileList.setEmptyView(binding.emptyViewFileList)
         binding.fileList.setLoadingView(null)
 
-        observeState()
-    }
+        binding.filesRefresh.setOnRefreshListener { viewModel.refresh() }
 
-    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    adapter.submitList(state.files)
+                launch {
+                    viewModel.root.collect { root ->
+                        lastRoot = root
+                        if (root != null) {
+                            // drop selections of vanished nodes (qBC behavior)
+                            val visible = flatten(root)
+                            selectedPaths.retainAll { path ->
+                                visible.any { it.path == path } || selectedInTree(root, path)
+                            }
+                        }
+                        submitNodes()
+                    }
+                }
+                launch {
+                    viewModel.isRefreshing.collect { binding.filesRefresh.isRefreshing = it }
                 }
             }
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.setScreenActive(true)
+    }
+
+    override fun onPause() {
+        viewModel.setScreenActive(false)
+        super.onPause()
+    }
+
+    private fun selectedInTree(root: TorrentFileNode.Folder, path: String): Boolean =
+        root.findChildNode(path) != null
+
+    private fun onNodeClick(node: TorrentFileNode) {
+        if (selectedPaths.isNotEmpty()) {
+            toggleSelection(node.path)
+        } else if (node is TorrentFileNode.Folder) {
+            toggleExpand(node)
+        }
+    }
+
+    private fun onNodeLongClick(node: TorrentFileNode) {
+        toggleSelection(node.path)
+    }
+
+    private fun toggleExpand(node: TorrentFileNode) {
+        if (!expandedPaths.add(node.path)) expandedPaths.remove(node.path)
+        submitNodes()
+    }
+
+    private fun toggleSelection(path: String) {
+        if (!selectedPaths.add(path)) selectedPaths.remove(path)
+        submitNodes()
+        onSelectionChanged()
+    }
+
+    private fun flatten(root: TorrentFileNode): List<TorrentFileNode> {
+        val result = mutableListOf<TorrentFileNode>()
+        val stack = ArrayDeque<TorrentFileNode>()
+        stack.add(root)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeLast()
+            if (node !== root) result.add(node)
+            if (node is TorrentFileNode.Folder && (node.level == 0 || node.path in expandedPaths)) {
+                node.children.asReversed().forEach(stack::add)
+            }
+        }
+        return result
+    }
+
+    private fun submitNodes() {
+        val root = lastRoot ?: return
+        adapter.submitList(flatten(root))
+    }
+
     private fun onSelectionChanged() {
-        if (adapter.selectedCount() > 0) {
+        if (selectedPaths.isNotEmpty()) {
             if (actionMode == null) {
                 actionMode = (requireActivity() as AppCompatActivity)
                     .startSupportActionMode(actionModeCallback)
             }
-            actionMode?.title = getString(R.string.selected_count, adapter.selectedCount())
+            actionMode?.title = getString(R.string.selected_count, selectedPaths.size)
         } else {
             actionMode?.finish()
         }
-        adapter.notifyDataSetChanged()
     }
 
     private val actionModeCallback = object : androidx.appcompat.view.ActionMode.Callback {
-        override fun onCreateActionMode(mode: androidx.appcompat.view.ActionMode, menu: Menu): Boolean {
+        override fun onCreateActionMode(
+            mode: androidx.appcompat.view.ActionMode,
+            menu: Menu,
+        ): Boolean {
             mode.menuInflater.inflate(R.menu.torrent_details_files_action_mode, menu)
             return true
         }
@@ -98,29 +171,29 @@ class FilesFragment : Fragment() {
             item: MenuItem,
         ): Boolean = when (item.itemId) {
             R.id.select_all_files_menu -> {
-                adapter.selectAll()
+                adapter.currentList.forEach { selectedPaths.add(it.path) }
+                submitNodes()
                 onSelectionChanged()
                 true
             }
 
             R.id.rename_file_menu -> {
-                // qBitController parity: exactly one selected file is renamed
-                val indexes = adapter.selectedIndexes()
-                val files = viewModel.state.value.files
-                val selected = indexes.mapNotNull { idx -> files.firstOrNull { it.index == idx } }
-                if (selected.size == 1) showRenameFileDialog(selected.first())
+                if (selectedPaths.size == 1) showRenameDialog(selectedPaths.first())
                 true
             }
 
             R.id.change_priority_menu -> {
-                val indexes = adapter.selectedIndexes()
-                if (indexes.isNotEmpty()) {
-                    // file.index is the torrent's own file id, not a list
-                    // position — resolve via the current snapshot
-                    val files = viewModel.state.value.files
-                    val selected = indexes.mapNotNull { idx -> files.firstOrNull { it.index == idx } }
-                    if (selected.isNotEmpty()) changePriority(selected)
-                }
+                if (selectedPaths.isNotEmpty()) showPriorityDialog()
+                true
+            }
+
+            R.id.select_inverse_files_menu -> {
+                val current = adapter.currentList.map { it.path }
+                val oldSelection = selectedPaths.toSet()
+                selectedPaths.clear()
+                current.forEach { if (it !in oldSelection) selectedPaths.add(it) }
+                submitNodes()
+                onSelectionChanged()
                 true
             }
 
@@ -128,59 +201,56 @@ class FilesFragment : Fragment() {
         }
 
         override fun onDestroyActionMode(mode: androidx.appcompat.view.ActionMode) {
-            adapter.clearSelection()
+            selectedPaths.clear()
+            submitNodes()
             actionMode = null
         }
     }
 
-    /**
-     * Rename a single file (qBitController TorrentFilesTab parity): the
-     * engine endpoint is torrents/renameFile with the file index + the new
-     * name (path relative to the torrent root allowed).
-     */
-    private fun showRenameFileDialog(file: TorrentFile) {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(file.name)
+    /** qBC priorities: 0 skip, 1 normal, 6 high, 7 maximum. */
+    private fun showPriorityDialog() {
+        val labels = arrayOf(
+            getString(R.string.torrent_files_priority_do_not_download),
+            getString(R.string.torrent_files_priority_normal),
+            getString(R.string.torrent_files_priority_high),
+            getString(R.string.torrent_files_priority_maximum),
+        )
+        val values = intArrayOf(0, 1, 6, 7)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.rename_file)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val name = input?.text?.toString()?.trim().orEmpty()
-                if (name.isNotEmpty()) viewModel.renameFile(file.index, name)
+            .setTitle(R.string.torrent_files_action_priority)
+            .setItems(labels) { dialog, which ->
+                viewModel.setPriority(selectedPaths.toList(), values[which])
+                selectedPaths.clear()
+                actionMode?.finish()
+                dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    /**
-     * Priority dialog: qBittorrent priorities — skip(0), low(1), normal(4),
-     * high(7), maximal(8)? The API accepts 0..7: 0 skip, 1 low, 2..6 vary,
-     * 7 max. Present the same four-choice UI as LibreTorrent.
-     */
-    private fun changePriority(files: List<TorrentFile>) {
-        val labels = arrayOf(
-            getString(R.string.file_priority_skip),
-            getString(R.string.file_priority_low),
-            getString(R.string.file_priority_normal),
-            getString(R.string.file_priority_high),
-            getString(R.string.file_priority_max),
-        )
-        val values = intArrayOf(0, 1, 4, 6, 7)
-        val current = files.firstOrNull()?.priority ?: 1
-        val checked = values.indexOfFirst { it == current }.coerceAtLeast(0)
+    /** Rename one file or folder (qBC RenameDialog). */
+    private fun showRenameDialog(path: String) {
+        val node = lastRoot?.findChildNode(path) ?: return
+        val isFolder = node is TorrentFileNode.Folder
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(node.name)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.change_priority)
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                viewModel.setFilePriority(
-                    files.map { it.index },
-                    values[which],
-                )
-                dialog.dismiss()
-                actionMode?.finish()
+            .setTitle(
+                if (isFolder) R.string.torrent_files_rename_folder
+                else R.string.torrent_files_rename_file
+            )
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val name = input?.text?.toString()?.trim().orEmpty()
+                if (name.isNotEmpty()) {
+                    if (isFolder) viewModel.renameFolder(path, name)
+                    else viewModel.renameFile(path, name)
+                }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+        actionMode?.finish()
     }
 
     override fun onDestroyView() {

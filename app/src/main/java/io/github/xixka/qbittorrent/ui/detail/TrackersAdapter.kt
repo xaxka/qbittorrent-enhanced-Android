@@ -2,69 +2,85 @@ package io.github.xixka.qbittorrent.ui.detail
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import io.github.xixka.qbittorrent.R
-import io.github.xixka.qbittorrent.databinding.ItemTrackersListBinding
+import com.google.android.material.color.MaterialColors
+import io.github.xixka.qbittorrent.databinding.ItemQbcTrackerBinding
 import io.github.xixka.qbittorrent.model.Tracker
 
 /**
- * Trackers list, ported from LibreTorrent's TrackerListAdapter (GPL-3.0):
- * url + colored status + message; selected rows shown as activated cards.
+ * Trackers list, qBC TrackerItem parity: url header, four swarm stat
+ * columns and the tracker message banner. Built-in trackers (tier marker
+ * "**" prefix in the url) are not selectable, matching qBC.
  */
 class TrackersAdapter(
-    private val isSelected: (Tracker) -> Boolean,
+    private val selected: Set<String>,
     private val onClick: (Tracker) -> Unit,
     private val onLongClick: (Tracker) -> Unit,
 ) : ListAdapter<Tracker, TrackersAdapter.ViewHolder>(DIFF) {
 
-    class ViewHolder(
-        val binding: ItemTrackersListBinding,
-    ) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(private val binding: ItemQbcTrackerBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        ViewHolder(
-            ItemTrackersListBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-        )
+        fun bind(
+            tracker: Tracker,
+            isSelectable: Boolean,
+            isSelected: Boolean,
+            onClick: (Tracker) -> Unit,
+            onLongClick: (Tracker) -> Unit,
+        ) {
+            binding.url.text = tracker.url
+            binding.statPeers.text = tracker.numPeers.toString()
+            binding.statSeeds.text = tracker.numSeeds.toString()
+            binding.statLeeches.text = tracker.numLeeches.toString()
+            binding.statDownloaded.text =
+                if (tracker.numDownloaded >= 0) tracker.numDownloaded.toString() else "—"
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) =
-        bind(holder.binding, getItem(position))
+            val msg = tracker.msg
+            binding.message.visibility =
+                if (msg.isNullOrBlank()) android.view.View.GONE else android.view.View.VISIBLE
+            binding.message.text = msg
 
-    private fun bind(binding: ItemTrackersListBinding, tracker: Tracker) {
-        binding.url.text = tracker.url
-        val (labelRes, colorRes) = trackerLabel(tracker)
-        binding.status.text = binding.root.context.getString(labelRes)
-        binding.status.setTextColor(ContextCompat.getColor(binding.root.context, colorRes))
-        // qBitController parity: tracker tier + swarm counts under the status
-        binding.tierCounts.text = binding.root.context.getString(
-            R.string.tracker_tier_counts_fmt,
-            tracker.tier,
-            tracker.numSeeds,
-            tracker.numLeeches,
-        )
-        val msg = tracker.msg
-        binding.message.text = msg
-        binding.message.visibility =
-            if (msg.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
+            if (isSelectable) {
+                binding.card.setOnClickListener { onClick(tracker) }
+                binding.card.setOnLongClickListener {
+                    onLongClick(tracker)
+                    true
+                }
+            } else {
+                binding.card.setOnClickListener(null)
+                binding.card.setOnLongClickListener(null)
+            }
 
-        binding.card.isActivated = isSelected(tracker)
-        binding.card.setOnClickListener { onClick(tracker) }
-        binding.card.setOnLongClickListener {
-            onLongClick(tracker)
-            true
+            binding.card.setCardBackgroundColor(
+                if (isSelected && isSelectable) {
+                    MaterialColors.getColor(
+                        binding.root,
+                        com.google.android.material.R.attr.colorSecondaryContainer,
+                    )
+                } else {
+                    MaterialColors.getColor(
+                        binding.root,
+                        com.google.android.material.R.attr.colorSurfaceContainerLow,
+                    )
+                },
+            )
         }
     }
 
-    /** qBittorrent tracker status codes from /torrents/trackers. */
-    private fun trackerLabel(tracker: Tracker): Pair<Int, Int> = when (tracker.status) {
-        0 -> R.string.tracker_disabled to R.color.md_theme_onSurfaceVariant
-        1 -> R.string.tracker_not_contacted to R.color.md_theme_onSurfaceVariant
-        2 -> R.string.tracker_working to R.color.colorOk
-        3 -> R.string.tracker_updating to R.color.md_theme_primary
-        4 -> R.string.tracker_not_working to R.color.md_theme_error
-        else -> R.string.tracker_not_contacted to R.color.md_theme_onSurfaceVariant
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(ItemQbcTrackerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val tracker = getItem(position)
+        holder.bind(
+            tracker = tracker,
+            isSelectable = !tracker.isBuiltIn,
+            isSelected = tracker.url in selected,
+            onClick = onClick,
+            onLongClick = onLongClick,
+        )
     }
 
     companion object {

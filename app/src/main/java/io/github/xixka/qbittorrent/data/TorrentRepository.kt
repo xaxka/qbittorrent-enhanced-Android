@@ -55,6 +55,15 @@ class TorrentRepository(private val client: QBApiClient) {
         reverse: Boolean? = null,
     ): List<TorrentInfo> = client.withAuth { it.torrents(filter, category, sort, reverse) }
 
+    /** qBC getTorrent parity: fetch exactly one torrent (hashes= filter). */
+    suspend fun torrent(hash: String): TorrentInfo? =
+        client.withAuth { it.torrents(hashes = hash) }.firstOrNull()
+
+    /** Raw bytes of the torrent's .torrent file (GET torrents/export). */
+    suspend fun exportTorrent(hash: String): ByteArray =
+        client.withAuth { it.exportTorrent(hash) }.body()?.bytes()
+            ?: throw QBApiException("Empty torrent export response")
+
     suspend fun properties(hash: String): TorrentProperties =
         client.withAuth { it.torrentProperties(hash) }
 
@@ -263,8 +272,24 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun renameTorrent(hash: String, name: String) =
         client.withAuth { it.renameTorrent(hash, name) }
 
-    suspend fun renameFile(hash: String, fileId: Int, name: String) =
-        client.withAuth { it.renameFile(hash, fileId.toString(), name) }
+    /**
+     * Rename one file (qBC parity): the engine expects oldPath + newPath —
+     * both torrent-relative full paths.
+     */
+    suspend fun renameFile(hash: String, oldPath: String, newPath: String) =
+        client.withAuth { it.renameFile(hash, oldPath, newPath) }
+
+    /** qBC parity: rename a folder inside the torrent (recursive). */
+    suspend fun renameFolder(hash: String, oldPath: String, newPath: String) =
+        client.withAuth { it.renameFolder(hash, oldPath, newPath) }
+
+    /** qBC parity: manually connect the torrent to peers ("host:port"). */
+    suspend fun addPeers(hash: String, peers: List<String>) =
+        client.withAuth { it.addPeers(hash, peers.joinToString("|")) }
+
+    /** qBC parity: ban peers globally ("host:port"). */
+    suspend fun banPeers(peers: List<String>) =
+        client.withAuth { it.banPeers(peers.joinToString("|")) }
 
     suspend fun setLocation(hashes: List<String>, location: String) =
         client.withAuth { it.setLocation(hashes.joinToString("|"), location) }
@@ -293,6 +318,14 @@ class TorrentRepository(private val client: QBApiClient) {
 
     suspend fun setSuperSeeding(hashes: List<String>, value: Boolean) =
         client.withAuth { it.setSuperSeeding(hashes.joinToString("|"), value.toString()) }
+
+    /** qBC parity: automatic torrent management switch. */
+    suspend fun setAutoManagement(hashes: List<String>, enable: Boolean) =
+        client.withAuth { it.setAutoManagement(hashes.joinToString("|"), enable.toString()) }
+
+    /** qBC parity: separate path for incomplete torrents (engine param "id"). */
+    suspend fun setDownloadPath(hashes: List<String>, path: String) =
+        client.withAuth { it.setDownloadPath(hashes.joinToString("|"), path) }
 
     suspend fun editTracker(hash: String, origUrl: String, newUrl: String) =
         client.withAuth { it.editTracker(hash, origUrl, newUrl) }

@@ -18,7 +18,6 @@
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:menu="@menu/torrent_details"
             app:navigationIcon="@drawable/ic_arrow_back_24px"
             app:title="@string/details" />
 
