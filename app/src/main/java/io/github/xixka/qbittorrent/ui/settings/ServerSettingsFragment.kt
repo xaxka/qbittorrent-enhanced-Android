@@ -64,7 +64,35 @@ class ServerSettingsFragment : Fragment() {
         }
 
         binding.addButton.setOnClickListener { showProfileDialog(null) }
+        // Engine mode: show how to reach the embedded WebUI from a LAN
+        // browser (URL + credentials) — tapping the line copies the URL.
+        binding.remoteSwitchSub.setOnClickListener {
+            val prefsNow = ServiceLocator.prefs(requireContext())
+            if (BuildConfig.IS_ENHANCED && !prefsNow.useRemoteServer) {
+                val url = "http://${lanIpAddress() ?: "127.0.0.1"}:${prefsNow.enginePort}"
+                val cm = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                        as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("WebUI", url))
+                Toast.makeText(requireContext(), R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+            }
+        }
         render()
+    }
+
+    /** First site-local IPv4 of the device (for the LAN WebUI URL). */
+    private fun lanIpAddress(): String? = runCatching {
+        java.net.NetworkInterface.getNetworkInterfaces().asSequence()
+            .filter { it.isUp && !it.isLoopback }
+            .flatMap { it.inetAddresses.asSequence() }
+            .firstOrNull { it is java.net.Inet4Address && it.isSiteLocalAddress }
+            ?.hostAddress
+    }.getOrNull()
+
+    /** Engine-mode caption: LAN WebUI address + login credentials. */
+    private fun engineCaption(): String {
+        val prefsNow = ServiceLocator.prefs(requireContext())
+        val url = "http://${lanIpAddress() ?: "127.0.0.1"}:${prefsNow.enginePort}"
+        return getString(R.string.engine_webui_access_fmt, url, prefsNow.engineUsername, prefsNow.enginePassword)
     }
 
     override fun onDestroyView() {
@@ -78,6 +106,12 @@ class ServerSettingsFragment : Fragment() {
         val list = binding.profileList
         list.removeAllViews()
         binding.emptyView.visibility = if (profiles.isEmpty()) View.VISIBLE else View.GONE
+        if (BuildConfig.IS_ENHANCED && !prefs.useRemoteServer) {
+            // engine mode: the caption doubles as the LAN WebUI access info
+            binding.remoteSwitchSub.text = engineCaption()
+        } else {
+            binding.remoteSwitchSub.setText(R.string.settings_remote_switch_sub)
+        }
         if (!BuildConfig.IS_ENHANCED || prefs.useRemoteServer) {
             profiles.forEach { profile -> list.addView(profileRow(profile)) }
         } else {

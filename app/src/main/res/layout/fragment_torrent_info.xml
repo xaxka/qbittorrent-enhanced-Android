@@ -72,6 +72,39 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp">
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            style="@style/TextAppearance.App.SectionTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:gravity="center_vertical"
+                            android:text="@string/torrent_transfer_stats"
+                            app:drawableStartCompat="@drawable/ic_speed_24px" />
+
+                        <!-- qBitController overview parity: label/value parameter
+                             rows, populated programmatically (the LibreTorrent
+                             TorrentDetailsInfoFragment pattern). -->
+                        <LinearLayout
+                            android:id="@+id/transfer_rows"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/App.Components.MaterialCard.Filled.SurfaceVariant"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

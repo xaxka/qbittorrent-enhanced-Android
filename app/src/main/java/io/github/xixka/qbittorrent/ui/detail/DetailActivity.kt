@@ -14,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -88,13 +90,30 @@ class DetailActivity : AppCompatActivity() {
 
         binding.appBar.setNavigationOnClickListener { finishAfterTransition() }
         binding.appBar.setOnMenuItemClickListener { item -> onMenuItem(item.itemId) }
+
+        // qBitController parity: the pause/resume toolbar action reflects
+        // the torrent's live state — play icon + "Resume" while stopped,
+        // pause icon + "Pause" while running (previously a static pause
+        // icon that did the opposite of what it showed when paused).
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { st ->
+                    val paused = st.info?.isPaused ?: false
+                    binding.appBar.menu.findItem(R.id.pause_resume_torrent_menu)?.apply {
+                        setIcon(
+                            if (paused) R.drawable.ic_play_arrow_24px
+                            else R.drawable.ic_pause_24px
+                        )
+                        setTitle(if (paused) R.string.resume_torrent else R.string.pause_torrent)
+                    }
+                }
+            }
+        }
     }
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
         R.id.pause_resume_torrent_menu -> {
-            val paused = viewModel.state.value.info?.state?.lowercase() in
-                setOf("pauseddl", "pausedup", "stoppeddl", "stoppedup")
-            if (paused) viewModel.resume() else viewModel.pause()
+            if (viewModel.state.value.info?.isPaused == true) viewModel.resume() else viewModel.pause()
             true
         }
 

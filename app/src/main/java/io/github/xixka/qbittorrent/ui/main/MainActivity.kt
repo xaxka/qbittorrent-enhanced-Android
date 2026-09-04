@@ -546,6 +546,10 @@ class MainActivity : AppCompatActivity() {
         if (hashes.isEmpty()) return true
         val repo = ServiceLocator.repository(this)
         when (itemId) {
+            R.id.pause_torrent_menu ->
+                lifecycleScope.launch { runCatching { repo.pause(hashes) }; viewModel.refresh() }
+            R.id.resume_torrent_menu ->
+                lifecycleScope.launch { runCatching { repo.resume(hashes) }; viewModel.refresh() }
             R.id.delete_torrent_menu -> confirmDelete(hashes)
             R.id.set_category_torrent_menu -> showSetCategoryDialog(hashes)
             R.id.set_tags_torrent_menu -> showSetTagsDialog(hashes)

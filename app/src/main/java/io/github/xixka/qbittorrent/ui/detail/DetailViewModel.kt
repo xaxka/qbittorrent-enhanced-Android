@@ -122,6 +122,14 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         }
     }
 
+    /** Rename one file inside the torrent (qBitController parity). */
+    fun renameFile(fileId: Int, name: String) = launchAction {
+        repository.renameFile(hash, fileId, name)
+        _state.update { s ->
+            s.copy(files = s.files.map { f -> if (f.index == fileId) f.copy(name = name) else f })
+        }
+    }
+
     /** Move the torrent to another save location. */
     fun setLocation(location: String) = launchAction {
         repository.setLocation(listOf(hash), location)

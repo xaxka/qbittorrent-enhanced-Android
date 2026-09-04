@@ -219,6 +219,9 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun renameTorrent(hash: String, name: String) =
         client.withAuth { it.renameTorrent(hash, name) }
 
+    suspend fun renameFile(hash: String, fileId: Int, name: String) =
+        client.withAuth { it.renameFile(hash, fileId.toString(), name) }
+
     suspend fun setLocation(hashes: List<String>, location: String) =
         client.withAuth { it.setLocation(hashes.joinToString("|"), location) }
 

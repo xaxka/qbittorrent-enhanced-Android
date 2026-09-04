@@ -132,5 +132,39 @@
                 android:maxLines="1"
                 tools:text="↓ 100 Mb • ↑ 100 Mb" />
         </LinearLayout>
+
+        <!-- qBitController parity: country + connection flags row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/peer_country"
+                style="@style/App.Components.ListItem.SupportingText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                tools:text="US" />
+
+            <TextView
+                android:id="@+id/peer_flags"
+                style="@style/App.Components.ListItem.SupportingText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end|center_vertical"
+                android:maxLines="1"
+                tools:text="Flags: D U E P" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

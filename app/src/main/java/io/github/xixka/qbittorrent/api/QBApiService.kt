@@ -280,6 +280,15 @@ interface QBApiService {
         @Field("name") name: String,
     ): Response<ResponseBody>
 
+    /** qBitController parity: rename a single file inside the torrent. */
+    @FormUrlEncoded
+    @POST("api/v2/torrents/renameFile")
+    suspend fun renameFile(
+        @Field("hash") hash: String,
+        @Field("id") fileId: String,
+        @Field("name") name: String,
+    ): Response<ResponseBody>
+
     @FormUrlEncoded
     @POST("api/v2/torrents/setLocation")
     suspend fun setLocation(

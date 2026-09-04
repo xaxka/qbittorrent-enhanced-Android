@@ -73,7 +73,15 @@ object LocalEngineManager {
             val effectiveSave = savePath.ifBlank {
                 File(ctx.getExternalFilesDir(null), "Downloads").absolutePath
             }
-            NoxConfig.seed(ctx, port, lanAccess, effectiveSave)
+            // The engine's WebUI credentials are app-managed: seed the exact
+            // username/password the app itself logs in with so the config
+            // file can never drift away from the app + LAN browser login.
+            val enginePrefs = io.github.xixka.qbittorrent.data.ServiceLocator.prefs(ctx)
+            NoxConfig.seed(
+                ctx, port, lanAccess, effectiveSave,
+                username = enginePrefs.engineUsername,
+                password = enginePrefs.enginePassword,
+            )
 
             val nativeDir = File(ctx.applicationInfo.nativeLibraryDir)
             val profileDir = NoxConfig.profileDir(ctx)

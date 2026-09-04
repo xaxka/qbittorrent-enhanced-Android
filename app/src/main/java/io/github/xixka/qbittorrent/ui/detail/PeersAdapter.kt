@@ -21,8 +21,11 @@ class PeersAdapter : ListAdapter<Peer, PeersAdapter.ViewHolder>(DIFF) {
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(peer: Peer) {
+            val ctx = itemView.context
             binding.ip.text = peer.ip
-            binding.port.text = String.format(Locale.ROOT, "Port: %d", peer.port)
+            binding.port.text = ctx.getString(
+                io.github.xixka.qbittorrent.R.string.peer_port_fmt, peer.port
+            )
             // progress arrives 0..1 on older servers and 0..100 on qB 5.1+;
             // the tolerant fraction + clamp keeps the progress bar valid
             binding.progress.setProgress(
@@ -32,16 +35,24 @@ class PeersAdapter : ListAdapter<Peer, PeersAdapter.ViewHolder>(DIFF) {
             binding.relevance.text = String.format(
                 Locale.ROOT,
                 "%s %.1f%%",
-                itemView.context.getString(io.github.xixka.qbittorrent.R.string.relevance),
+                ctx.getString(io.github.xixka.qbittorrent.R.string.relevance),
                 peer.relevance * 100,
             )
-            binding.connectionType.text =
-                "Connection: ${peer.connectionStatus.ifEmpty { "BT" }}"
+            binding.connectionType.text = ctx.getString(
+                io.github.xixka.qbittorrent.R.string.peer_connection_fmt,
+                peer.connectionStatus.ifEmpty { "BT" },
+            )
             binding.upDownSpeed.text =
                 "↓ ${Format.speed(peer.downSpeed)} • ↑ ${Format.speed(peer.upSpeed)}"
             binding.totalDownloadUpload.text =
                 "↓ ${Format.size(peer.downloaded)} • ↑ ${Format.size(peer.uploaded)}"
-            binding.client.text = "Client: ${peer.client}"
+            binding.client.text = ctx.getString(
+                io.github.xixka.qbittorrent.R.string.peer_client_fmt, peer.client
+            )
+            // qBitController parity: country + connection flags
+            binding.peerCountry.text = peer.country.ifBlank { peer.countryCode }
+            binding.peerFlags.text = if (peer.flags.isBlank()) "" else
+                ctx.getString(io.github.xixka.qbittorrent.R.string.peer_flags_fmt, peer.flags)
             binding.progress.visibility = View.VISIBLE
         }
     }

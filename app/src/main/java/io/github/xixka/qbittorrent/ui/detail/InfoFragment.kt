@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import java.util.Locale
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -73,6 +75,7 @@ class InfoFragment : Fragment() {
 
     private fun render(state: DetailUiState) {
         val info = state.info ?: return
+        renderTransferRows(state)
         binding.name.text = info.name
         binding.savePath.text = state.properties?.savePath ?: info.savePath
         binding.size.text = Format.size(info.size)
@@ -107,6 +110,47 @@ class InfoFragment : Fragment() {
 
     /** Avoids re-inflating chips on every 3-second background poll. */
     private var lastChipsSignature: String? = null
+
+    /**
+     * qBitController overview parity: the transfer statistics card —
+     * progress, speeds, traffic totals, ratio, wasted, seeds/peers, ETA,
+     * time active, seeded for, completed on, private flag. Rows are reused
+     * across polls (texts updated in place, never re-inflated).
+     */
+    private fun renderTransferRows(state: DetailUiState) {
+        val info = state.info ?: return
+        val props = state.properties
+        val rows: List<Pair<Int, String>> = listOf(
+            R.string.detail_progress to "${(info.progress * 100).let { if (it < 10 && it > 0) String.format(Locale.ROOT, "%.1f", it) else it.toInt().toString() }}%",
+            R.string.detail_eta to if (info.eta in 1..8639999) Format.duration(info.eta) else "—",
+            R.string.detail_speed to "↓ ${Format.speed(info.dlSpeed)} • ↑ ${Format.speed(info.upSpeed)}",
+            R.string.detail_downloaded_total to Format.size(info.downloaded),
+            R.string.detail_uploaded_total to Format.size(info.uploaded),
+            R.string.detail_session_downloaded to Format.size(props?.downloadedSession ?: 0L),
+            R.string.detail_session_uploaded to Format.size(props?.uploadedSession ?: 0L),
+            R.string.detail_ratio to String.format(Locale.ROOT, "%.2f", info.ratio),
+            R.string.detail_wasted to Format.size(props?.totalWasted ?: 0L),
+            R.string.detail_seeds to "${info.numSeeds} / ${info.numSeedsTotal}",
+            R.string.detail_peers to "${info.numLeechs} / ${info.numLeechsTotal}",
+            R.string.detail_time_active to Format.duration(props?.timeActive ?: 0L),
+            R.string.detail_seeded_for to Format.duration(props?.seedingTime ?: 0L),
+            R.string.detail_completed_on to
+                (info.completionOn.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+            R.string.detail_private to getString(
+                if (info.isPrivate == true) R.string.detail_yes else R.string.detail_no
+            ),
+        )
+        val container = binding.transferRows
+        if (container.childCount != rows.size) {
+            container.removeAllViews()
+            rows.forEach { layoutInflater.inflate(R.layout.item_detail_param, container, true) }
+        }
+        rows.forEachIndexed { index, (labelRes, value) ->
+            val row = container.getChildAt(index)
+            row.findViewById<TextView>(R.id.param_label).setText(labelRes)
+            row.findViewById<TextView>(R.id.param_value).text = value
+        }
+    }
 
     private fun renderCategories(categories: List<QBCategory>) {
         val info = viewModel.state.value.info ?: return

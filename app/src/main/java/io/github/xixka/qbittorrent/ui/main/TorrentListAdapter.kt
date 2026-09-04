@@ -55,10 +55,6 @@ class TorrentListAdapter(
     inner class ViewHolder(private val binding: ItemTorrentListBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        private val isPaused: (String) -> Boolean = { st ->
-            listOf("pauseddl", "pausedup", "stoppeddl", "stoppedup").any { st.startsWith(it) }
-        }
-
         fun bind(t: TorrentInfo) {
             binding.name.text = t.name
             binding.progress.progress = (t.progress * 100).toInt()
@@ -73,9 +69,14 @@ class TorrentListAdapter(
             }
             binding.peers.text = "${t.numSeeds}/${t.numLeechsTotal}"
 
-            (binding.pauseButton as MaterialButton).isChecked = !isPaused(t.state)
+            // TorrentInfo.isPaused matches the API state case-insensitively
+            // ("pausedDL" / "stoppedUP" / …). A previous case-sensitive
+            // startsWith("pauseddl") here never matched the real API values,
+            // so the button always believed the torrent was running: tapping
+            // it on a paused torrent re-sent pause and it could never resume.
+            (binding.pauseButton as MaterialButton).isChecked = !t.isPaused
             binding.pauseButton.setOnClickListener {
-                onTogglePause(t, isPaused(t.state))
+                onTogglePause(t, t.isPaused)
             }
 
             val error = t.state.startsWith("error") || t.state.startsWith("missing")

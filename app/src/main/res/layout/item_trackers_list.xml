@@ -41,6 +41,15 @@
             tools:text="Working"
             tools:textColor="?attr/colorOk" />
 
+        <!-- qBitController parity: tracker tier + swarm counts -->
+        <TextView
+            android:id="@+id/tier_counts"
+            style="@style/App.Components.ListItem.SupportingText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            tools:text="Tier: 0 • Seeds: 10 • Peers: 5" />
+
         <TextView
             android:id="@+id/message"
             style="@style/App.Components.ListItem.SupportingText"

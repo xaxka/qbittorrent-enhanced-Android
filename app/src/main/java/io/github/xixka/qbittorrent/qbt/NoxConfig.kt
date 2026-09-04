@@ -57,8 +57,15 @@ object NoxConfig {
      * settings. On the very first start a full default config is written;
      * afterwards only the managed keys are patched in place, so settings the
      * user changed through the WebUI (speed limits, connection settings, …)
-     * survive engine restarts. The WebUI password is only seeded once — if
-     * the user changes it from the WebUI, the app keeps it.
+     * survive engine restarts.
+     *
+     * The WebUI username and password are app-managed and re-applied on
+     * EVERY start: they are the credentials the app itself logs in with
+     * (Prefs.engineUsername/enginePassword) and the ones shown in Settings →
+     * Server connection. Forcing them back on restart is what keeps the
+     * app, the LAN browser login and the config file from drifting apart
+     * (a username-only patch previously desynchronized them → every LAN
+     * login answered "Invalid username or password").
      *
      * @return the effective WebUI port.
      */
@@ -67,6 +74,7 @@ object NoxConfig {
         webUiPort: Int,
         lanAccess: Boolean,
         savePath: String,
+        username: String = WEBUI_USERNAME,
         password: String = WEBUI_DEFAULT_PASSWORD,
     ): Int {
         val conf = configFile(context)
@@ -76,20 +84,33 @@ object NoxConfig {
         File(profileDir(context), "qBittorrent/qBittorrent.conf").delete()
 
         if (!conf.isFile) {
-            writeDefaultConfig(conf, webUiPort, lanAccess, savePath, password)
+            writeDefaultConfig(conf, webUiPort, lanAccess, savePath, username, password)
         } else {
-            patchConfig(conf, webUiPort, lanAccess, savePath)
+            patchConfig(conf, webUiPort, lanAccess, savePath, username, password)
         }
         return webUiPort
     }
 
-    private fun writeDefaultConfig(conf: File, webUiPort: Int, lanAccess: Boolean, savePath: String, password: String) {
+    private fun writeDefaultConfig(
+        conf: File,
+        webUiPort: Int,
+        lanAccess: Boolean,
+        savePath: String,
+        username: String,
+        password: String,
+    ) {
         val address = if (lanAccess) "*" else "127.0.0.1"
         conf.writeText(
             buildString {
                 append("[AutoRun]\nenabled=false\n\n")
                 append("[BitTorrent]\n")
                 append("Session\\DefaultSavePath=").append(escapePath(savePath)).append('\n')
+                // DHT + LSD + PeX explicit: magnets stuck at "fetching
+                // metadata" otherwise rely on migrated defaults; keep the
+                // discovery stack unconditionally on in the seed config.
+                append("Session\\DHTEnabled=true\n")
+                append("Session\\LSDEnabled=true\n")
+                append("Session\\PeXEnabled=true\n")
                 append("Session\\Port=6881\n\n")
                 append("[Core]\nAutoExitEnabled=false\n\n")
                 append("[LegalNotice]\nAccepted=true\n\n")
@@ -111,7 +132,7 @@ object NoxConfig {
                 append(")\"\n")
                 append("WebUI\\Port=").append(webUiPort).append('\n')
                 append("WebUI\\ServerDomains=*\n")
-                append("WebUI\\Username=").append(WEBUI_USERNAME).append('\n')
+                append("WebUI\\Username=").append(username).append('\n')
                 append("Connection\\PortRangeMin=6881\n")
                 append("Connection\\GlobalDLLimit=-1\n")
                 append("Connection\\GlobalUPLimit=-1\n")
@@ -127,14 +148,28 @@ object NoxConfig {
      * in qBittorrent.conf are flat: `<Section>\<Key>=value`, so a simple
      * line-level rewrite is sufficient. Missing keys/sections are appended.
      */
-    private fun patchConfig(conf: File, webUiPort: Int, lanAccess: Boolean, savePath: String) {
+    private fun patchConfig(
+        conf: File,
+        webUiPort: Int,
+        lanAccess: Boolean,
+        savePath: String,
+        username: String,
+        password: String,
+    ) {
         val address = if (lanAccess) "*" else "127.0.0.1"
         val desired = mapOf(
             KEY_WEBUI_ADDRESS to address,
             KEY_WEBUI_PORT to webUiPort.toString(),
-            KEY_WEBUI_USERNAME to WEBUI_USERNAME,
+            KEY_WEBUI_USERNAME to username,
             KEY_WEBUI_LOCAL_AUTH to "false",
             KEY_WEBUI_HOST_VALIDATION to "false",
+            // fresh PBKDF2 digest of the app-tracked password: keeps the
+            // engine in sync with what the app logs in with (and what the
+            // Settings screen shows) after every restart
+            KEY_WEBUI_PASSWORD to "\"@ByteArray(" +
+                java.util.Base64.getEncoder().encodeToString(
+                    pbkdf2String(password).toByteArray(Charsets.US_ASCII)
+                ) + ")\"",
             KEY_SAVE_PATH to escapePath(savePath),
         )
         val remaining = desired.toMutableMap()

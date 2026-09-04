@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/rename_file_menu"
+        android:icon="@drawable/ic_edit_24px"
+        android:title="@string/rename_file"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/change_priority_menu"
         android:title="@string/change_priority"
         app:showAsAction="never" />

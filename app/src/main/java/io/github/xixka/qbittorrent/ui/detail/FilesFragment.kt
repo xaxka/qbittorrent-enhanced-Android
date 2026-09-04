@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.FragmentFilesBinding
 import io.github.xixka.qbittorrent.model.TorrentFile
@@ -102,6 +103,15 @@ class FilesFragment : Fragment() {
                 true
             }
 
+            R.id.rename_file_menu -> {
+                // qBitController parity: exactly one selected file is renamed
+                val indexes = adapter.selectedIndexes()
+                val files = viewModel.state.value.files
+                val selected = indexes.mapNotNull { idx -> files.firstOrNull { it.index == idx } }
+                if (selected.size == 1) showRenameFileDialog(selected.first())
+                true
+            }
+
             R.id.change_priority_menu -> {
                 val indexes = adapter.selectedIndexes()
                 if (indexes.isNotEmpty()) {
@@ -121,6 +131,26 @@ class FilesFragment : Fragment() {
             adapter.clearSelection()
             actionMode = null
         }
+    }
+
+    /**
+     * Rename a single file (qBitController TorrentFilesTab parity): the
+     * engine endpoint is torrents/renameFile with the file index + the new
+     * name (path relative to the torrent root allowed).
+     */
+    private fun showRenameFileDialog(file: TorrentFile) {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(file.name)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.rename_file)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val name = input?.text?.toString()?.trim().orEmpty()
+                if (name.isNotEmpty()) viewModel.renameFile(file.index, name)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     /**

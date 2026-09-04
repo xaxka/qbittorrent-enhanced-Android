@@ -8,7 +8,7 @@
 #
 # 本脚本改用 NDK 工具链链接 bionic：getaddrinfo → netd（继承系统 Private DNS /
 # DNS64 / VPN DNS），DHT/peer/tracker 全部直连，DNS 与 DHT 双双根治。
-# 依赖链与上游 cross_build.sh 对齐（Qt6 静态 + openssl-linked + libtorrent RC_1_2 +
+# 依赖链与上游 cross_build.sh 对齐（Qt6 静态 + openssl-linked + libtorrent 2.0 +
 # Boost 纯头文件 + zlib-ng(compat)），仅把 musl 静态换成 bionic 动态：
 # 产物是 PIE 可执行文件，动态依赖为 bionic 系统库 + libc++_shared.so
 # （Qt 在 Android 强制 c++_shared；该 .so 随产物一并输出，由 App 经
@@ -24,7 +24,7 @@
 #   ANDROID_NDK_HOME / ANDROID_NDK_ROOT  NDK 路径（必填其一）
 #   ANDROID_PLATFORM    默认 android-24（Qt 6.8 最低支持 API 24）
 #   QT_VER / OPENSSL_VER / BOOST_VER / ZLIB_NG_VER
-#   QBT_REF / LT_REF    固定 commit SHA（默认与上游 release-5.2.3.10 配方一致）
+#   QBT_REF / LT_REF    固定 commit SHA（QBT=release-5.2.3.10；LT=v2.0.14 tag）
 #   NDK_CCACHE          如 "ccache" 则启用编译缓存（NDK 工具链原生支持）
 #
 # 各阶段幂等（以安装产物为标记），配合 actions/cache 可断点续跑。
@@ -41,11 +41,12 @@ OPENSSL_VER="${OPENSSL_VER:-3.5.1}"
 BOOST_VER="${BOOST_VER:-1.86.0}"
 ZLIB_NG_VER="${ZLIB_NG_VER:-2.3.3}"
 QBT_REPO="${QBT_REPO:-https://github.com/c0re100/qBittorrent-Enhanced-Edition.git}"
-# release-5.2.3.10（与 App QBittorrentSpec.EMBEDDED_VERSION 一致）
+# release-5.2.3.10 分支（qbittorrent-enhanced 上游 tag）
 QBT_REF="${QBT_REF:-44ee266a575600d04788623b6939e47443d27ed1}"
 LT_REPO="${LT_REPO:-https://github.com/arvidn/libtorrent.git}"
-# 上游 cross_build.sh 的 LIBTORRENT_BRANCH=RC_1_2 固定到具体 commit
-LT_REF="${LT_REF:-c5ff6c3186a92ddec01f6f0a8146aaedb4a1c3f9}"
+# libtorrent v2.0.14（tag 固定到 commit）：2.0 系列与 qBittorrent-Enhanced
+# 官方发行一致；v2 DHT 才能解析 BitTorrent v2 / 混合磁力的元数据
+LT_REF="${LT_REF:-aab2a10e2f60d9eac78e885a696736d043527794}"
 ANDROID_PLATFORM="${ANDROID_PLATFORM:-android-24}"
 
 NDK="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
@@ -320,7 +321,7 @@ PYEOF
 # ---------------------------------------------------------------- libtorrent 补丁
 #
 # Android 假「监听 IP 失败」告警抑制：
-# libtorrent RC_1_2 在 TORRENT_ANDROID && __ANDROID_API__ >= 24 时，enum_routes()
+# libtorrent 1.2 在 TORRENT_ANDROID && __ANDROID_API__ >= 24 时，enum_routes()
 # 为硬编码存根（enum_net.cpp 尾部：netlink 对 app 进程不可用，上游有意放弃），
 # 恒返回 operation_not_supported；reopen_listen_sockets() 把这个预期内失败发成
 # listen_failed_alert（device 为空、endpoint 默认构造），qBittorrent 侧即误报：
@@ -340,16 +341,22 @@ def patch(rel_path, replacements):
     path = f"{root}/{rel_path}"
     with open(path, encoding="utf-8") as f:
         text = f.read()
+    applied = 0
     for old, new in replacements:
         if new in text:
+            applied += 1
             continue  # 已应用（幂等：脚本可能对同一源码树多次执行）
         count = text.count(old)
         if count != 1:
-            sys.exit(f"libtorrent android patch: pattern count={count} in {rel_path}: {old[:72]!r}")
+            # libtorrent 2.x 代码布局不同：该告警抑制补丁为 1.2 专属，
+            # 模式未命中时跳过（仅为噪声抑制，不影响功能），不阻断构建。
+            print(f"libtorrent android patch: pattern count={count} in {rel_path}, skipped")
+            continue
         text = text.replace(old, new, 1)
+        applied += 1
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
-    print(f"libtorrent android patch: {rel_path} OK")
+    print(f"libtorrent android patch: {rel_path} {applied}/{len(replacements)} applied")
 
 patch("src/session_impl.cpp", [
     ("\t\t\tauto const routes = enum_routes(m_io_service, ec);\n"

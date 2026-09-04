@@ -37,6 +37,13 @@ class TrackersAdapter(
         val (labelRes, colorRes) = trackerLabel(tracker)
         binding.status.text = binding.root.context.getString(labelRes)
         binding.status.setTextColor(ContextCompat.getColor(binding.root.context, colorRes))
+        // qBitController parity: tracker tier + swarm counts under the status
+        binding.tierCounts.text = binding.root.context.getString(
+            R.string.tracker_tier_counts_fmt,
+            tracker.tier,
+            tracker.numSeeds,
+            tracker.numLeeches,
+        )
         val msg = tracker.msg
         binding.message.text = msg
         binding.message.visibility =

@@ -21,8 +21,11 @@ env:
   ZLIB_NG_VER: 2.3.3
   # qBittorrent-Enhanced-Edition release-5.2.3.10 (pinned commit)
   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
-  # libtorrent RC_1_2 (pinned commit, matches upstream cross_build.sh recipe)
-  LT_REF: c5ff6c3186a92ddec01f6f0a8146aaedb4a1c3f9
+  # libtorrent 2.0.14 (pinned tag v2.0.14; the 2.0 series is what the
+  # qbittorrent-enhanced release builds ship). v2 DHT is required for
+  # BitTorrent v2 / hybrid magnets, whose metadata the 1.2-series DHT can
+  # never resolve (magnets stuck forever at "fetching metadata").
+  LT_REF: aab2a10e2f60d9eac78e885a696736d043527794
   ANDROID_PLATFORM: android-24
   NDK_CCACHE: ccache
 
@@ -99,7 +102,7 @@ jobs:
             qbt-ccache-${{ matrix.ABI }}-v1-
 
       # Full bionic cross-compile pipeline from OpenListAndroid: zlib-ng → OpenSSL
-      # → Boost headers → host Qt (aqt) → android Qt (static) → libtorrent RC_1_2
+      # → Boost headers → host Qt (aqt) → android Qt (static) → libtorrent 2.0
       # → qBittorrent-Enhanced-nox. install_output() in the script also bundles
       # libc++_shared.so (32-bit ARM sysroot dir is "arm-linux-androideabi")
       # and validates e_type=DYN + PT_INTERP + bionic-only NEEDED deps.
@@ -145,37 +148,6 @@ jobs:
           if-no-files-found: error
 
   # ---------------------------------------------------------------------
-  # Fast compile gate: builds the debug APK (jniLibs may be absent locally) so
-  # Kotlin / resource errors surface within minutes instead of after the
-  # long qbittorrent-nox cross-compile. The full build below only runs when
-  # this passes.
-  # ---------------------------------------------------------------------
-  compile-check:
-    name: Compile check (fast feedback)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Accept Android SDK licenses
-        run: |
-          chmod +x ./gradlew
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" > /dev/null
-
-      - name: Compile (debug, no native libs needed)
-        run: ./gradlew assembleDebug --stacktrace
-
-  # ---------------------------------------------------------------------
   # Settings completeness gate: the in-app preferences editor must cover
   # EVERY round-trippable WebUI Options key of the pinned
   # qbittorrent-enhanced engine (see config/qb_enhanced_prefs_required.txt
@@ -193,11 +165,14 @@ jobs:
 
   # ---------------------------------------------------------------------
   # Build the single enhanced edition (per-ABI split APKs).
+  # The former compile-check fast gate is gone: the nox cross-compile hits
+  # the dependency cache in seconds, so it no longer pays for itself — the
+  # full build below is the compile check.
   # ---------------------------------------------------------------------
   build:
     name: Build qBittorrent Enhanced
     runs-on: ubuntu-latest
-    needs: [qbt-nox, compile-check, prefs-coverage]
+    needs: [qbt-nox, prefs-coverage]
     permissions:
       contents: write
     steps:
