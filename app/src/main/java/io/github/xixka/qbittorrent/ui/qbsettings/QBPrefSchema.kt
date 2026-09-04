@@ -393,8 +393,8 @@ object QBPrefSchema {
                 def = true,
             ),
             header(R.string.qbt_webui_auth),
-            field("web_ui_username", R.string.qbt_webui_username, PrefKind.TEXT, def = admin, blankKeepsValue = true),
-            field("web_ui_password", R.string.qbt_webui_password, PrefKind.PASSWORD, def = , blankKeepsValue = true),
+            field("web_ui_username", R.string.qbt_webui_username, PrefKind.TEXT, def = "admin", blankKeepsValue = true),
+            field("web_ui_password", R.string.qbt_webui_password, PrefKind.PASSWORD, def = "", blankKeepsValue = true),
             field("bypass_local_auth", R.string.qbt_webui_bypass_local, PrefKind.BOOL, def = false),
             header(R.string.qbt_webui_auth_section),
             field(

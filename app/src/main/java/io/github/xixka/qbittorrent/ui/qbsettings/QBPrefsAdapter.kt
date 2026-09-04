@@ -275,7 +275,11 @@ class QBPrefsAdapter(
                     if (code != null) return JsonPrimitive(code)
                 }
             }
-            return JsonPrimitive(value)
+            return when (value) {
+                is Number -> JsonPrimitive(value)
+                is Boolean -> JsonPrimitive(value)
+                else -> JsonPrimitive(value.toString())
+            }
         }
     }
 
