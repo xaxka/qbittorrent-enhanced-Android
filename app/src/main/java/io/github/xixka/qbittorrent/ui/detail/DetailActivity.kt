@@ -338,7 +338,7 @@ class DetailActivity : AppCompatActivity() {
         view.shareLimitActionDropdown.setAdapter(
             ArrayAdapter(this, android.R.layout.simple_list_item_1, actions.map { it.first })
         )
-        view.shareLimitActionDropdown.setOnItemClickListener { _, position, _ ->
+        view.shareLimitActionDropdown.setOnItemClickListener { _, _, position, _ ->
             selectedAction = actions[position].second
         }
 
@@ -527,7 +527,7 @@ class DetailActivity : AppCompatActivity() {
             .setTitle(R.string.torrent_peers_action_add)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val raw = input?.text?.toString()?.orEmpty()
+                val raw = input?.text?.toString().orEmpty()
                 val peers = raw.split('\n', '|').map { it.trim() }.filter { it.isNotEmpty() }
                 if (peers.isNotEmpty()) peersViewModel.addPeers(peers)
             }

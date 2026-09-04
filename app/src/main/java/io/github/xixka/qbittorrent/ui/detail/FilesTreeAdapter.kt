@@ -79,7 +79,7 @@ class FilesTreeAdapter(
             }
             val color = ContextCompat.getColor(context, priorityColor)
             binding.fileProgress.apply {
-                setIndicatorColor(intArrayOf(color))
+                setIndicatorColor(color)
                 trackColor = (color and 0x00FFFFFF) or 0x61000000
                 setProgress((node.progress * 100).toInt().coerceIn(0, 100))
             }

@@ -116,7 +116,7 @@ class InfoFragment : Fragment() {
         binding.progressIndicator.apply {
             setProgress((torrent.progress * 100).toInt().coerceIn(0, 100))
             val (color, track) = stateColor(torrent.state)
-            setIndicatorColor(intArrayOf(color))
+            setIndicatorColor(color)
             trackColor = track
         }
 
@@ -158,11 +158,12 @@ class InfoFragment : Fragment() {
 
         // ---- Transfer card (qBC field order) ----
         val timeActive = Format.duration(props?.timeActive ?: 0L)
-        val timeActiveText = if ((props?.seedingTime ?: 0L) > 0) {
+        val seedingTime = props?.seedingTime ?: 0L
+        val timeActiveText = if (seedingTime > 0) {
             context.getString(
                 R.string.torrent_overview_time_active_seeding_time_format,
                 timeActive,
-                Format.duration(props.seedingTime),
+                Format.duration(seedingTime),
             )
         } else {
             timeActive
@@ -233,12 +234,12 @@ class InfoFragment : Fragment() {
             }
 
             "error", "missingfiles" -> {
-                val c = attr(com.google.android.material.R.attr.colorError)
+                val c = attr(android.R.attr.colorError)
                 c to track(c)
             }
 
             else -> {
-                val c = attr(com.google.android.material.R.attr.colorPrimary)
+                val c = attr(android.R.attr.colorPrimary)
                 c to track(c)
             }
         }

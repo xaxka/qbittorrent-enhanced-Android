@@ -41,7 +41,7 @@ sealed interface DetailEvent {
  *    after each completed load — never queueing requests;
  *  - switching tabs never wipes another tab's data.
  */
-abstract class DetailTabViewModel(app: Application, protected val hash: String) :
+abstract class DetailTabViewModel(app: Application, val hash: String) :
     AndroidViewModel(app) {
 
     protected val repository = ServiceLocator.repository(app)

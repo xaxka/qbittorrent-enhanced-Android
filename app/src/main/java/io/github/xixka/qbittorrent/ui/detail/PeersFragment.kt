@@ -46,7 +46,7 @@ class PeersFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
-        container: ViewGroup,
+        container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentPeersBinding.inflate(inflater, container, false)

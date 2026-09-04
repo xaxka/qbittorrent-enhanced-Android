@@ -71,11 +71,16 @@ sealed class TorrentFileNode(
         /** null = mixed priorities (qBC semantics); 0 = all skipped. */
         override val priority: Int? by lazy {
             var current: Int? = null
+            var mixed = false
             for (node in children) {
-                val p = node.priority ?: return null
-                if (current == null) current = p else if (current != p) return null
+                val p = node.priority
+                if (p == null || (current != null && current != p)) {
+                    mixed = true
+                    break
+                }
+                if (current == null) current = p
             }
-            current
+            if (mixed) null else current
         }
 
         fun findChildNode(path: String): TorrentFileNode? {
