@@ -122,6 +122,15 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_DYNAMIC_COLORS, true)
         set(value) = sp.edit().putBoolean(KEY_DYNAMIC_COLORS, value).apply()
 
+    /**
+     * Whether the RSS section shows as a bottom-navigation tab. Users who
+     * do not use RSS can hide it to keep the navigation minimal (the tab
+     * and its root fragment simply stay away; nothing is deleted).
+     */
+    var showRss: Boolean
+        get() = sp.getBoolean(KEY_SHOW_RSS, true)
+        set(value) = sp.edit().putBoolean(KEY_SHOW_RSS, value).apply()
+
     /** Day/night mode: system (default), light or dark. */
     var themeMode: String
         get() = sp.getString(KEY_THEME_MODE, ThemeUtils.MODE_SYSTEM) ?: ThemeUtils.MODE_SYSTEM
@@ -267,6 +276,7 @@ class Prefs(context: Context) {
         const val KEY_ENGINE_PASSWORD = "engine_password"
         const val KEY_UPDATE_CHECK_LAST = "update_check_last"
         const val KEY_DYNAMIC_COLORS = "dynamic_colors"
+        const val KEY_SHOW_RSS = "show_rss"
         const val KEY_THEME_MODE = "theme_mode"
         const val KEY_SERVERS_JSON = "servers_json"
         const val KEY_ACTIVE_SERVER = "active_server_id"

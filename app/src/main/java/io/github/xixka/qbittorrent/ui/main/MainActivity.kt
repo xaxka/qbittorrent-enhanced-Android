@@ -227,6 +227,11 @@ class MainActivity : AppCompatActivity() {
 
         restoreFragments(savedInstanceState)
 
+        // RSS section visibility follows the Settings toggle (default on);
+        // live changes update the bottom navigation without a restart.
+        applyRssVisibility(ServiceLocator.prefs(this).showRss)
+        registerRssPrefListener()
+
         setupDrawer()
         observeState()
 
@@ -304,6 +309,35 @@ class MainActivity : AppCompatActivity() {
         TAB_SETTINGS -> SettingsFragment()
         else -> throw IllegalArgumentException("unknown tab $tab")
     }
+
+    // ---------------- RSS section visibility ----------------
+
+    /** Hides or shows the RSS tab of the bottom navigation. */
+    private fun applyRssVisibility(show: Boolean) {
+        binding.bottomNavigation.menu.findItem(R.id.rss_nav)?.isVisible = show
+        if (!show && currentTab == TAB_RSS) {
+            // the visible tab vanished from the nav: return to the list
+            navSelectionSuppressed = true
+            currentTab = TAB_HOME
+            updateContainerVisibility()
+            binding.bottomNavigation.selectedItemId = R.id.home_nav
+            navSelectionSuppressed = false
+        }
+    }
+
+    /** Reacts to Settings toggling the RSS section while the app runs. */
+    private fun registerRssPrefListener() {
+        val prefs = ServiceLocator.prefs(this)
+        rssPrefListener =
+            android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key == io.github.xixka.qbittorrent.data.Prefs.KEY_SHOW_RSS) {
+                    runOnUiThread { applyRssVisibility(prefs.showRss) }
+                }
+            }
+        prefs.registerChangeListener(rssPrefListener!!)
+    }
+
+    private var rssPrefListener: android.content.SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     /**
      * Pushes an in-place sub-page (settings sub-screens, RSS articles, engine
@@ -396,6 +430,14 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(STATE_CURRENT_TAB, currentTab)
+    }
+
+    override fun onDestroy() {
+        rssPrefListener?.let {
+            runCatching { ServiceLocator.prefs(this).unregisterChangeListener(it) }
+        }
+        rssPrefListener = null
+        super.onDestroy()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {

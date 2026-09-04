@@ -6,22 +6,31 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
+import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Shared state of the qBittorrent preferences editor.
+ * Shared state of the dynamic qBittorrent preferences editor.
  *
  * Loads the live preference snapshot of the connected qBittorrent instance
- * (`GET /api/v2/app/preferences`) and applies user edits as a partial diff
+ * (`GET /api/v2/app/preferences`), keeps the user's edits in an editable
+ * working copy and applies them as a partial diff
  * (`POST /api/v2/app/setPreferences`) — exactly the mechanism the official
  * WebUI Options dialog uses, so every setting available there can be edited
  * here too.
+ *
+ * The tab rows render from [sections] (schema order, plus an "other" section
+ * for keys this app build does not know) and read/write their values through
+ * [value]/[setValue], so the UI itself is fully generated and version-proof.
+ *
+ * Scoped to the ACTIVITY (all tabs and the editor screen share one instance)
+ * — using fragment-scoped viewModels here was exactly the bug that left
+ * every field blank before this rewrite.
  */
 class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -37,15 +46,11 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
     /** Set while a save request is in flight (guards double-submission). */
     val saving = MutableStateFlow(false)
 
-    private val sections = CopyOnWriteArrayList<QBPrefsSection>()
+    /** Sections to render: the known schema plus dynamic "other" rows. */
+    val sections = MutableStateFlow<List<PrefSection>>(QBPrefSchema.sections)
 
-    fun register(section: QBPrefsSection) {
-        if (section !in sections) sections.add(section)
-    }
-
-    fun unregister(section: QBPrefsSection) {
-        sections.remove(section)
-    }
+    /** Editable working copy; starts as a deep copy of [raw] on every load. */
+    private var editable: JsonObject = JsonObject()
 
     fun load() {
         loading.value = true
@@ -56,6 +61,8 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
                     ServiceLocator.repository(appContext).appPreferences()
                 }
                 raw.value = prefs
+                resetEditable(prefs)
+                sections.value = buildSections(prefs)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -68,11 +75,45 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun retry() = load()
 
+    private fun resetEditable(prefs: JsonObject) {
+        val copy = JsonObject()
+        for ((key, value) in prefs.entrySet()) copy.add(key, deepCopy(value))
+        editable = copy
+    }
+
+    private fun deepCopy(element: JsonElement): JsonElement = element.deepCopy()
+
+    private fun buildSections(prefs: JsonObject): List<PrefSection> {
+        val unknown = prefs.keySet().filter { it !in QBPrefSchema.byKey }.sorted()
+        if (unknown.isEmpty()) return QBPrefSchema.sections
+        val rows = unknown.map {
+            PrefEntry.Row(QBPrefSchema.inferField(it, prefs.get(it)))
+        }
+        return QBPrefSchema.sections + PrefSection(R.string.qbt_tab_other, rows)
+    }
+
+    /** Current editable value of [key] (null when absent). */
+    fun value(key: String): JsonElement? = editable.get(key)
+
+    /** Raw server value of [key] (null when the server did not send it). */
+    fun rawValue(key: String): JsonElement? = raw.value?.get(key)
+
+    /** Reverts [key] to the server value: absent on the server = removed. */
+    fun revert(key: String) {
+        val original = rawValue(key)
+        if (original == null) editable.remove(key) else editable.add(key, deepCopy(original))
+    }
+
+    /** Records a user edit (main thread only). */
+    fun setValue(key: String, value: JsonElement) {
+        editable.add(key, value)
+    }
+
     /**
-     * Collects the values of every registered section, diffs them against the
-     * loaded snapshot and posts the changed keys. Returns a human-readable
-     * result on the callback; completes with `success=true` when the server
-     * accepted the update (or nothing needed changing).
+     * Collects the editable snapshot, diffs it against the loaded one and
+     * posts the changed keys. Returns a human-readable result on the
+     * callback; completes with `success=true` when the server accepted the
+     * update (or nothing needed changing).
      */
     fun save(onResult: (success: Boolean, message: String?) -> Unit) {
         if (saving.value) return
@@ -80,23 +121,21 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
             onResult(false, null) // caller shows the generic "not loaded" error
             return
         }
-        val collected = JsonObject()
-        for (section in sections) section.collectValues(collected)
         // client-side mirrors of the server's own validations, so the user
         // gets a clear message instead of an HTTP 400
-        collected.get("web_ui_username")?.takeIf { it.isJsonPrimitive }?.asString?.let {
+        editable.get("web_ui_username")?.takeIf { it.isJsonPrimitive }?.asString?.let {
             if (it.length < 3 || it.contains(':')) {
                 onResult(false, ERR_USERNAME)
                 return
             }
         }
-        collected.get("web_ui_password")?.takeIf { it.isJsonPrimitive }?.asString?.let {
+        editable.get("web_ui_password")?.takeIf { it.isJsonPrimitive }?.asString?.let {
             if (it.length < 6) {
                 onResult(false, ERR_PASSWORD)
                 return
             }
         }
-        val diff = diff(collected, loaded)
+        val diff = diff(editable, loaded)
         if (diff.size() == 0) {
             onResult(true, NO_CHANGES)
             return
@@ -179,10 +218,4 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
             return a == b
         }
     }
-}
-
-/** A tab of the preferences editor that contributes values on save. */
-interface QBPrefsSection {
-    /** Writes this section's current UI values into [out] (canonical types). */
-    fun collectValues(out: JsonObject)
 }

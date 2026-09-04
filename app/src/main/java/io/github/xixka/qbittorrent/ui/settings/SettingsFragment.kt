@@ -112,6 +112,14 @@ class SettingsFragment : Fragment() {
             title = getString(R.string.pref_theme),
             summary = themeLabel(prefs.themeMode),
         )
+        rows += Item(
+            id = ID_SHOW_RSS,
+            icon = R.drawable.ic_rss_feed_24px,
+            title = getString(R.string.pref_show_rss),
+            summary = getString(R.string.pref_show_rss_sub),
+            switch = true,
+            checked = prefs.showRss,
+        )
 
         rows += Header(R.string.settings_behavior)
         rows += Item(
@@ -192,6 +200,8 @@ class SettingsFragment : Fragment() {
                 prefs.dynamicColors = checked
                 activity?.recreate()
             }
+
+            ID_SHOW_RSS -> prefs.showRss = checked
 
             ID_THEME -> showThemeDialog()
 
@@ -398,6 +408,7 @@ class SettingsFragment : Fragment() {
         private const val ID_QB_SETTINGS = 1
         private const val ID_DYNAMIC_COLORS = 2
         private const val ID_THEME = 3
+        private const val ID_SHOW_RSS = 5
         private const val ID_POLL_INTERVAL = 4
         private const val ID_SERVER = 7
         private const val ID_VERSION = 8

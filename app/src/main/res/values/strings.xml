@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">Connection</string>
     <string name="qbt_tab_webui">WebUI</string>
     <string name="qbt_tab_advanced">Advanced</string>
+    <string name="qbt_tab_other">Other</string>
     <string name="qbt_loading">Loading current settings…</string>
     <string name="qbt_not_loaded">Settings are still loading</string>
     <string name="qbt_no_changes">Nothing to save</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">About</string>
     <string name="pref_dynamic_colors">Dynamic colors</string>
     <string name="pref_dynamic_colors_sub">Use Material You wallpaper colors (Android 12+)</string>
+    <string name="pref_show_rss_sub">Show the RSS tab in the bottom navigation</string>
+    <string name="pref_show_rss">Show RSS section</string>
     <string name="pref_dynamic_colors_unsupported">Not supported on this Android version (requires 12+)</string>
     <string name="pref_theme">Theme</string>
     <string name="theme_system">System default</string>

@@ -8,7 +8,7 @@
 #
 # 本脚本改用 NDK 工具链链接 bionic：getaddrinfo → netd（继承系统 Private DNS /
 # DNS64 / VPN DNS），DHT/peer/tracker 全部直连，DNS 与 DHT 双双根治。
-# 依赖链与上游 cross_build.sh 对齐（Qt6 静态 + openssl-linked + libtorrent 2.0 +
+# 依赖链与上游 cross_build.sh 对齐（Qt6 静态 + openssl-linked + libtorrent 1.2 +
 # Boost 纯头文件 + zlib-ng(compat)），仅把 musl 静态换成 bionic 动态：
 # 产物是 PIE 可执行文件，动态依赖为 bionic 系统库 + libc++_shared.so
 # （Qt 在 Android 强制 c++_shared；该 .so 随产物一并输出，由 App 经
@@ -44,9 +44,10 @@ QBT_REPO="${QBT_REPO:-https://github.com/c0re100/qBittorrent-Enhanced-Edition.gi
 # release-5.2.3.10 分支（qbittorrent-enhanced 上游 tag）
 QBT_REF="${QBT_REF:-44ee266a575600d04788623b6939e47443d27ed1}"
 LT_REPO="${LT_REPO:-https://github.com/arvidn/libtorrent.git}"
-# libtorrent v2.0.14（tag 固定到 commit）：2.0 系列与 qBittorrent-Enhanced
-# 官方发行一致；v2 DHT 才能解析 BitTorrent v2 / 混合磁力的元数据
-LT_REF="${LT_REF:-aab2a10e2f60d9eac78e885a696736d043527794}"
+# libtorrent v1.2.20（tag 固定到 commit）：不用 2.x —— 2.x 默认 mmap 磁盘
+# 存储，页缓存映射会让常驻内存膨胀；1.2 系列经典磁盘 I/O 内存占用平
+# 稳，qB 5.2 官方支持 1.2.19+。
+LT_REF="${LT_REF:-2e537ee7afcfa92d02862d81c53db2a363bfdd1e}"
 ANDROID_PLATFORM="${ANDROID_PLATFORM:-android-24}"
 
 NDK="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
@@ -451,10 +452,13 @@ build_libtorrent() {
     git -C "$src" log -1 --oneline >&2 || true
   fi
   # libtorrent 2.x 的源码树含 git 子模块（deps/try_signal 等被
-  # CMakeLists 直接 add_library），浅 fetch 检出不会带上它们，
-  # 缺失时 configure 即报 "Cannot find source file: deps/try_signal/…"
-  git -C "$src" submodule update --init --depth 1 -- deps/try_signal deps/asio-gnutls >&2 || \
-    git -C "$src" submodule update --init --depth 1 >&2
+  # CMakeLists 直接 add_library），浅 fetch 检出不会带上它们，缺失时
+  # configure 即报 "Cannot find source file: deps/try_signal/…"。
+  # 1.2 系列无子模块，.gitmodules 不存在时直接跳过。
+  if [ -f "$src/.gitmodules" ]; then
+    git -C "$src" submodule update --init --depth 1 -- deps/try_signal deps/asio-gnutls >&2 || \
+      git -C "$src" submodule update --init --depth 1 >&2
+  fi
   # Android 假「监听 IP 失败」告警抑制（enum_routes 存根，见函数头注释）
   patch_libtorrent_android "$src"
   rm -rf "$WORK_DIR/libtorrent"

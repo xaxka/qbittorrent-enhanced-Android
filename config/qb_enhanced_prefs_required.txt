@@ -23,6 +23,7 @@ autorun_enabled
 autorun_on_torrent_added_enabled
 autorun_on_torrent_added_program
 autorun_program
+banned_IPs
 bdecode_depth_limit
 bdecode_token_limit
 bittorrent_protocol
@@ -169,6 +170,7 @@ scheduler_enabled
 send_buffer_low_watermark
 send_buffer_watermark
 send_buffer_watermark_factor
+shadow_banned_IPs
 slow_torrent_dl_rate_threshold
 slow_torrent_inactive_timer
 slow_torrent_ul_rate_threshold

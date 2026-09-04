@@ -21,11 +21,14 @@ env:
   ZLIB_NG_VER: 2.3.3
   # qBittorrent-Enhanced-Edition release-5.2.3.10 (pinned commit)
   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
-  # libtorrent 2.0.14 (pinned tag v2.0.14; the 2.0 series is what the
-  # qbittorrent-enhanced release builds ship). v2 DHT is required for
-  # BitTorrent v2 / hybrid magnets, whose metadata the 1.2-series DHT can
-  # never resolve (magnets stuck forever at "fetching metadata").
-  LT_REF: aab2a10e2f60d9eac78e885a696736d043527794
+  # libtorrent v1.2.20 (pinned tag). Deliberately NOT the 2.x series: 2.x
+  # defaults to mmap-backed storage, whose page-cache mappings make the
+  # resident set balloon on memory-constrained Android devices; the 1.2
+  # series keeps the classic pooled disk I/O with a flat, predictable
+  # footprint. qBittorrent 5.2 officially supports 1.2.19+, so this stays
+  # fully compatible. (v1/hybrid magnets lose DHT-side metadata fetch;
+  # v1 magnets and tracker/PeX metadata paths are unaffected.)
+  LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
   ANDROID_PLATFORM: android-24
   NDK_CCACHE: ccache
 
@@ -102,7 +105,7 @@ jobs:
             qbt-ccache-${{ matrix.ABI }}-v1-
 
       # Full bionic cross-compile pipeline from OpenListAndroid: zlib-ng → OpenSSL
-      # → Boost headers → host Qt (aqt) → android Qt (static) → libtorrent 2.0
+      # → Boost headers → host Qt (aqt) → android Qt (static) → libtorrent 1.2
       # → qBittorrent-Enhanced-nox. install_output() in the script also bundles
       # libc++_shared.so (32-bit ARM sysroot dir is "arm-linux-androideabi")
       # and validates e_type=DYN + PT_INTERP + bionic-only NEEDED deps.

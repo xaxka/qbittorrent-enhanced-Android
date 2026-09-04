@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">Connexion</string>
     <string name="qbt_tab_webui">Interface Web</string>
     <string name="qbt_tab_advanced">Avancé</string>
+    <string name="qbt_tab_other">Autres</string>
     <string name="qbt_loading">Chargement des paramètres actuels…</string>
     <string name="qbt_not_loaded">Les paramètres sont encore en cours de chargement</string>
     <string name="qbt_no_changes">Rien à enregistrer</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">À propos</string>
     <string name="pref_dynamic_colors">Couleurs dynamiques</string>
     <string name="pref_dynamic_colors_sub">Utiliser les couleurs du fond d\'écran Material You (Android 12+)</string>
+    <string name="pref_show_rss_sub">Afficher l’onglet RSS dans la barre de navigation inférieure</string>
+    <string name="pref_show_rss">Afficher la section RSS</string>
     <string name="pref_dynamic_colors_unsupported">Non pris en charge sur cette version d\'Android (12+ requis)</string>
     <string name="pref_theme">Thème</string>
     <string name="theme_system">Thème du système</string>

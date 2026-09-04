@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">接続</string>
     <string name="qbt_tab_webui">WebUI</string>
     <string name="qbt_tab_advanced">詳細</string>
+    <string name="qbt_tab_other">その他</string>
     <string name="qbt_loading">現在の設定を読み込み中…</string>
     <string name="qbt_not_loaded">設定はまだ読み込み中です</string>
     <string name="qbt_no_changes">保存する変更はありません</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">情報</string>
     <string name="pref_dynamic_colors">ダイナミックカラー</string>
     <string name="pref_dynamic_colors_sub">Material You の壁紙の色を使用（Android 12+）</string>
+    <string name="pref_show_rss_sub">下部ナビゲーションにRSSタブを表示</string>
+    <string name="pref_show_rss">RSSセクションを表示</string>
     <string name="pref_dynamic_colors_unsupported">この Android バージョンでは未対応（12 以降が必要）</string>
     <string name="pref_theme">テーマ</string>
     <string name="theme_system">システムに従う</string>

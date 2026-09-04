@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">連線</string>
     <string name="qbt_tab_webui">Web 介面</string>
     <string name="qbt_tab_advanced">進階</string>
+    <string name="qbt_tab_other">其他</string>
     <string name="qbt_loading">正在讀取目前設定…</string>
     <string name="qbt_not_loaded">設定仍在載入中</string>
     <string name="qbt_no_changes">沒有需要儲存的修改</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">關於</string>
     <string name="pref_dynamic_colors">動態取色</string>
     <string name="pref_dynamic_colors_sub">使用 Material You 壁紙取色（Android 12+）</string>
+    <string name="pref_show_rss_sub">在底部導覽列顯示 RSS 分頁</string>
+    <string name="pref_show_rss">顯示 RSS 區塊</string>
     <string name="pref_dynamic_colors_unsupported">目前 Android 版本不支援（需要 12+）</string>
     <string name="pref_theme">主題</string>
     <string name="theme_system">跟隨系統</string>

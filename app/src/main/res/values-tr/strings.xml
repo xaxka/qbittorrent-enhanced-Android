@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">Bağlantı</string>
     <string name="qbt_tab_webui">Web arayüzü</string>
     <string name="qbt_tab_advanced">Gelişmiş</string>
+    <string name="qbt_tab_other">Diğer</string>
     <string name="qbt_loading">Geçerli ayarlar yükleniyor…</string>
     <string name="qbt_not_loaded">Ayarlar hâlâ yükleniyor</string>
     <string name="qbt_no_changes">Kaydedilecek değişiklik yok</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">Hakkında</string>
     <string name="pref_dynamic_colors">Dinamik renkler</string>
     <string name="pref_dynamic_colors_sub">Material You duvar kağıdı renklerini kullan (Android 12+)</string>
+    <string name="pref_show_rss_sub">Alt gezinme çubuğunda RSS sekmesini göster</string>
+    <string name="pref_show_rss">RSS bölümünü göster</string>
     <string name="pref_dynamic_colors_unsupported">Bu Android sürümünde desteklenmiyor (12+ gerekir)</string>
     <string name="pref_theme">Tema</string>
     <string name="theme_system">Sistem varsayılanı</string>

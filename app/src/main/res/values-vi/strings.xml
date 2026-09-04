@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">Kết nối</string>
     <string name="qbt_tab_webui">Giao diện web</string>
     <string name="qbt_tab_advanced">Nâng cao</string>
+    <string name="qbt_tab_other">Khác</string>
     <string name="qbt_loading">Đang tải cài đặt hiện tại…</string>
     <string name="qbt_not_loaded">Cài đặt vẫn đang được tải</string>
     <string name="qbt_no_changes">Không có gì để lưu</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">Giới thiệu</string>
     <string name="pref_dynamic_colors">Màu động</string>
     <string name="pref_dynamic_colors_sub">Dùng màu hình nền Material You (Android 12+)</string>
+    <string name="pref_show_rss_sub">Hiện thẻ RSS trên thanh điều hướng dưới</string>
+    <string name="pref_show_rss">Hiện mục RSS</string>
     <string name="pref_dynamic_colors_unsupported">Không được hỗ trợ trên phiên bản Android này (cần 12+)</string>
     <string name="pref_theme">Chủ đề</string>
     <string name="theme_system">Theo hệ thống</string>

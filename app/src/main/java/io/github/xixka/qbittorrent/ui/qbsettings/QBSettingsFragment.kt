@@ -6,12 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ActivityQbSettingsBinding
@@ -19,8 +20,11 @@ import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.launch
 
 /**
- * Full qBittorrent preferences editor — the Android counterpart of the
- * WebUI's Tools-Options dialog. Reads the live settings of the connected
+ * Dynamic qBittorrent preferences editor — the Android counterpart of the
+ * WebUI's Tools-Options dialog. The tabs are generated from
+ * [QBPrefSchema] plus whatever unknown keys the connected instance reports,
+ * so settings introduced by future qBittorrent versions appear (and stay
+ * editable) without an app update. Reads the live settings of the connected
  * qBittorrent instance (bundled engine or remote server) and writes user
  * edits back through the same API the official WebUI uses, so every setting
  * takes effect immediately, exactly like on the desktop.
@@ -31,7 +35,13 @@ class QBSettingsFragment : Fragment() {
     private var _binding: ActivityQbSettingsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: QBSettingsViewModel by viewModels()
+    // ACTIVITY-scoped on purpose: the tab pages resolve the same instance,
+    // so a load here populates every row. (A fragment-scoped viewModel was
+    // the original blank-values bug.)
+    private val viewModel: QBSettingsViewModel by activityViewModels()
+
+    private var mediator: TabLayoutMediator? = null
+    private var errorDialog: android.app.Dialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,14 +64,20 @@ class QBSettingsFragment : Fragment() {
             }
         }
 
-        binding.viewPager.adapter = QBPrefsPagerAdapter(this)
-        // keep all seven pages alive so every tab contributes to "save"
-        binding.viewPager.offscreenPageLimit = 6
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.setText(TAB_TITLES[position])
-        }.attach()
+        binding.viewPager.adapter = SectionsPagerAdapter(this)
+
+        // keep every page alive so switching tabs never loses input focus
+        binding.viewPager.offscreenPageLimit = 8
 
         observe()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.sections.collect { sections ->
+                (binding.viewPager.adapter as? SectionsPagerAdapter)?.submit(sections)
+                binding.viewPager.offscreenPageLimit = sections.size.coerceAtLeast(1)
+                attachTabs(sections)
+            }
+        }
 
         if (savedInstanceState == null) {
             viewModel.load()
@@ -69,8 +85,20 @@ class QBSettingsFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        mediator?.detach()
+        mediator = null
         _binding = null
         super.onDestroyView()
+    }
+
+    /** (Re)builds the tab strip for the current section list. */
+    private fun attachTabs(sections: List<PrefSection>) {
+        mediator?.detach()
+        binding.tabLayout.removeAllTabs()
+        val tabLayout: TabLayout = binding.tabLayout
+        mediator = TabLayoutMediator(tabLayout, binding.viewPager) { tab, position ->
+            sections.getOrNull(position)?.let { tab.setText(it.title) }
+        }.also { it.attach() }
     }
 
     private fun observe() {
@@ -90,8 +118,6 @@ class QBSettingsFragment : Fragment() {
             }
         }
     }
-
-    private var errorDialog: android.app.Dialog? = null
 
     private fun showError(message: String) {
         errorDialog?.dismiss()
@@ -137,31 +163,19 @@ class QBSettingsFragment : Fragment() {
         }
     }
 
-    private class QBPrefsPagerAdapter(fragment: Fragment) :
+    private class SectionsPagerAdapter(fragment: Fragment) :
         FragmentStateAdapter(fragment) {
 
-        override fun createFragment(position: Int): Fragment = when (position) {
-            0 -> DownloadsPrefsFragment()
-            1 -> SpeedPrefsFragment()
-            2 -> BitTorrentPrefsFragment()
-            3 -> ConnectionPrefsFragment()
-            4 -> WebUiPrefsFragment()
-            5 -> RssPrefsFragment()
-            else -> AdvancedPrefsFragment()
+        private var sections: List<PrefSection> = emptyList()
+
+        fun submit(sections: List<PrefSection>) {
+            this.sections = sections
+            notifyDataSetChanged()
         }
 
-        override fun getItemCount() = TAB_TITLES.size
-    }
+        override fun getItemCount(): Int = sections.size
 
-    companion object {
-        private val TAB_TITLES = intArrayOf(
-            R.string.qbt_tab_downloads,
-            R.string.qbt_tab_speed,
-            R.string.qbt_tab_bittorrent,
-            R.string.qbt_tab_connection,
-            R.string.qbt_tab_webui,
-            R.string.qbt_tab_rss,
-            R.string.qbt_tab_advanced,
-        )
+        override fun createFragment(position: Int): Fragment =
+            QBPrefsListFragment.newInstance(position)
     }
 }

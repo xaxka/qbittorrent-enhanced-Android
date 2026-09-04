@@ -348,6 +348,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_tab_connection">연결</string>
     <string name="qbt_tab_webui">웹 UI</string>
     <string name="qbt_tab_advanced">고급</string>
+    <string name="qbt_tab_other">기타</string>
     <string name="qbt_loading">현재 설정을 불러오는 중…</string>
     <string name="qbt_not_loaded">설정을 아직 불러오는 중입니다</string>
     <string name="qbt_no_changes">저장할 변경 사항이 없습니다</string>
@@ -516,6 +517,8 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="settings_about">정보</string>
     <string name="pref_dynamic_colors">다이내믹 컬러</string>
     <string name="pref_dynamic_colors_sub">Material You 배경화면 색상 사용 (Android 12+)</string>
+    <string name="pref_show_rss_sub">하단 내비게이션에 RSS 탭 표시</string>
+    <string name="pref_show_rss">RSS 섹션 표시</string>
     <string name="pref_dynamic_colors_unsupported">이 Android 버전에서는 지원되지 않음(12 이상 필요)</string>
     <string name="pref_theme">테마</string>
     <string name="theme_system">시스템 기본값</string>

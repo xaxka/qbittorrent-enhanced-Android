@@ -12,58 +12,35 @@ client: it can connect to and drive any qBittorrent server through the
 original qBittorrent Web API v2 (Settings → Server connection, multiple
 profiles, self-signed certificate support).
 
-The UI is a **native Material 3 interface (Material You dynamic colors on by
-default)** in the style of
-[LibreTorrent](https://github.com/proninyaroslav/libretorrent) — no WebView, no
-WebUI embedding. Feature set modelled after
-[qBitController](https://github.com/Bartuzen/qBitController) and LibreTorrent.
+The **UI uses [LibreTorrent](https://github.com/proninyaroslav/libretorrent)**
+(native Material 3 / Material You dynamic colors, no WebView, no WebUI
+embedding); **features are modelled after
+[qBitController](https://github.com/Bartuzen/qBitController)** and LibreTorrent.
 
 ## Features
 
-* Login against any qBittorrent 4.x/5.x WebUI (SID cookie flow, auto re-login)
-* Torrent list with LibreTorrent-style cards: progress, state, speeds, seeds/peers, ratio
-* Filtering & sorting: 13 status filters, 11 sort fields (name / size / progress /
-  ETA / ratio / download speed / upload speed / uploaded / added date /
-  completion date / peers), added-date filter, **categories and tags as two
-  independent filter dimensions**
-* Add torrents from URL / magnet link / local `.torrent` file (intent-sharing
-  supported) with the full qBitController parameter set (rename, category,
-  save path, content layout, stop condition, per-torrent limits, start paused…)
-* Bulk actions: pause / resume / force start / recheck / reannounce / delete
-  (with optional file removal), set category and tags
-* **Torrent details**: overview (rename, change save location), content files
-  (priorities), trackers (add/remove/edit), peers, **pieces state heatmap**;
-  per-torrent speed & share limits, super seeding
-* **Statistics popup**: tap the drawer's "listening port" / "DHT nodes" stat
-  rows to see user / cache / performance statistics (same data as qBitController)
-* **RSS**: full subscription-tree management (add/rename/move/delete),
-  article reader, mark-as-read, one-tap download, **automatic download rules**
-  (must/must-not contain, regex, smart episode filter, category, save path,
-  affected feeds)
-* **Search engine**: runs the server's search plugins by category, one-tap
-  download of results; plugin management (install/uninstall/update/enable)
-* **Log viewer**: engine execution log (log/main) with level filtering
-* **Multi-server management**: qBitController-style server profiles with
-  one-tap switching, editing and deletion; switch between the bundled
-  engine and remote servers at any time
-* **Full qBittorrent preferences editor** (Settings → *qBittorrent settings*):
-  reads the live configuration of the connected instance and writes edits back
-  through the exact WebUI Options API — **covering all 217 qBittorrent Enhanced
-  WebUI Options keys** across seven tabs (Downloads / Speed / BitTorrent /
-  Connection / WebUI / RSS / Advanced); changes apply live without restart.
-  A dedicated `prefs-coverage` CI gate keeps the coverage from regressing
-* Global speed limits and alternative speed limits (tap the download/upload
-  speed rows of the drawer's transfer stats)
-* Fully automatic engine lifecycle: starts with the app, **boot autostart**,
-  **watchdog keep-alive** (auto-restarts the engine when it dies), retry
-  prompt only when the engine fails to start, LAN WebUI access
-* Immersive edge-to-edge layout (gesture-navigation-bar inset aware)
-* **In-app update check** against the GitHub Releases published by CI
-  (manual check + non-intrusive daily automatic check)
-* **13 languages**: 简体中文, 繁體中文, English, Русский, Deutsch, Français,
-  Español, Português (Brasil), 日本語, 한국어, Türkçe, Italiano, Tiếng Việt —
-  with per-app language support (Android 13+)
-* Official qBittorrent launcher icon (adaptive + themed monochrome)
+* **Bundled engine, zero setup**: starts with the app, boot autostart, watchdog
+  keep-alive (auto-restart when the engine dies); or switch to any qBittorrent
+  4.x/5.x server (multiple profiles, self-signed certificates)
+* **Torrent management**: LibreTorrent-style list; 13 status filters, 11 sort
+  fields, categories and tags as filter dimensions; bulk pause/resume/recheck/
+  delete; full qBC-style add dialog (rename, save path, content layout, stop
+  condition, speed & share limits…)
+* **Torrent details**: overview (rename, change save location), file priorities,
+  tracker add/edit/remove, peers, pieces heatmap; per-torrent speed & share limits
+* **RSS and search**: RSS subscription tree, article reader, one-tap download,
+  automatic download rules; server-side search plugins with plugin management
+  (the RSS section can be hidden from Settings)
+* **qBittorrent preferences editor**: reads the live configuration and writes
+  edits back through the exact WebUI Options API (applies instantly); the editor
+  is **generated dynamically** — settings added by future qBittorrent versions
+  can be edited without updating the app
+* **Toolbox**: global/alternative speed limits, statistics popup, log viewer,
+  in-app update check (manual + daily automatic)
+* **LAN WebUI**: other devices on the same network can reach the bundled engine
+  from a browser
+* **13 languages**, Material You dynamic colors, immersive edge-to-edge layout,
+  official adaptive icon
 
 ## Download
 
