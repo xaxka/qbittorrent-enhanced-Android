@@ -79,7 +79,15 @@ class QBSettingsFragment : Fragment() {
             }
         }
 
-        if (savedInstanceState == null) {
+        // Reload whenever the activity-scoped VM holds no snapshot yet —
+        // NOT keyed on savedInstanceState: after process death the page
+        // stack (and this fragment) IS restored with a non-null
+        // savedInstanceState, but the ViewModel did not survive, so a
+        // savedInstanceState-only guard would leave the editor spinning
+        // on the loading overlay forever with blank values. After a plain
+        // rotation the VM is retained (raw != null) and the user's
+        // in-progress edits are kept instead of being re-fetched.
+        if (viewModel.raw.value == null) {
             viewModel.load()
         }
     }
@@ -131,6 +139,12 @@ class QBSettingsFragment : Fragment() {
 
     private fun save() {
         viewModel.save { success, message ->
+            // The save runs on the VM scope; the user may have left this
+            // page while the request was in flight (back gesture). This
+            // callback executes on the main thread, so a single isAdded
+            // check here is race-free — without it requireContext() below
+            // would crash on the detached fragment.
+            if (!isAdded) return@save
             when {
                 success && message == QBSettingsViewModel.NO_CHANGES ->
                     Toast.makeText(requireContext(), R.string.qbt_no_changes, Toast.LENGTH_SHORT).show()

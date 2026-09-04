@@ -151,36 +151,29 @@ jobs:
           if-no-files-found: error
 
   # ---------------------------------------------------------------------
-  # Settings completeness gate: the in-app preferences editor must cover
-  # EVERY round-trippable WebUI Options key of the pinned
-  # qbittorrent-enhanced engine (see config/qb_enhanced_prefs_required.txt
-  # and scripts/check_prefs_coverage.py for regeneration instructions).
-  # ---------------------------------------------------------------------
-  prefs-coverage:
-    name: Settings completeness (qBittorrent Enhanced config)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Verify complete preference coverage
-        run: python3 scripts/check_prefs_coverage.py
-
-  # ---------------------------------------------------------------------
   # Build the single enhanced edition (per-ABI split APKs).
   # The former compile-check fast gate is gone: the nox cross-compile hits
   # the dependency cache in seconds, so it no longer pays for itself — the
-  # full build below is the compile check.
+  # full build below is the compile check. The former "Settings
+  # completeness" job was likewise folded into this one (the check is a
+  # ~30 ms pure-python static gate, not worth its own runner).
   # ---------------------------------------------------------------------
   build:
     name: Build qBittorrent Enhanced
     runs-on: ubuntu-latest
-    needs: [qbt-nox, prefs-coverage]
+    needs: [qbt-nox]
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Settings completeness gate: the in-app preferences editor must cover
+      # EVERY round-trippable WebUI Options key of the pinned
+      # qbittorrent-enhanced engine (see config/qb_enhanced_prefs_required.txt
+      # and scripts/check_prefs_coverage.py for regeneration instructions).
+      - name: Verify complete preference coverage
+        run: python3 scripts/check_prefs_coverage.py
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
