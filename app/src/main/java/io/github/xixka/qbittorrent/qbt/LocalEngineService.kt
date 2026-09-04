@@ -73,8 +73,8 @@ class LocalEngineService : Service() {
 
     /**
      * Engine watchdog: probes the engine every WATCHDOG_INTERVAL_MS and
-     * restarts it when the process is gone. Only active when the app drives
-     * the bundled engine (no remote server connection configured).
+     * restarts it when the process is gone. Always-on internal (no setting):
+     * only idles while the app drives a remote server instead.
      */
     private fun startWatchdog() {
         if (watchdogJob?.isActive == true) return
@@ -83,7 +83,7 @@ class LocalEngineService : Service() {
             while (isActive) {
                 delay(WATCHDOG_INTERVAL_MS)
                 val prefs = ServiceLocator.prefs(this@LocalEngineService)
-                if (!prefs.engineWatchdog || prefs.useRemoteServer) continue
+                if (prefs.useRemoteServer) continue
                 val alive = LocalEngineManager.isRunning()
                 if (!alive) {
                     // capped backoff: reset the counter after a long streak so

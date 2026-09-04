@@ -19,12 +19,10 @@ import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.FragmentSettingsListBinding
-import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.ui.qbsettings.QBSettingsFragment
 import io.github.xixka.qbittorrent.ui.log.LogFragment
 import io.github.xixka.qbittorrent.ui.settings.ServerSettingsFragment
-import io.github.xixka.qbittorrent.ui.stats.StatisticsFragment
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
 import kotlinx.coroutines.launch
@@ -32,9 +30,11 @@ import kotlinx.coroutines.launch
 /**
  * Settings hub, LibreTorrent-style preference list. Shown IN PLACE by the
  * bottom navigation of MainActivity (no separate activity); subpages
- * (qBittorrent options editor, server connections, log viewer, statistics)
- * are pushed onto the same in-place container — never a new window. RSS has
- * its own bottom-navigation tab and is deliberately NOT duplicated here.
+ * (qBittorrent options editor, server connections, log viewer) are pushed
+ * onto the same in-place container — never a new window. RSS has its own
+ * bottom-navigation tab; statistics live behind the drawer's listening-
+ * port / DHT rows (popup dialog); engine boot-autostart + watchdog are
+ * always-on internals — no entries duplicated here.
  */
 class SettingsFragment : Fragment() {
 
@@ -77,7 +77,6 @@ class SettingsFragment : Fragment() {
     // ---------------- rows ----------------
 
     private fun rebuildRows() {
-        val ctx = requireContext()
         rows.clear()
         rows += Header(R.string.settings_qbt_section)
         rows += Item(
@@ -91,12 +90,6 @@ class SettingsFragment : Fragment() {
             icon = R.drawable.ic_article_24px,
             title = getString(R.string.log_title),
             summary = getString(R.string.log_title_sub),
-        )
-        rows += Item(
-            id = ID_STATISTICS,
-            icon = R.drawable.ic_speed_24px,
-            title = getString(R.string.stats),
-            summary = null,
         )
 
         rows += Header(R.string.settings_appearance)
@@ -127,27 +120,9 @@ class SettingsFragment : Fragment() {
             title = getString(R.string.settings_poll_label),
             summary = getString(R.string.pref_poll_interval_sub, prefs.pollIntervalSec),
         )
-        if (BuildConfig.IS_ENHANCED && LocalEngineManager.isSupported(ctx)) {
-            rows += Item(
-                id = ID_ENGINE_AUTOSTART,
-                icon = R.drawable.ic_power_settings_new_24px,
-                title = getString(R.string.settings_engine_autostart_label),
-                summary = getString(R.string.settings_engine_autostart_sub),
-                switch = true,
-                checked = prefs.engineAutoStart,
-            )
-            rows += Item(
-                id = ID_ENGINE_WATCHDOG,
-                icon = R.drawable.ic_rule_24px,
-                title = getString(R.string.settings_engine_watchdog_label),
-                summary = getString(R.string.settings_engine_watchdog_sub),
-                switch = true,
-                checked = prefs.engineWatchdog,
-            )
-            // NOTE: no manual engine stop/start entry — the engine lifecycle
-            // is fully automatic (autostart + watchdog); a retry prompt only
-            // appears when the engine actually fails to start.
-        }
+        // Engine lifecycle (boot autostart + watchdog) is always-on internal
+        // behavior — no toggle rows, the engine is simply managed for the
+        // user and only surfaces a retry prompt if it fails to start.
 
         rows += Header(R.string.settings_connection)
         rows += Item(
@@ -156,16 +131,9 @@ class SettingsFragment : Fragment() {
             title = getString(R.string.settings_server_connection),
             summary = connectionSummary(),
         )
-        if (BuildConfig.IS_ENHANCED) {
-            rows += Item(
-                id = ID_USE_REMOTE,
-                icon = R.drawable.ic_wifi_tethering_24px,
-                title = getString(R.string.settings_use_remote),
-                summary = getString(R.string.settings_use_remote_sub),
-                switch = true,
-                checked = prefs.useRemoteServer,
-            )
-        }
+        // No "use remote server" row here: switching between the bundled
+        // engine and remote servers belongs INSIDE the server-connection
+        // screen (its top switch) — a single canonical entry.
 
         rows += Header(R.string.settings_about)
         rows += Item(
@@ -219,7 +187,6 @@ class SettingsFragment : Fragment() {
         when (item.id) {
             ID_QB_SETTINGS -> push(QBSettingsFragment())
             ID_LOG -> push(LogFragment())
-            ID_STATISTICS -> push(StatisticsFragment())
 
             ID_DYNAMIC_COLORS -> {
                 prefs.dynamicColors = checked
@@ -230,15 +197,7 @@ class SettingsFragment : Fragment() {
 
             ID_POLL_INTERVAL -> showPollIntervalDialog()
 
-            ID_ENGINE_AUTOSTART -> prefs.engineAutoStart = checked
-            ID_ENGINE_WATCHDOG -> prefs.engineWatchdog = checked
-
             ID_SERVER -> push(ServerSettingsFragment())
-            ID_USE_REMOTE -> {
-                prefs.useRemoteServer = checked
-                ServiceLocator.resetClient()
-                rebuildRows()
-            }
 
             ID_CHECK_UPDATE -> checkUpdate()
 
@@ -440,14 +399,10 @@ class SettingsFragment : Fragment() {
         private const val ID_DYNAMIC_COLORS = 2
         private const val ID_THEME = 3
         private const val ID_POLL_INTERVAL = 4
-        private const val ID_ENGINE_AUTOSTART = 5
         private const val ID_SERVER = 7
         private const val ID_VERSION = 8
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10
         private const val ID_LOG = 12
-        private const val ID_ENGINE_WATCHDOG = 13
-        private const val ID_USE_REMOTE = 14
-        private const val ID_STATISTICS = 15
     }
 }

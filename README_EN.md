@@ -3,11 +3,14 @@
 [简体中文](README.md)
 
 Native Android client for [qBittorrent](https://github.com/qbittorrent/qBittorrent) —
-a single edition with a bundled engine:
+a single edition with a bundled engine.
 
-| Description |
-|-------------|
-| **Bundles a local `qbittorrent-enhanced-nox` engine** cross-compiled from source by CI, started as a child process and controlled through the Web API — works out of the box, no server needed — while remaining a full remote-control client for any qBittorrent server (Settings → Server, multiple profiles, optional HTTPS with trust-all for self-signed certs). |
+The app **bundles a local `qbittorrent-enhanced-nox` engine**: cross-compiled
+from source by CI and started as a child process with the app — works out of
+the box, no server needed. At the same time it is a full remote-control
+client: it can connect to and drive any qBittorrent server through the
+original qBittorrent Web API v2 (Settings → Server connection, multiple
+profiles, self-signed certificate support).
 
 The UI is a **native Material 3 interface (Material You dynamic colors on by
 default)** in the style of
@@ -31,8 +34,8 @@ WebUI embedding. Feature set modelled after
 * **Torrent details**: overview (rename, change save location), content files
   (priorities), trackers (add/remove/edit), peers, **pieces state heatmap**;
   per-torrent speed & share limits, super seeding
-* **Statistics panel**: user / cache / performance statistics (same data as
-  qBitController, LibreTorrent-style presentation)
+* **Statistics popup**: tap the drawer's "listening port" / "DHT nodes" stat
+  rows to see user / cache / performance statistics (same data as qBitController)
 * **RSS**: full subscription-tree management (add/rename/move/delete),
   article reader, mark-as-read, one-tap download, **automatic download rules**
   (must/must-not contain, regex, smart episode filter, category, save path,
@@ -65,11 +68,13 @@ WebUI embedding. Feature set modelled after
 ## Download
 
 APKs are built, signed and published automatically by GitHub Actions to
-[Releases](https://github.com/xixka/qbittorrentAndroid/releases):
+[Releases](https://github.com/xixka/qbittorrentAndroid/releases). Release notes
+carry build information only (branch / commit / build time / version) —
+everything else is documented here:
 
-* Split **per ABI**: `arm64-v8a`, `armeabi-v7a`,
-  `x86_64` (each with its own `versionCode` offset; every APK bundles the
-  engine)
+* Split **per ABI**: `arm64-v8a`, `armeabi-v7a`, `x86_64` — every APK bundles
+  the engine (`arm64-v8a`: most phones/tablets; `armeabi-v7a`: 32-bit ARM
+  devices; `x86_64`: devices/emulators)
 * All published APKs are **signed** with the committed CI key
   (`app/ci-signing.keystore` — a public, sideload-only key that guarantees a
   stable signature so releases can update each other in place; it is *not* a

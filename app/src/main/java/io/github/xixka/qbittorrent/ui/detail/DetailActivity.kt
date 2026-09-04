@@ -46,6 +46,18 @@ class DetailActivity : AppCompatActivity() {
 
     private val title by lazy { intent.getStringExtra(EXTRA_NAME) ?: "" }
 
+    /**
+     * Shared detail state for the tab fragments. They resolve the ViewModel
+     * through this property INSTEAD of activityViewModels() — the plain
+     * activityViewModels() delegate would fall back to the default factory,
+     * which cannot construct the (Application, String) signature and crashed
+     * the app the moment a torrent was tapped ("Cannot create an instance of
+     * class DetailViewModel"). Going through here always uses the hash-aware
+     * factory registered above.
+     */
+    val detailViewModel: DetailViewModel
+        get() = viewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)

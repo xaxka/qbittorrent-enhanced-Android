@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -29,7 +28,10 @@ class TrackersFragment : Fragment() {
     private var _binding: FragmentTrackersBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: DetailViewModel by activityViewModels()
+    // Resolve the shared state through the host activity so the
+    // hash-carrying factory is always used (see DetailActivity.detailViewModel).
+    private val viewModel: DetailViewModel
+        get() = (requireActivity() as DetailActivity).detailViewModel
     private val adapter = TrackersAdapter(
         isSelected = { it.url in selected },
         onClick = { if (selected.isNotEmpty()) toggleTracker(it.url) },

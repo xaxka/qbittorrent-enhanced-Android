@@ -35,6 +35,7 @@ import io.github.xixka.qbittorrent.databinding.ActivityMainBinding
 import io.github.xixka.qbittorrent.databinding.DialogAddLinkBinding
 import io.github.xixka.qbittorrent.databinding.HomeDrawerContentBinding
 import io.github.xixka.qbittorrent.model.TorrentInfo
+import io.github.xixka.qbittorrent.model.ServerState
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.qbt.LocalEngineService
 import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
@@ -178,6 +179,10 @@ class MainActivity : AppCompatActivity() {
         )
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            // Swallow programmatic/restore-driven selection changes: only
+            // real user taps may switch tabs (showTab would otherwise run
+            // during state restoration and wipe the in-place page stack).
+            if (navSelectionSuppressed) return@setOnItemSelectedListener true
             when (item.itemId) {
                 R.id.home_nav -> {
                     showTab(TAB_HOME)
@@ -237,6 +242,9 @@ class MainActivity : AppCompatActivity() {
 
     /** Currently selected bottom-nav tab. */
     private var currentTab = TAB_HOME
+
+    /** True while the nav bar selection is driven by state restoration. */
+    private var navSelectionSuppressed = false
 
     /** Root fragment of each bottom-nav destination. */
     private val tabRoots = mutableMapOf<String, Fragment>()
@@ -340,7 +348,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Re-attaches tab roots / sub-pages surviving an activity recreation. */
+    /**
+     * Re-attaches tab roots / sub-pages surviving an activity recreation
+     * (theme change, dynamic-color toggle, night-mode switch, rotation).
+     *
+     * The current tab is restored from the explicitly saved state: the
+     * BottomNavigationView restores its selected item only in
+     * onRestoreInstanceState — AFTER onCreate — so reading it here would
+     * always yield the default (home) tab and dump the user back on the
+     * torrent list, which is exactly what happened when toggling dynamic
+     * colors from Settings.
+     */
     private fun restoreFragments(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) return
         listOf(TAB_RSS, TAB_SETTINGS).forEach { tab ->
@@ -352,12 +370,40 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.fragments
             .filter { it.id == R.id.destination_container && it !in roots }
             .forEach { pageStack += it }
-        currentTab = when (binding.bottomNavigation.selectedItemId) {
-            R.id.rss_nav -> TAB_RSS
-            R.id.settings_nav -> TAB_SETTINGS
-            else -> TAB_HOME
+        val savedTab = savedInstanceState.getString(STATE_CURRENT_TAB)
+        currentTab = when (savedTab) {
+            TAB_RSS -> TAB_RSS
+            TAB_SETTINGS -> TAB_SETTINGS
+            else -> when (binding.bottomNavigation.selectedItemId) {
+                R.id.rss_nav -> TAB_RSS
+                R.id.settings_nav -> TAB_SETTINGS
+                else -> TAB_HOME
+            }
         }
+        // Sync the nav bar selection without dispatching a listener-driven
+        // showTab() — the fragment hidden/shown flags survived recreation
+        // already, only the container visibility has to be re-derived.
+        navSelectionSuppressed = true
+        binding.bottomNavigation.selectedItemId = when (currentTab) {
+            TAB_RSS -> R.id.rss_nav
+            TAB_SETTINGS -> R.id.settings_nav
+            else -> R.id.home_nav
+        }
+        navSelectionSuppressed = false
         updateContainerVisibility()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_CURRENT_TAB, currentTab)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // The nav view re-selects its saved item here; keep that restore-time
+        // dispatch away from showTab() so pushed sub-pages are not popped.
+        navSelectionSuppressed = true
+        super.onRestoreInstanceState(savedInstanceState)
+        navSelectionSuppressed = false
     }
 
     // ---------------- quick speed limits ----------------
@@ -408,6 +454,54 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    // ---------------- statistics popup (qBitController parity) ----------------
+
+    /**
+     * qBitController-style statistics dialog, popped up by tapping the
+     * drawer's "listening port" / "DHT nodes" stat rows — user, cache and
+     * performance statistics from /sync/maindata's server_state. This is a
+     * plain popup window, not a pushed page, and it is the only statistics
+     * entry point (no duplicate row in Settings).
+     */
+    private fun showStatisticsDialog() {
+        lifecycleScope.launch {
+            val state = runCatching { repo().serverState() }.getOrNull()
+            if (state == null) {
+                Toast.makeText(this@MainActivity, R.string.error_connection, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            MaterialAlertDialogBuilder(this@MainActivity)
+                .setTitle(R.string.stats)
+                .setMessage(buildStatisticsText(state))
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+    }
+
+    private fun buildStatisticsText(s: ServerState): String = buildString {
+        appendLine(getString(R.string.stats_category_user))
+        statLine(R.string.stats_all_time_upload, Format.size(s.allTimeUpload))
+        statLine(R.string.stats_all_time_download, Format.size(s.allTimeDownload))
+        statLine(R.string.stats_all_time_share_ratio, s.globalRatio)
+        statLine(R.string.stats_session_waste, Format.size(s.sessionWaste))
+        statLine(R.string.stats_connected_peers, s.connectedPeers.toString())
+        appendLine()
+        appendLine(getString(R.string.stats_category_cache))
+        statLine(R.string.stats_read_cache_hits, s.readCacheHits + "%")
+        statLine(R.string.stats_total_buffer_size, Format.size(s.bufferSize))
+        appendLine()
+        appendLine(getString(R.string.stats_category_performance))
+        statLine(R.string.stats_write_cache_overload, s.writeCacheOverload + "%")
+        statLine(R.string.stats_read_cache_overload, s.readCacheOverload + "%")
+        statLine(R.string.stats_queued_io_jobs, s.queuedIOJobs.toString())
+        statLine(R.string.stats_average_time_in_queue, getString(R.string.stats_ms_format, s.averageTimeInQueue))
+        statLine(R.string.stats_total_queued_size, Format.size(s.queuedSize))
+    }
+
+    private fun StringBuilder.statLine(labelRes: Int, value: String) {
+        append(getString(labelRes)).append(": ").appendLine(value)
     }
 
     // ---------------- update check (GitHub Releases) ----------------
@@ -628,6 +722,12 @@ class MainActivity : AppCompatActivity() {
         // the speed display, no extra rows, no menu entry).
         d.sessionDownloadStat.setOnClickListener { showSpeedLimitDialog() }
         d.sessionUploadStat.setOnClickListener { showSpeedLimitDialog() }
+        // LibreTorrent drawer stats rows: tapping the download/upload rows
+        // opens the quick speed-limit sheet; tapping the listening-port and
+        // DHT rows pops up the qBitController-style statistics dialog (the
+        // ONLY statistics entry — there is no duplicate one in Settings).
+        d.sessionListenPortStat.setOnClickListener { showStatisticsDialog() }
+        d.sessionDhtNodesStat.setOnClickListener { showStatisticsDialog() }
     }
 
     // ---------------- categories (qBC parity: name + save path) ----------------
@@ -1009,5 +1109,8 @@ class MainActivity : AppCompatActivity() {
         private const val TAB_RSS = "rss"
         private const val TAB_SETTINGS = "settings"
         private const val ROOT_TAG_PREFIX = "root_"
+
+        /** Saved bottom-nav tab, restored after activity recreation. */
+        private const val STATE_CURRENT_TAB = "state_current_tab"
     }
 }

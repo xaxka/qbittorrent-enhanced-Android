@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -28,7 +27,10 @@ class FilesFragment : Fragment() {
     private var _binding: FragmentFilesBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: DetailViewModel by activityViewModels()
+    // Resolve the shared state through the host activity so the
+    // hash-carrying factory is always used (see DetailActivity.detailViewModel).
+    private val viewModel: DetailViewModel
+        get() = (requireActivity() as DetailActivity).detailViewModel
     private lateinit var adapter: FilesAdapter
     private var actionMode: androidx.appcompat.view.ActionMode? = null
 

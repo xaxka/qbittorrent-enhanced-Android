@@ -90,19 +90,9 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_ENGINE_LAN, true)
         set(value) = sp.edit().putBoolean(KEY_ENGINE_LAN, value).apply()
 
-    var engineAutoStart: Boolean
-        get() = sp.getBoolean(KEY_ENGINE_AUTOSTART, BuildConfig.IS_ENHANCED)
-        set(value) = sp.edit().putBoolean(KEY_ENGINE_AUTOSTART, value).apply()
-
-    /**
-     * Engine watchdog: when the app runs against the bundled engine and no
-     * remote server is configured, periodically re-probe the engine and
-     * restart it if the process died — the service then keeps the download
-     * session alive even without the UI.
-     */
-    var engineWatchdog: Boolean
-        get() = sp.getBoolean(KEY_ENGINE_WATCHDOG, BuildConfig.IS_ENHANCED)
-        set(value) = sp.edit().putBoolean(KEY_ENGINE_WATCHDOG, value).apply()
+    // Boot autostart and the engine watchdog are ALWAYS-ON internals of the
+    // Enhanced edition (no user-facing switches): the engine starts with the
+    // app, restarts after boot and is kept alive by LocalEngineService.
 
     // Credentials of the bundled engine's WebUI. Kept separate from the
     // remote-server credentials so switching between engine and remote
@@ -272,7 +262,6 @@ class Prefs(context: Context) {
         const val KEY_ENGINE_PORT = "engine_port"
         const val KEY_ENGINE_SAVE_PATH = "engine_save_path"
         const val KEY_ENGINE_LAN = "engine_lan"
-        const val KEY_ENGINE_AUTOSTART = "engine_autostart"
         const val KEY_USE_REMOTE = "use_remote_server"
         const val KEY_ENGINE_USERNAME = "engine_username"
         const val KEY_ENGINE_PASSWORD = "engine_password"
@@ -282,7 +271,6 @@ class Prefs(context: Context) {
         const val KEY_SERVERS_JSON = "servers_json"
         const val KEY_ACTIVE_SERVER = "active_server_id"
         const val KEY_SERVERS_MIGRATED = "servers_migrated"
-        const val KEY_ENGINE_WATCHDOG = "engine_watchdog"
     }
 }
 

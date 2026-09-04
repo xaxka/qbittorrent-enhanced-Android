@@ -2,13 +2,14 @@
 
 [English](README_EN.md)
 
-qBittorrent Android 原生客户端（单一发行版，内置引擎）：
+qBittorrent Android 原生客户端（单一发行版，内置引擎）。
 
-| 说明 |
-|------|
-| **内置本地 `qbittorrent-enhanced-nox` 引擎**（由 CI 从源码交叉编译，作为子进程启动，安装即用、无需服务器），同时可通过 **原版 qBittorrent Web API v2** 连接并控制任意远程 qBittorrent 服务器（设置 → 服务器连接，多配置切换，支持自签名证书）。 |
+应用**内置本地 `qbittorrent-enhanced-nox` 引擎**：由 CI 从源码交叉编译，作为子进程
+随应用启动，安装即用、无需服务器。同时它也是一个完整的远程控制客户端：可通过
+原版 qBittorrent Web API v2 连接并控制任意远程 qBittorrent 服务器
+（设置 → 服务器连接，多配置切换，支持自签名证书）。
 
-界面为 **原生 Material 3（Material You 动态配色默认开启）**，交互风格参照
+界面为**原生 Material 3（Material You 动态配色默认开启）**，交互风格参照
 [LibreTorrent](https://github.com/proninyaroslav/libretorrent)——无 WebView、不嵌入
 WebUI。所有功能实现参照 [qBitController](https://github.com/Bartuzen/qBitController)
 与 LibreTorrent。
@@ -25,7 +26,8 @@ WebUI。所有功能实现参照 [qBitController](https://github.com/Bartuzen/qB
 * 批量操作：暂停/恢复/强制开始/重新校验/强制汇报/删除（可同时删除文件）、设置分类与标签
 * **种子详情页**：总览（重命名、修改保存位置）、内容文件（优先级）、Tracker
   （增/删/改）、节点、**块（Pieces）状态热图**；单种子限速与分享限制、超级做种
-* **统计面板**：用户/缓存/性能统计（qBitController 同款数据，LibreTorrent 风格呈现）
+* **统计弹窗**：点按抽屉“监听端口”/“DHT 节点”行即可查看用户/缓存/性能统计
+  （qBitController 同款数据）
 * **RSS 订阅**：订阅树管理（增/删/改/移动）、文章阅读、标记已读、一键下载，
   **自动下载规则**（包含/排除关键词、正则、智能剧集过滤、分类、保存路径、生效源）
 * **搜索引擎**：调用服务器搜索插件，按分类检索，结果一键下载；插件管理
@@ -51,10 +53,12 @@ WebUI。所有功能实现参照 [qBitController](https://github.com/Bartuzen/qB
 ## 下载
 
 APK 由 GitHub Actions 自动编译、签名并发布到
-[Releases](https://github.com/xixka/qbittorrentAndroid/releases)：
+[Releases](https://github.com/xixka/qbittorrentAndroid/releases)。发行版说明只保留
+构建信息（分支 / 提交 / 构建时间 / 版本），其余说明都在这里：
 
-* 按 **ABI 拆分**：`arm64-v8a`、`armeabi-v7a`、`x86_64`
-  （各自带 versionCode 偏移，按设备架构选择，每个 APK 都内置引擎）
+* 按 **ABI 拆分**：`arm64-v8a`、`armeabi-v7a`、`x86_64`，每个 APK 都内置引擎
+  （`arm64-v8a`：绝大多数手机/平板；`armeabi-v7a`：32 位 ARM 设备；
+  `x86_64`：x86_64 设备/模拟器）
 * 所有发布的 APK 均**已签名**（仓库内置公开 CI 密钥 `app/ci-signing.keystore`，
   仅用于侧载更新签名一致性，不是机密），可直接覆盖升级
 * 应用内"检查更新"会读取 CI 发布的版本信息并跳转到对应架构的 APK

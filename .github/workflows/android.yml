@@ -218,6 +218,8 @@ jobs:
         run: |
           echo "VERSION_NAME=$(TZ=Asia/Shanghai date +%y.%m.%d)" >> "$GITHUB_ENV"
           echo "VERSION_CODE=$(TZ=Asia/Shanghai date +%y%m%d%H)$(($(TZ=Asia/Shanghai date +%M) / 10))" >> "$GITHUB_ENV"
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "BUILT_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
           echo "versionName=$VERSION_NAME versionCode=$VERSION_CODE"
 
       - name: Download nox libs into jniLibs
@@ -288,23 +290,13 @@ jobs:
         with:
           tag_name: dev
           name: dev
+          # Release notes stay minimal — exactly these four lines; the
+          # readable explanation (ABI table, signing, update check) lives
+          # in the README's Download section instead.
           body: |
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            - Built at: ${{ github.event.head_commit.timestamp }}
-            - Version: ${{ env.VERSION_NAME }} (versionCode ${{ env.VERSION_CODE }})
-
-            All APKs are signed and can be installed directly (sideload).
-            The in-app update check (menu → Check for updates) reads this
-            version info to notify about new builds.
-
-            | APK | 引擎 | 说明 |
-            |---|---|---|
-            | qBittorrent-Enhanced-*-arm64-v8a.apk | 内置 qbittorrent-enhanced-nox | 64 位 ARM 设备（绝大多数手机/平板） |
-            | qBittorrent-Enhanced-*-armeabi-v7a.apk | 内置 qbittorrent-enhanced-nox | 32 位 ARM 设备 |
-            | qBittorrent-Enhanced-*-x86_64.apk | 内置 qbittorrent-enhanced-nox | x86_64 设备/模拟器 |
-
-            内置引擎开箱即用；也可在 设置 → 服务器连接 中切换到远程
-            qBittorrent 服务器（多配置切换）。
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ env.SHORT_SHA }}
+            Built at: ${{ env.BUILT_AT }}
+            Version: ${{ env.VERSION_NAME }} (versionCode ${{ env.VERSION_CODE }})
           prerelease: true
           files: release-out/*.apk
