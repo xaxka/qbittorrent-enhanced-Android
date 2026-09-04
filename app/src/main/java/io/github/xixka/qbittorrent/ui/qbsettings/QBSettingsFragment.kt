@@ -99,6 +99,18 @@ class QBSettingsFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // The editor holds the snapshot of ONE instance. If the user came
+        // back after switching the active server (or toggling the local
+        // engine), the retained activity-scoped ViewModel still has the
+        // previous instance's data — reload and refresh the subtitle so
+        // neither the values nor the "Editing: x" label can go stale.
+        if (viewModel.reloadIfTargetChanged()) {
+            binding.appBar.subtitle = editingTargetLabel()
+        }
+    }
+
     override fun onDestroyView() {
         mediator?.detach()
         mediator = null

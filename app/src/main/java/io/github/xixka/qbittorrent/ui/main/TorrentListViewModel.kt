@@ -9,8 +9,6 @@ import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TransferInfo
-import com.google.gson.Gson
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -96,12 +94,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = ServiceLocator.repository(app)
     private val prefs = ServiceLocator.prefs(app)
-    private val gson = Gson()
-
-    /** Last successful torrent list, cached to disk for instant cold starts. */
-    private val cacheFile = File(app.filesDir, CACHE_FILE_NAME)
-    private var lastCacheSignature: String? = null
-    private var lastCacheWrite = 0L
 
     /** True once any fetch has ever succeeded (switches off fast retries). */
     @Volatile
@@ -129,14 +121,22 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     private var pollJob: Job? = null
 
     init {
-        // Instant cold start: seed the list from the disk cache BEFORE the
-        // first network poll so the user sees their torrents immediately
-        // while the engine/server connection comes up in the background
-        // (LibreTorrent's Room-backed list behaves the same way).
-        viewModelScope.launch {
-            seedFromDiskCache()
-            restart()
-        }
+        // Fast start: no torrent-list snapshot is persisted — the list shown
+        // is always live data. Startup speed comes from the engine booting in
+        // parallel with the UI (QBApp cold-start fast path) plus the fast
+        // 300 ms retry loop below, which puts the list on screen the moment
+        // the WebUI answers.
+        deleteLegacyCacheFile()
+        restart()
+    }
+
+    /**
+     * Removes the torrent-list snapshot written by older app versions.
+     * The list is never cached anymore; deleting the stale file keeps
+     * filesDir clean and guarantees no old data can ever resurface.
+     */
+    private fun deleteLegacyCacheFile() {
+        runCatching { File(getApplication<Application>().filesDir, LEGACY_CACHE_FILE_NAME).delete() }
     }
 
     fun restart() {
@@ -145,8 +145,8 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             val startedAt = System.currentTimeMillis()
             var first = true
             while (isActive) {
-                // blocking spinner only when nothing is on screen yet — a
-                // cache-seeded list must stay visible while it refreshes
+                // blocking spinner only when nothing is on screen yet — an
+                // already-rendered list stays visible while it refreshes
                 val ok = refreshOnce(showLoading = first && _state.value.torrents.isEmpty())
                 first = false
                 // While the first connection has not succeeded yet (engine
@@ -207,7 +207,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
             everConnected = true
-            persistCache(torrents)
             return true
         } catch (e: QBAuthException) {
             // local engine: while it is coming up, don't flag an auth error
@@ -244,64 +243,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             return false
         }
     }
-
-    /**
-     * Emits the cached torrent list as the initial state so the list is on
-     * screen at t=0; the first live poll replaces it a moment later. Only
-     * applied while nothing newer is available AND the snapshot was taken
-     * from the SAME server the app is about to connect to — with several
-     * remote profiles the cache must never leak another instance's list.
-     */
-    private suspend fun seedFromDiskCache() = withContext(Dispatchers.IO) {
-        runCatching {
-            if (!cacheFile.isFile) return@runCatching
-            val cached = gson.fromJson(
-                cacheFile.readText(),
-                CachedTorrentList::class.java,
-            )
-            if (cached != null &&
-                cached.endpoint == currentEndpoint() &&
-                cached.torrents.isNotEmpty() &&
-                _state.value.torrents.isEmpty()
-            ) {
-                _state.update {
-                    it.copy(
-                        torrents = applyFilters(cached.torrents.toList()),
-                        allCount = cached.torrents.size,
-                        loading = false,
-                        connected = false,
-                    )
-                }
-            }
-        }
-    }
-
-    /**
-     * Persists the live list for the next cold start, tagged with the
-     * endpoint it came from. Structural changes (torrent added/removed)
-     * write immediately; pure progress changes are throttled to one write
-     * per 10 s so polling at 1 s never thrashes the flash storage.
-     */
-    private suspend fun persistCache(torrents: List<TorrentInfo>) = withContext(Dispatchers.IO) {
-        runCatching {
-            val signature = "${torrents.size}|${torrents.sumOf { (it.progress * 1000).toLong() }}"
-            val structuralChange =
-                signature.substringBefore('|') != lastCacheSignature?.substringBefore('|')
-            val now = System.currentTimeMillis()
-            if (signature != lastCacheSignature &&
-                (structuralChange || now - lastCacheWrite >= 10_000)
-            ) {
-                cacheFile.writeText(
-                    gson.toJson(CachedTorrentList(currentEndpoint(), torrents.toTypedArray())),
-                )
-                lastCacheSignature = signature
-                lastCacheWrite = now
-            }
-        }
-    }
-
-    /** Cache key: the endpoint the snapshot belongs to. */
-    private fun currentEndpoint(): String = prefs.serverConfig().baseUrl()
 
     private fun engineState(): String? =
         if (prefs.usingLocalEngine) LocalEngineManager.state.name else null
@@ -435,14 +376,8 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     fun resumeAll() = viewModelScope.launch { runCatching { repository.resumeAll() } }
 
     companion object {
-        /** Disk snapshot of the last list, rendered instantly on cold start. */
-        private const val CACHE_FILE_NAME = "torrent_list_cache.json"
-
-        /** Envelope of the disk snapshot: the list plus its origin endpoint. */
-        private data class CachedTorrentList(
-            val endpoint: String,
-            val torrents: Array<TorrentInfo>,
-        )
+        /** Snapshot file of older app versions, deleted on startup. */
+        private const val LEGACY_CACHE_FILE_NAME = "torrent_list_cache.json"
 
         fun factory(app: Application): androidx.lifecycle.ViewModelProvider.Factory =
             object : androidx.lifecycle.ViewModelProvider.Factory {
