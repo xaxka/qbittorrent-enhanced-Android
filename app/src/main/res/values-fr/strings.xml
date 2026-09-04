@@ -938,7 +938,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="search_done">Recherche terminée</string>
     <string name="search_no_results">Aucun résultat</string>
     <string name="search_start_failed">La recherche est désactivée sur le serveur (activez-la dans les options)</string>
-    <string name="search_python_missing">Les greffons de recherche sont des programmes Python exécutés sur le serveur qBittorrent. Le moteur intégré n'inclut pas Python, la recherche locale est donc indisponible. Les serveurs distants avec Python installé prennent en charge la recherche.</string>
+    <string name="search_python_missing">Les greffons de recherche sont des programmes Python exécutés sur le serveur qBittorrent. Le moteur intégré n\'inclut pas Python, la recherche locale est donc indisponible. Les serveurs distants avec Python installé prennent en charge la recherche.</string>
     <string name="search_add_torrent">Télécharger</string>
     <string name="search_open_site">Ouvrir le site</string>
     <string name="search_category">Catégorie</string>
