@@ -13,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 
 /**
@@ -116,9 +117,9 @@ class TorrentRepository(private val client: QBApiClient) {
                 val mediaType = "application/x-bittorrent".toMediaTypeOrNull()
                 val body = fileBytes.toRequestBody(mediaType)
                 val part = MultipartBody.Part.createFormData("torrents", fileName, body)
-                addTorrentFile(part, fields.mapValues { it.value.toFormPart() })
+                it.addTorrentFile(part, fields.mapValues { v -> v.value.toFormPart() })
             } else {
-                addTorrent(fields)
+                it.addTorrent(fields)
             }
         }
     }
