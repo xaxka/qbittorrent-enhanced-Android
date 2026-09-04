@@ -161,6 +161,11 @@
     <string name="detail_time_active">活躍時長</string>
     <string name="detail_seeded_for">做種時長</string>
     <string name="detail_completed_on">完成時間</string>
+    <string name="detail_availability">可用性</string>
+    <string name="detail_last_activity">最後活動</string>
+    <string name="detail_last_seen_complete">最後完整可見</string>
+    <string name="detail_info_hash_v2">雜湊 v2</string>
+    <string name="detail_connections">連線數</string>
     <string name="detail_private">私有種子</string>
     <string name="detail_yes">是</string>
     <string name="detail_no">否</string>
@@ -171,7 +176,8 @@
     <string name="peer_client_fmt">用戶端：%1$s</string>
     <string name="peer_flags_fmt">旗標：%1$s</string>
     <string name="engine_webui_access_fmt">內建引擎 WebUI：%1$s
-%2$s / %3$s（點按複製位址）</string>
+%2$s / %3$s
+區域網路裝置可直接存取，無需登入（點按複製位址）</string>
     <string name="copied_to_clipboard">已複製到剪貼簿</string>
     <string name="priority_title">檔案優先順序</string>
     <string name="priority_skip">跳過</string>
@@ -282,6 +288,9 @@
     <string name="share_magnet">分享磁力連結</string>
     <string name="save_torrent_file">儲存種子檔案</string>
     <string name="add_trackers">新增 trackers</string>
+    <string name="add_web_seed_title">新增網路種子</string>
+    <string name="edit_web_seed_url">編輯網路種子 URL</string>
+    <string name="web_seed_list_empty">此種子沒有網路來源</string>
     <string name="torrent_speed_limit">速度限制</string>
     <string name="share_tracker_url">分享 URL…</string>
     <string name="port">連接埠：%1$d</string>
@@ -702,8 +711,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">達到分享限制時</string>
     <string name="edit_tracker_url">編輯 Tracker 網址</string>
     <string name="tab_pieces">區塊</string>
+    <string name="tab_web_seeds">網路種子</string>
     <string name="pieces_map">區塊狀態圖</string>
-    <string name="pieces_summary">已完成 %1$d / %2$d 區塊</string>
+    <string name="pieces_summary">已完成 %1$d / %2$d 區塊 • 每區塊 %3$s</string>
     <string name="pieces_unavailable">區塊狀態圖暫不可用</string>
     <string name="piece_state_have">已下載</string>
     <string name="piece_state_missing">缺失</string>

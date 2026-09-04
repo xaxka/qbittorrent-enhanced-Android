@@ -161,6 +161,11 @@
     <string name="detail_time_active">Time active</string>
     <string name="detail_seeded_for">Seeded for</string>
     <string name="detail_completed_on">Completed on</string>
+    <string name="detail_availability">Availability</string>
+    <string name="detail_last_activity">Last activity</string>
+    <string name="detail_last_seen_complete">Last seen complete</string>
+    <string name="detail_info_hash_v2">Info hash v2</string>
+    <string name="detail_connections">Connections</string>
     <string name="detail_private">Private torrent</string>
     <string name="detail_yes">Yes</string>
     <string name="detail_no">No</string>
@@ -171,7 +176,8 @@
     <string name="peer_client_fmt">Client: %1$s</string>
     <string name="peer_flags_fmt">Flags: %1$s</string>
     <string name="engine_webui_access_fmt">Built-in engine WebUI: %1$s
-%2$s / %3$s (tap to copy the address)</string>
+%2$s / %3$s
+LAN devices open it without a login LAN devices open it without a login (tap to copy the address)</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="priority_title">File priority</string>
     <string name="priority_skip">Skip</string>
@@ -281,6 +287,9 @@
     <string name="share_magnet">Share magnet</string>
     <string name="save_torrent_file">Save torrent file</string>
     <string name="add_trackers">Add trackers</string>
+    <string name="add_web_seed_title">Add web seed</string>
+    <string name="edit_web_seed_url">Edit web seed URL</string>
+    <string name="web_seed_list_empty">This torrent has no web sources</string>
     <string name="torrent_speed_limit">Speed limit</string>
     <string name="share_tracker_url">Share URL…</string>
     <string name="port">Port: %1$d</string>
@@ -702,8 +711,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="limit_helper_global_minutes">-2 = global default, -1 = no limit</string>
     <string name="edit_tracker_url">Edit tracker URL</string>
     <string name="tab_pieces">Pieces</string>
+    <string name="tab_web_seeds">Web seeds</string>
     <string name="pieces_map">Pieces map</string>
-    <string name="pieces_summary">%1$d / %2$d pieces available</string>
+    <string name="pieces_summary">%1$d / %2$d pieces • %3$s per piece</string>
     <string name="pieces_unavailable">Piece map not available yet</string>
     <string name="piece_state_have">Downloaded</string>
     <string name="piece_state_missing">Missing</string>

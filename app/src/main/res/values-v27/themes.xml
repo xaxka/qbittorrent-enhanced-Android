@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- windowLightNavigationBar exists from API 27 (minSdk is 26): light nav
+     bar icons over the light surfaces of day mode. Same-name style
+     replacement — parent re-declared (see values-night/themes.xml). -->
+<resources>
+    <style name="AppTheme" parent="BaseTheme">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

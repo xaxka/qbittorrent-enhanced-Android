@@ -161,6 +161,11 @@
     <string name="detail_time_active">Время активности</string>
     <string name="detail_seeded_for">Раздаётся</string>
     <string name="detail_completed_on">Завершён</string>
+    <string name="detail_availability">Доступность</string>
+    <string name="detail_last_activity">Последняя активность</string>
+    <string name="detail_last_seen_complete">Последний раз полный</string>
+    <string name="detail_info_hash_v2">Инфо-хеш v2</string>
+    <string name="detail_connections">Соединения</string>
     <string name="detail_private">Частный торрент</string>
     <string name="detail_yes">Да</string>
     <string name="detail_no">Нет</string>
@@ -171,7 +176,8 @@
     <string name="peer_client_fmt">Клиент: %1$s</string>
     <string name="peer_flags_fmt">Флаги: %1$s</string>
     <string name="engine_webui_access_fmt">WebUI встроенного движка: %1$s
-%2$s / %3$s (нажмите, чтобы скопировать адрес)</string>
+%2$s / %3$s 
+Устройства локальной сети открывают её без входа (нажмите, чтобы скопировать адрес)</string>
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="priority_title">Приоритет файла</string>
     <string name="priority_skip">Пропустить</string>
@@ -282,6 +288,9 @@
     <string name="share_magnet">Поделиться магнит-ссылкой</string>
     <string name="save_torrent_file">Сохранить файл торрента</string>
     <string name="add_trackers">Добавить трекеры</string>
+    <string name="add_web_seed_title">Добавить веб-сиду</string>
+    <string name="edit_web_seed_url">Изменить URL веб-сиды</string>
+    <string name="web_seed_list_empty">В этом торренте нет веб-сидов</string>
     <string name="torrent_speed_limit">Ограничение скорости</string>
     <string name="share_tracker_url">Поделиться URL…</string>
     <string name="port">Порт: %1$d</string>
@@ -702,8 +711,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">При достижении лимита раздачи</string>
     <string name="edit_tracker_url">Изменить URL трекера</string>
     <string name="tab_pieces">Куски</string>
+    <string name="tab_web_seeds">Веб-сиды</string>
     <string name="pieces_map">Карта кусков</string>
-    <string name="pieces_summary">Доступно кусков: %1$d / %2$d</string>
+    <string name="pieces_summary">Доступно кусков: %1$d / %2$d • по %3$s</string>
     <string name="pieces_unavailable">Карта кусков пока недоступна</string>
     <string name="piece_state_have">Скачан</string>
     <string name="piece_state_missing">Отсутствует</string>

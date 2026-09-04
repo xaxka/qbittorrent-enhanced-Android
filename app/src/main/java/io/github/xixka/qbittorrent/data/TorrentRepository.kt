@@ -2,6 +2,7 @@ package io.github.xixka.qbittorrent.data
 
 import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.api.QBApiClient
+import io.github.xixka.qbittorrent.api.QBApiException
 import io.github.xixka.qbittorrent.model.LogEntry
 import io.github.xixka.qbittorrent.model.MainData
 import io.github.xixka.qbittorrent.model.Peer
@@ -16,6 +17,7 @@ import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
 import io.github.xixka.qbittorrent.model.Tracker
 import io.github.xixka.qbittorrent.model.TransferInfo
+import io.github.xixka.qbittorrent.model.WebSeed
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -60,6 +62,20 @@ class TorrentRepository(private val client: QBApiClient) {
 
     suspend fun trackers(hash: String): List<Tracker> = client.withAuth { it.torrentTrackers(hash) }
 
+    // ---------- web seeds (qBC parity) ----------
+
+    suspend fun webSeeds(hash: String): List<WebSeed> =
+        runCatching { client.withAuth { it.webSeeds(hash) } }.getOrDefault(emptyList())
+
+    suspend fun addWebSeeds(hash: String, urls: String) =
+        client.withAuth { it.addWebSeeds(hash, urls) }
+
+    suspend fun editWebSeed(hash: String, origUrl: String, newUrl: String) =
+        client.withAuth { it.editWebSeed(hash, origUrl, newUrl) }
+
+    suspend fun removeWebSeeds(hash: String, urls: String) =
+        client.withAuth { it.removeWebSeeds(hash, urls) }
+
     suspend fun peers(hash: String): List<Peer> =
         client.withAuth { it.torrentPeers(hash).peers?.values?.toList() ?: emptyList() }
 
@@ -69,8 +85,11 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun toggleFirstLastPiecePriority(hashes: List<String>) =
         client.withAuth { it.toggleFirstLastPiecePriority(hashes.joinToString("|")) }
 
-    suspend fun pauseAll() = client.withAuth { it.pause("all") }
-    suspend fun resumeAll() = client.withAuth { it.resume("all") }
+    suspend fun pauseAll(): Unit = stopOrPause { it.stop("all") }
+        ?: client.withAuth { it.pause("all") }
+
+    suspend fun resumeAll(): Unit = startOrResume { it.start("all") }
+        ?: client.withAuth { it.resume("all") }
 
     // ---------- actions ----------
 
@@ -131,9 +150,34 @@ class TorrentRepository(private val client: QBApiClient) {
         }
     }
 
-    suspend fun pause(hashes: List<String>) = client.withAuth { it.pause(hashes.joinToString("|")) }
+    /**
+     * Stops (5.x) with a 404 fallback to pause (4.x): qBittorrent 5.0
+     * removed the pause/resume actions entirely, so the old endpoint merely
+     * answered 404 and the torrent never stopped — the "paused and instantly
+     * resumed" symptom. Same version split qBitController does by version
+     * sniffing, expressed as a response-code probe instead (works without
+     * caching the server version).
+     */
+    suspend fun pause(hashes: List<String>): Unit = stopOrPause {
+        it.stop(hashes.joinToString("|"))
+    } ?: client.withAuth { it.pause(hashes.joinToString("|")) }
 
-    suspend fun resume(hashes: List<String>) = client.withAuth { it.resume(hashes.joinToString("|")) }
+    suspend fun resume(hashes: List<String>): Unit = startOrResume {
+        it.start(hashes.joinToString("|"))
+    } ?: client.withAuth { it.resume(hashes.joinToString("|")) }
+
+    /** Runs [block]; null when the server answered 404 (endpoint absent). */
+    private suspend fun stopOrPause(block: suspend (QBApiService) -> Unit): Unit? = try {
+        client.withAuth(block)
+    } catch (e: QBApiException) {
+        if (e.code == 404) null else throw e
+    }
+
+    private suspend fun startOrResume(block: suspend (QBApiService) -> Unit): Unit? = try {
+        client.withAuth(block)
+    } catch (e: QBApiException) {
+        if (e.code == 404) null else throw e
+    }
 
     suspend fun delete(hashes: List<String>, deleteFiles: Boolean) =
         client.withAuth { it.delete(hashes.joinToString("|"), deleteFiles) }

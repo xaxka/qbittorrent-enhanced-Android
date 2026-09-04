@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ExposedDropdownMenu style is REQUIRED for a non-editable Material
+     dropdown: it draws the chevron and makes the whole field open the list
+     on tap. Without it the editor's dropdowns looked (and behaved) like
+     plain text fields — the reported "dropdown selection bug". FilledBox
+     variant matches the plain TextInputLayout rows above/below. -->
 <com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/prefDropdownLayout"
+    style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="16dp"

@@ -52,6 +52,16 @@ object NoxConfig {
     private const val KEY_WEBUI_PASSWORD = "WebUI\\Password_PBKDF2"
     private const val KEY_SAVE_PATH = "Session\\DefaultSavePath"
 
+    // qB's own "bypass authentication for clients in whitelisted subnets":
+    // every RFC 1918 + link-local + IPv6 ULA range, enabled while LAN access
+    // is on. This is what makes a LAN browser open the WebUI without ANY
+    // login (and immune to any password desync); the seeded credentials
+    // remain valid for addresses outside these ranges.
+    private const val KEY_WEBUI_WL_ENABLED = "WebUI\\AuthSubnetWhitelistEnabled"
+    private const val KEY_WEBUI_WL = "WebUI\\AuthSubnetWhitelist"
+    private const val LAN_SUBNETS =
+        "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, 100.64.0.0/10, fd00::/8, fe80::/10"
+
     /**
      * Makes sure the engine config exists and reflects the app-managed
      * settings. On the very first start a full default config is written;
@@ -90,6 +100,15 @@ object NoxConfig {
         }
         return webUiPort
     }
+
+    /** Auth-bypass subnet whitelist lines for the seeded config. */
+    private fun whitelistLines(lanAccess: Boolean): String =
+        if (lanAccess) {
+            "WebUI\\AuthSubnetWhitelistEnabled=true\n" +
+                "WebUI\\AuthSubnetWhitelist=$LAN_SUBNETS\n"
+        } else {
+            "WebUI\\AuthSubnetWhitelistEnabled=false\n"
+        }
 
     private fun writeDefaultConfig(
         conf: File,
@@ -132,6 +151,7 @@ object NoxConfig {
                 append(")\"\n")
                 append("WebUI\\Port=").append(webUiPort).append('\n')
                 append("WebUI\\ServerDomains=*\n")
+                append(whitelistLines(lanAccess))
                 append("WebUI\\Username=").append(username).append('\n')
                 append("Connection\\PortRangeMin=6881\n")
                 append("Connection\\GlobalDLLimit=-1\n")
@@ -163,6 +183,11 @@ object NoxConfig {
             KEY_WEBUI_USERNAME to username,
             KEY_WEBUI_LOCAL_AUTH to "false",
             KEY_WEBUI_HOST_VALIDATION to "false",
+            // LAN auth bypass: private-subnet clients skip the login entirely
+            // (qB's whitelisted-subnets feature); disabled when LAN access is
+            // off so the engine is loopback + password only.
+            KEY_WEBUI_WL_ENABLED to (if (lanAccess) "true" else "false"),
+            KEY_WEBUI_WL to LAN_SUBNETS,
             // fresh PBKDF2 digest of the app-tracked password: keeps the
             // engine in sync with what the app logs in with (and what the
             // Settings screen shows) after every restart

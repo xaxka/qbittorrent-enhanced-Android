@@ -167,6 +167,11 @@ class DetailActivity : AppCompatActivity() {
             true
         }
 
+        R.id.add_web_seeds_menu -> {
+            showAddWebSeedsDialog()
+            true
+        }
+
         else -> false
     }
 
@@ -329,6 +334,21 @@ class DetailActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showAddWebSeedsDialog() {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.add_web_seed_title)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = input?.text?.toString()?.trim().orEmpty()
+                if (url.isNotEmpty()) viewModel.addWebSeeds(url)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun confirmDelete() {
         val view = layoutInflater.inflate(R.layout.dialog_delete_torrent, null)
         val deleteFiles = view.findViewById<MaterialCheckBox>(R.id.delete_with_downloaded_files)
@@ -350,10 +370,11 @@ class DetailActivity : AppCompatActivity() {
             1 -> FilesFragment()
             2 -> TrackersFragment()
             3 -> PeersFragment()
-            else -> PiecesFragment()
+            4 -> PiecesFragment()
+            else -> WebSeedsFragment()
         }
 
-        override fun getItemCount() = 5
+        override fun getItemCount() = 6
     }
 
     companion object {
@@ -363,6 +384,7 @@ class DetailActivity : AppCompatActivity() {
             R.string.tab_trackers,
             R.string.tab_peers,
             R.string.tab_pieces,
+            R.string.tab_web_seeds,
         )
         private const val EXTRA_HASH = "hash"
         private const val EXTRA_NAME = "name"

@@ -161,6 +161,11 @@
     <string name="detail_time_active">Tempo attivo</string>
     <string name="detail_seeded_for">Tempo di seed</string>
     <string name="detail_completed_on">Completato il</string>
+    <string name="detail_availability">Disponibilità</string>
+    <string name="detail_last_activity">Ultima attività</string>
+    <string name="detail_last_seen_complete">Ultima volta visto completo</string>
+    <string name="detail_info_hash_v2">Hash info v2</string>
+    <string name="detail_connections">Connessioni</string>
     <string name="detail_private">Torrent privato</string>
     <string name="detail_yes">Sì</string>
     <string name="detail_no">No</string>
@@ -171,7 +176,7 @@
     <string name="peer_client_fmt">Client: %1$s</string>
     <string name="peer_flags_fmt">Flag: %1$s</string>
     <string name="engine_webui_access_fmt">WebUI del motore integrato: %1$s
-%2$s / %3$s (tocca per copiare l’indirizzo)</string>
+%2$s / %3$s I dispositivi della LAN la aprono senza login (tocca per copiare l’indirizzo)</string>
     <string name="copied_to_clipboard">Copiato negli appunti</string>
     <string name="priority_title">Priorità del file</string>
     <string name="priority_skip">Salta</string>
@@ -282,6 +287,9 @@
     <string name="share_magnet">Condividi magnet</string>
     <string name="save_torrent_file">Salva file torrent</string>
     <string name="add_trackers">Aggiungi tracker</string>
+    <string name="add_web_seed_title">Aggiungi semi web</string>
+    <string name="edit_web_seed_url">Modifica URL semi web</string>
+    <string name="web_seed_list_empty">Questo torrent non ha sorgenti web</string>
     <string name="torrent_speed_limit">Limite di velocità</string>
     <string name="share_tracker_url">Condividi URL…</string>
     <string name="port">Porta: %1$d</string>
@@ -702,8 +710,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">Al raggiungimento del limite di condivisione</string>
     <string name="edit_tracker_url">Modifica URL tracker</string>
     <string name="tab_pieces">Pezzi</string>
+    <string name="tab_web_seeds">Semi web</string>
     <string name="pieces_map">Mappa dei pezzi</string>
-    <string name="pieces_summary">Pezzi disponibili: %1$d / %2$d</string>
+    <string name="pieces_summary">Pezzi disponibili: %1$d / %2$d • %3$s per pezzo</string>
     <string name="pieces_unavailable">Mappa dei pezzi non ancora disponibile</string>
     <string name="piece_state_have">Scaricato</string>
     <string name="piece_state_missing">Mancante</string>

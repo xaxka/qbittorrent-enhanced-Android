@@ -161,6 +161,11 @@
     <string name="detail_time_active">Aktif süre</string>
     <string name="detail_seeded_for">Seed süresi</string>
     <string name="detail_completed_on">Tamamlanma</string>
+    <string name="detail_availability">Kullanılabilirlik</string>
+    <string name="detail_last_activity">Son etkinlik</string>
+    <string name="detail_last_seen_complete">Son tam görünme</string>
+    <string name="detail_info_hash_v2">Bilgi karması v2</string>
+    <string name="detail_connections">Bağlantılar</string>
     <string name="detail_private">Özel torrent</string>
     <string name="detail_yes">Evet</string>
     <string name="detail_no">Hayır</string>
@@ -171,7 +176,8 @@
     <string name="peer_client_fmt">İstemci: %1$s</string>
     <string name="peer_flags_fmt">Bayraklar: %1$s</string>
     <string name="engine_webui_access_fmt">Dahili motor WebUI: %1$s
-%2$s / %3$s (adresi kopyalamak için dokunun)</string>
+%2$s / %3$s 
+LAN cihazları giriş yapmadan açabilir (adresi kopyalamak için dokunun)</string>
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
     <string name="priority_title">Dosya önceliği</string>
     <string name="priority_skip">Atla</string>
@@ -282,6 +288,9 @@
     <string name="share_magnet">Magnet’i paylaş</string>
     <string name="save_torrent_file">Torrent dosyasını kaydet</string>
     <string name="add_trackers">İzleyici ekle</string>
+    <string name="add_web_seed_title">Web tohumu ekle</string>
+    <string name="edit_web_seed_url">Web tohumu URL\'sini düzenle</string>
+    <string name="web_seed_list_empty">Bu torrentte web kaynağı yok</string>
     <string name="torrent_speed_limit">Hız limiti</string>
     <string name="share_tracker_url">URL’yi paylaş…</string>
     <string name="port">Bağlantı noktası: %1$d</string>
@@ -702,8 +711,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">Paylaşım limitine ulaşınca</string>
     <string name="edit_tracker_url">Tracker URL\'sini düzenle</string>
     <string name="tab_pieces">Parçalar</string>
+    <string name="tab_web_seeds">Web tohumları</string>
     <string name="pieces_map">Parça haritası</string>
-    <string name="pieces_summary">Kullanılabilir parça: %1$d / %2$d</string>
+    <string name="pieces_summary">Kullanılabilir parça: %1$d / %2$d • parça başına %3$s</string>
     <string name="pieces_unavailable">Parça haritası henüz kullanılamıyor</string>
     <string name="piece_state_have">İndirildi</string>
     <string name="piece_state_missing">Eksik</string>

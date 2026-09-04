@@ -161,6 +161,11 @@
     <string name="detail_time_active">Thời gian hoạt động</string>
     <string name="detail_seeded_for">Thời gian seed</string>
     <string name="detail_completed_on">Hoàn thành lúc</string>
+    <string name="detail_availability">Khả dụng</string>
+    <string name="detail_last_activity">Hoạt động cuối</string>
+    <string name="detail_last_seen_complete">Lần thấy hoàn chỉnh cuối</string>
+    <string name="detail_info_hash_v2">Băm thông tin v2</string>
+    <string name="detail_connections">Kết nối</string>
     <string name="detail_private">Torrent riêng tư</string>
     <string name="detail_yes">Có</string>
     <string name="detail_no">Không</string>
@@ -171,7 +176,7 @@
     <string name="peer_client_fmt">Trình khách: %1$s</string>
     <string name="peer_flags_fmt">Cờ: %1$s</string>
     <string name="engine_webui_access_fmt">WebUI của động cơ tích hợp: %1$s
-%2$s / %3$s (chạm để sao chép địa chỉ)</string>
+%2$s / %3$s Thiết bị trong mạng LAN mở trực tiếp không cần đăng nhập (chạm để sao chép địa chỉ)</string>
     <string name="copied_to_clipboard">Đã sao chép vào bảng tạm</string>
     <string name="priority_title">Ưu tiên tệp</string>
     <string name="priority_skip">Bỏ qua</string>
@@ -282,6 +287,9 @@
     <string name="share_magnet">Chia sẻ magnet</string>
     <string name="save_torrent_file">Lưu tệp torrent</string>
     <string name="add_trackers">Thêm tracker</string>
+    <string name="add_web_seed_title">Thêm nguồn web</string>
+    <string name="edit_web_seed_url">Sửa URL nguồn web</string>
+    <string name="web_seed_list_empty">Torrent này không có nguồn web</string>
     <string name="torrent_speed_limit">Giới hạn tốc độ</string>
     <string name="share_tracker_url">Chia sẻ URL…</string>
     <string name="port">Cổng: %1$d</string>
@@ -702,8 +710,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">Khi đạt giới hạn chia sẻ</string>
     <string name="edit_tracker_url">Sửa URL tracker</string>
     <string name="tab_pieces">Mảnh</string>
+    <string name="tab_web_seeds">Nguồn web</string>
     <string name="pieces_map">Bản đồ mảnh</string>
-    <string name="pieces_summary">Mảnh khả dụng: %1$d / %2$d</string>
+    <string name="pieces_summary">Mảnh khả dụng: %1$d / %2$d • %3$s mỗi mảnh</string>
     <string name="pieces_unavailable">Bản đồ mảnh chưa khả dụng</string>
     <string name="piece_state_have">Đã tải</string>
     <string name="piece_state_missing">Thiếu</string>

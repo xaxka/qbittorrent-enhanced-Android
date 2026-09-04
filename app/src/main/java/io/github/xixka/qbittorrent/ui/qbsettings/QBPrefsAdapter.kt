@@ -231,7 +231,14 @@ class QBPrefsAdapter(
                 ArrayAdapter(itemView.context, android.R.layout.simple_list_item_1, labels),
             )
             val index = selectedIndex(field)
-            dropdown.setText(labels.getOrElse(index) { "" }, false)
+            // -1 (server value outside the known options) falls back to the
+            // raw wire value as text instead of a blank field, so the user
+            // always sees what the server actually holds.
+            val rawText = vm.value(field.key)
+                ?.takeIf { it.isJsonPrimitive }
+                ?.let { runCatching { it.asJsonPrimitive.asString }.getOrNull() }
+            val shown = labels.getOrElse(index) { rawText ?: field.def?.toString() ?: "" }
+            dropdown.setText(shown, false)
             dropdown.setOnItemClickListener { _, _, position, _ ->
                 val option = field.options.getOrNull(position) ?: return@setOnItemClickListener
                 vm.setValue(field.key, encodeSelection(field, option.value))

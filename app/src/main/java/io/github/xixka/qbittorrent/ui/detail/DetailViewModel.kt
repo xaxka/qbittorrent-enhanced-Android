@@ -12,6 +12,7 @@ import io.github.xixka.qbittorrent.model.TorrentFile
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
 import io.github.xixka.qbittorrent.model.Tracker
+import io.github.xixka.qbittorrent.model.WebSeed
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,7 @@ data class DetailUiState(
     val trackers: List<Tracker> = emptyList(),
     val peers: List<Peer> = emptyList(),
     val pieceStates: List<Int> = emptyList(),
+    val webSeeds: List<WebSeed> = emptyList(),
     val activeTab: Int = 0,
 )
 
@@ -73,12 +75,51 @@ class DetailViewModel(app: Application, private val initialHash: String) :
                     val tagList = runCatching { repository.tags() }
                         .getOrDefault(_state.value.tags)
                     val tab = _state.value.activeTab
-                    val (files, trackers, peers, pieces) = when (tab) {
-                        FILES_TAB -> Quad(repository.files(hash), _state.value.trackers, emptyList(), _state.value.pieceStates)
-                        TRACKERS_TAB -> Quad(_state.value.files, repository.trackers(hash), emptyList(), _state.value.pieceStates)
-                        PEERS_TAB -> Quad(_state.value.files, _state.value.trackers, repository.peers(hash), _state.value.pieceStates)
-                        PIECES_TAB -> Quad(_state.value.files, _state.value.trackers, _state.value.peers, repository.pieceStates(hash))
-                        else -> Quad(emptyList(), emptyList(), emptyList(), _state.value.pieceStates)
+                    // Only the visible tab's data is refreshed; the other
+                    // tabs keep their last values (empty while never visited).
+                    val (files, trackers, peers, pieces, webSeeds) = when (tab) {
+                        FILES_TAB -> Quint(
+                            repository.files(hash),
+                            _state.value.trackers,
+                            emptyList(),
+                            _state.value.pieceStates,
+                            _state.value.webSeeds,
+                        )
+                        TRACKERS_TAB -> Quint(
+                            _state.value.files,
+                            repository.trackers(hash),
+                            emptyList(),
+                            _state.value.pieceStates,
+                            _state.value.webSeeds,
+                        )
+                        PEERS_TAB -> Quint(
+                            _state.value.files,
+                            _state.value.trackers,
+                            repository.peers(hash),
+                            _state.value.pieceStates,
+                            _state.value.webSeeds,
+                        )
+                        PIECES_TAB -> Quint(
+                            _state.value.files,
+                            _state.value.trackers,
+                            _state.value.peers,
+                            repository.pieceStates(hash),
+                            _state.value.webSeeds,
+                        )
+                        WEBSEEDS_TAB -> Quint(
+                            _state.value.files,
+                            _state.value.trackers,
+                            _state.value.peers,
+                            _state.value.pieceStates,
+                            repository.webSeeds(hash),
+                        )
+                        else -> Quint(
+                            emptyList(),
+                            emptyList(),
+                            emptyList(),
+                            _state.value.pieceStates,
+                            _state.value.webSeeds,
+                        )
                     }
                     _state.update {
                         it.copy(
@@ -92,6 +133,7 @@ class DetailViewModel(app: Application, private val initialHash: String) :
                             trackers = trackers,
                             peers = peers,
                             pieceStates = pieces,
+                            webSeeds = webSeeds,
                         )
                     }
                 } catch (e: Exception) {
@@ -189,6 +231,20 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         repository.editTracker(hash, origUrl, newUrl)
     }
 
+    // ---------- web seeds (qBC TorrentWebSeedsTab parity) ----------
+
+    fun addWebSeeds(urls: String) = launchAction {
+        repository.addWebSeeds(hash, urls)
+    }
+
+    fun editWebSeed(origUrl: String, newUrl: String) = launchAction {
+        repository.editWebSeed(hash, origUrl, newUrl)
+    }
+
+    fun removeWebSeeds(urls: List<String>) = launchAction {
+        repository.removeWebSeeds(hash, urls.joinToString("|"))
+    }
+
     suspend fun categories(): Map<String, io.github.xixka.qbittorrent.model.QBCategory> =
         runCatching { repository.categories() }.getOrDefault(emptyMap())
 
@@ -210,12 +266,13 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         viewModelScope.launch { runCatching { block() } }
     }
 
-    /** Local quad tuple to keep the tab polling readable. */
-    private data class Quad(
+    /** Local quintuple to keep the tab polling readable. */
+    private data class Quint(
         val files: List<TorrentFile>,
         val trackers: List<Tracker>,
         val peers: List<Peer>,
         val pieces: List<Int>,
+        val webSeeds: List<WebSeed>,
     )
 
     companion object {
@@ -223,6 +280,7 @@ class DetailViewModel(app: Application, private val initialHash: String) :
         const val TRACKERS_TAB = 2
         const val PEERS_TAB = 3
         const val PIECES_TAB = 4
+        const val WEBSEEDS_TAB = 5
 
         fun factory(app: Application, hash: String): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

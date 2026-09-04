@@ -161,6 +161,11 @@
     <string name="detail_time_active">Tempo ativo</string>
     <string name="detail_seeded_for">Tempo semeando</string>
     <string name="detail_completed_on">Concluído em</string>
+    <string name="detail_availability">Disponibilidade</string>
+    <string name="detail_last_activity">Última atividade</string>
+    <string name="detail_last_seen_complete">Visto completo pela última vez</string>
+    <string name="detail_info_hash_v2">Hash de info v2</string>
+    <string name="detail_connections">Conexões</string>
     <string name="detail_private">Torrent privado</string>
     <string name="detail_yes">Sim</string>
     <string name="detail_no">Não</string>
@@ -171,7 +176,8 @@
     <string name="peer_client_fmt">Cliente: %1$s</string>
     <string name="peer_flags_fmt">Sinalizadores: %1$s</string>
     <string name="engine_webui_access_fmt">WebUI do motor integrado: %1$s
-%2$s / %3$s (toque para copiar o endereço)</string>
+%2$s / %3$s 
+Dispositivos da LAN abrem sem login (toque para copiar o endereço)</string>
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="priority_title">Prioridade do arquivo</string>
     <string name="priority_skip">Ignorar</string>
@@ -282,6 +288,9 @@
     <string name="share_magnet">Compartilhar magnet</string>
     <string name="save_torrent_file">Salvar arquivo torrent</string>
     <string name="add_trackers">Adicionar rastreadores</string>
+    <string name="add_web_seed_title">Adicionar fonte web</string>
+    <string name="edit_web_seed_url">Editar URL da fonte web</string>
+    <string name="web_seed_list_empty">Este torrent não tem fontes web</string>
     <string name="torrent_speed_limit">Limite de velocidade</string>
     <string name="share_tracker_url">Compartilhar URL…</string>
     <string name="port">Porta: %1$d</string>
@@ -702,8 +711,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">Ao atingir o limite de compartilhamento</string>
     <string name="edit_tracker_url">Editar URL do tracker</string>
     <string name="tab_pieces">Partes</string>
+    <string name="tab_web_seeds">Fontes web</string>
     <string name="pieces_map">Mapa de partes</string>
-    <string name="pieces_summary">Partes disponíveis: %1$d / %2$d</string>
+    <string name="pieces_summary">Partes disponíveis: %1$d / %2$d • %3$s por parte</string>
     <string name="pieces_unavailable">Mapa de partes indisponível</string>
     <string name="piece_state_have">Baixado</string>
     <string name="piece_state_missing">Faltando</string>

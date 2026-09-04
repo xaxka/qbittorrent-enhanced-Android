@@ -161,6 +161,11 @@
     <string name="detail_time_active">活跃时长</string>
     <string name="detail_seeded_for">做种时长</string>
     <string name="detail_completed_on">完成时间</string>
+    <string name="detail_availability">可用性</string>
+    <string name="detail_last_activity">最后活动</string>
+    <string name="detail_last_seen_complete">最后完整可见</string>
+    <string name="detail_info_hash_v2">哈希 v2</string>
+    <string name="detail_connections">连接数</string>
     <string name="detail_private">私有种子</string>
     <string name="detail_yes">是</string>
     <string name="detail_no">否</string>
@@ -171,7 +176,9 @@
     <string name="peer_client_fmt">客户端：%1$s</string>
     <string name="peer_flags_fmt">标志：%1$s</string>
     <string name="engine_webui_access_fmt">内置引擎 WebUI：%1$s
-%2$s / %3$s（点击复制地址）</string>
+%2$s / %3$s
+局域网设备可直接访问，无需登录
+局域网设备可直接访问，无需登录（点击复制地址）</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="priority_title">文件优先级</string>
     <string name="priority_skip">跳过</string>
@@ -282,6 +289,9 @@
     <string name="share_magnet">分享磁力链接</string>
     <string name="save_torrent_file">保存种子文件</string>
     <string name="add_trackers">添加 trackers</string>
+    <string name="add_web_seed_title">添加网络种子</string>
+    <string name="edit_web_seed_url">编辑网络种子 URL</string>
+    <string name="web_seed_list_empty">此种子没有网络源</string>
     <string name="torrent_speed_limit">速度限制</string>
     <string name="share_tracker_url">分享 URL…</string>
     <string name="port">端口：%1$d</string>
@@ -702,8 +712,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">达到分享限制时</string>
     <string name="edit_tracker_url">编辑 Tracker 地址</string>
     <string name="tab_pieces">块</string>
+    <string name="tab_web_seeds">网络种子</string>
     <string name="pieces_map">块状态图</string>
-    <string name="pieces_summary">已完成 %1$d / %2$d 块</string>
+    <string name="pieces_summary">已完成 %1$d / %2$d 块 • 每块 %3$s</string>
     <string name="pieces_unavailable">块状态图暂不可用</string>
     <string name="piece_state_have">已下载</string>
     <string name="piece_state_missing">缺失</string>

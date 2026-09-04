@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Night + API 27+ wins over both values-night and values-v27, so it must
+     carry the complete AppTheme body (and parent) for that configuration. -->
+<resources>
+    <style name="AppTheme" parent="BaseTheme">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

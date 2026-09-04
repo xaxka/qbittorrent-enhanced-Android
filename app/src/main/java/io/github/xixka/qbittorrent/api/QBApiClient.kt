@@ -122,7 +122,7 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
                 login()
                 checked(block(currentService()))
             } else {
-                throw QBApiException("Server error HTTP ${e.code()}")
+                throw QBApiException("Server error HTTP ${e.code()}", e.code())
             }
         }
     }
@@ -130,7 +130,7 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
     /** Fails the call when a Response-typed endpoint answered non-2xx. */
     private fun <T> checked(result: T): T {
         if (result is RetrofitResponse<*> && !result.isSuccessful) {
-            throw QBApiException("Server error HTTP ${result.code()}")
+            throw QBApiException("Server error HTTP ${result.code()}", result.code())
         }
         return result
     }

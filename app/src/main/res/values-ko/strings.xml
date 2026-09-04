@@ -161,6 +161,11 @@
     <string name="detail_time_active">활동 시간</string>
     <string name="detail_seeded_for">시딩 시간</string>
     <string name="detail_completed_on">완료 시각</string>
+    <string name="detail_availability">가용성</string>
+    <string name="detail_last_activity">마지막 활동</string>
+    <string name="detail_last_seen_complete">마지막으로 완전했던 시점</string>
+    <string name="detail_info_hash_v2">정보 해시 v2</string>
+    <string name="detail_connections">연결 수</string>
     <string name="detail_private">비공개 토렌트</string>
     <string name="detail_yes">예</string>
     <string name="detail_no">아니요</string>
@@ -171,7 +176,8 @@
     <string name="peer_client_fmt">클라이언트: %1$s</string>
     <string name="peer_flags_fmt">플래그: %1$s</string>
     <string name="engine_webui_access_fmt">내장 엔진 WebUI: %1$s
-%2$s / %3$s (탭하여 주소 복사)</string>
+%2$s / %3$s 
+LAN 기기는 로그인 없이 열 수 있습니다(탭하여 주소 복사)</string>
     <string name="copied_to_clipboard">클립보드에 복사됨</string>
     <string name="priority_title">파일 우선순위</string>
     <string name="priority_skip">건너뛰기</string>
@@ -282,6 +288,9 @@
     <string name="share_magnet">마그넷 공유</string>
     <string name="save_torrent_file">토렌트 파일 저장</string>
     <string name="add_trackers">트래커 추가</string>
+    <string name="add_web_seed_title">웹 시드 추가</string>
+    <string name="edit_web_seed_url">웹 시드 URL 편집</string>
+    <string name="web_seed_list_empty">이 토렌트에는 웹 시드가 없습니다</string>
     <string name="torrent_speed_limit">속도 제한</string>
     <string name="share_tracker_url">URL 공유…</string>
     <string name="port">포트: %1$d</string>
@@ -702,8 +711,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">공유 제한 도달 시</string>
     <string name="edit_tracker_url">트래커 URL 편집</string>
     <string name="tab_pieces">피스</string>
+    <string name="tab_web_seeds">웹 시드</string>
     <string name="pieces_map">피스 맵</string>
-    <string name="pieces_summary">사용 가능한 피스: %1$d / %2$d</string>
+    <string name="pieces_summary">사용 가능한 피스: %1$d / %2$d • 피스당 %3$s</string>
     <string name="pieces_unavailable">피스 맵을 아직 사용할 수 없습니다</string>
     <string name="piece_state_have">다운로드됨</string>
     <string name="piece_state_missing">누락</string>

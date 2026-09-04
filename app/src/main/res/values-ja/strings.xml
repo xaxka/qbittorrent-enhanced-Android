@@ -161,6 +161,11 @@
     <string name="detail_time_active">稼働時間</string>
     <string name="detail_seeded_for">シード時間</string>
     <string name="detail_completed_on">完了日時</string>
+    <string name="detail_availability">可用性</string>
+    <string name="detail_last_activity">最終アクティビティ</string>
+    <string name="detail_last_seen_complete">最後に完全だった時刻</string>
+    <string name="detail_info_hash_v2">情報ハッシュ v2</string>
+    <string name="detail_connections">接続数</string>
     <string name="detail_private">非公開トレント</string>
     <string name="detail_yes">はい</string>
     <string name="detail_no">いいえ</string>
@@ -171,7 +176,7 @@
     <string name="peer_client_fmt">クライアント: %1$s</string>
     <string name="peer_flags_fmt">フラグ: %1$s</string>
     <string name="engine_webui_access_fmt">内蔵エンジンの WebUI: %1$s
-%2$s / %3$s（タップでアドレスをコピー）</string>
+%2$s / %3$sLAN上のデバイスはログインなしで開けます（タップでアドレスをコピー）</string>
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
     <string name="priority_title">ファイルの優先度</string>
     <string name="priority_skip">スキップ</string>
@@ -282,6 +287,9 @@
     <string name="share_magnet">マグネットを共有</string>
     <string name="save_torrent_file">トレントファイルを保存</string>
     <string name="add_trackers">トラッカーを追加</string>
+    <string name="add_web_seed_title">Webシードを追加</string>
+    <string name="edit_web_seed_url">WebシードURLを編集</string>
+    <string name="web_seed_list_empty">このトレントにはWebシードがありません</string>
     <string name="torrent_speed_limit">速度制限</string>
     <string name="share_tracker_url">URL を共有…</string>
     <string name="port">ポート：%1$d</string>
@@ -702,8 +710,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="share_limit_action">共有制限に達したとき</string>
     <string name="edit_tracker_url">トラッカーURLを編集</string>
     <string name="tab_pieces">ピース</string>
+    <string name="tab_web_seeds">Webシード</string>
     <string name="pieces_map">ピースマップ</string>
-    <string name="pieces_summary">利用可能なピース: %1$d / %2$d</string>
+    <string name="pieces_summary">利用可能なピース: %1$d / %2$d • 各 %3$s</string>
     <string name="pieces_unavailable">ピースマップはまだ利用できません</string>
     <string name="piece_state_have">ダウンロード済み</string>
     <string name="piece_state_missing">未取得</string>

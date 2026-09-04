@@ -9,4 +9,4 @@ class QBAuthException(message: String) : IOException(message)
 class QBConnectException(message: String, cause: Throwable? = null) : IOException(message, cause)
 
 /** The server answered with an unexpected HTTP status. */
-class QBApiException(message: String) : IOException(message)
+class QBApiException(message: String, val code: Int = 0) : IOException(message)

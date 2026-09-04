@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark-mode icon contrast: overrides the EMPTY AppTheme — a same-name
+     style is replaced wholesale across configurations, so the parent must
+     be re-declared here (a dot-less style without parent is parentless).
+     BaseTheme already sets transparent status/navigation bars; M3 DayNight
+     flips the surfaces, this flips the system bar icon appearance. -->
+<resources>
+    <style name="AppTheme" parent="BaseTheme">
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

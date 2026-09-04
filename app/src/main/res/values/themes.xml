@@ -3,6 +3,14 @@
     <!-- Pixel-perfect port of LibreTorrent's theme system (GPL-3.0) -->
 
     <style name="BaseTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Edge-to-edge, made explicit instead of relying on library theme
+             defaults: transparent system bars + light/dark icon contrast.
+             Without an explicit transparent statusBarColor some OEM/theme
+             combinations keep an opaque strip above the app bar — the
+             "immersive toolbar not taking effect" symptom. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>

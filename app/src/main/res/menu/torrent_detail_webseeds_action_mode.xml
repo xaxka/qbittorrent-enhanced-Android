@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/add_web_seed_menu"
+        android:icon="@drawable/ic_add_24px"
+        android:title="@string/add_web_seed_title"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/share_web_seed_menu"
+        android:icon="@drawable/ic_share_24px"
+        android:title="@string/share"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/edit_web_seed_url"
+        android:icon="@drawable/ic_edit_24px"
+        android:title="@string/edit_web_seed_url"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/delete_web_seed"
+        android:icon="@drawable/ic_delete_24px"
+        android:title="@string/delete"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/select_all_web_seeds_menu"
+        android:icon="@drawable/ic_select_all_24px"
+        android:title="@string/select_all"
+        app:showAsAction="never" />
+</menu>

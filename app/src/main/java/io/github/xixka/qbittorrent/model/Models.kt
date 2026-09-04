@@ -49,6 +49,8 @@ data class TorrentInfo(
     @SerializedName("share_limit_action") val shareLimitAction: String = "Default",
     /** The engine answers null while metadata is not fetched yet. */
     @SerializedName("private") val isPrivate: Boolean? = false,
+    /** Last chunk up/down (epoch seconds, 0 = never since start). */
+    @SerializedName("last_activity") val lastActivity: Long = 0L,
 ) {
     val isPaused: Boolean
         get() = state.equals("pausedDL", ignoreCase = true) || state.equals("pausedUP", ignoreCase = true) ||
@@ -130,6 +132,14 @@ data class TorrentFile(
 }
 
 /**
+ * Web seed (HTTP source) from GET /api/v2/torrents/webseeds —
+ * qBitController TorrentWebSeedsTab parity.
+ */
+data class WebSeed(
+    @SerializedName("url") val url: String = "",
+)
+
+/**
  * Tracker from GET /api/v2/torrents/trackers
  */
 data class Tracker(
@@ -164,10 +174,15 @@ data class Peer(
     @SerializedName("port") val port: Int = 0,
     @SerializedName("client") val client: String = "",
     @SerializedName("progress") val progress: Double = 0.0,
-    @SerializedName("connection_status") val connectionStatus: String = "",
+    // qB >= 4.2 serializes the peer connection type as "connection"
+    // (BT / Web / µTP); "connection_status" was never a peer key — it is
+    // the TRANSFER-level key, so the old name always read as blank.
+    @SerializedName("connection") val connectionStatus: String = "",
     @SerializedName("downloaded") val downloaded: Long = 0L,
     @SerializedName("uploaded") val uploaded: Long = 0L,
-    @SerializedName("down_speed") val downSpeed: Long = 0L,
+    // peer download speed is "dl_speed" (matching the transfer endpoints);
+    // "down_speed" never existed in the peers response and read as 0.
+    @SerializedName("dl_speed") val downSpeed: Long = 0L,
     @SerializedName("up_speed") val upSpeed: Long = 0L,
     @SerializedName("flags") val flags: String = "",
     @SerializedName("relevance") val relevance: Double = 0.0,

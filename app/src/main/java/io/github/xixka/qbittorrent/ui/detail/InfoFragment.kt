@@ -136,6 +136,17 @@ class InfoFragment : Fragment() {
             R.string.detail_seeded_for to Format.duration(props?.seedingTime ?: 0L),
             R.string.detail_completed_on to
                 (info.completionOn.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+            // qBitController overview parity: swarm availability, last
+            // activity, last seen complete, v2 info hash, connection count
+            R.string.detail_availability to
+                (info.availability.takeIf { it >= 0 }?.let { String.format(Locale.ROOT, "%.3f", it) } ?: "—"),
+            R.string.detail_last_activity to
+                (info.lastActivity.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+            R.string.detail_last_seen_complete to
+                (state.properties?.lastSeenComplete?.takeIf { it > 0 }?.let { Format.epochDate(it) } ?: "—"),
+            R.string.detail_info_hash_v2 to
+                (state.properties?.infohashV2?.takeIf { it.isNotBlank() } ?: "—"),
+            R.string.detail_connections to (props?.connections ?: 0L).toString(),
             R.string.detail_private to getString(
                 if (info.isPrivate == true) R.string.detail_yes else R.string.detail_no
             ),

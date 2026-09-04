@@ -53,15 +53,15 @@ class PiecesFragment : Fragment() {
             pieces.isEmpty() && props != null && props.piecesNum > 0 ->
                 getString(
                     R.string.pieces_summary,
-                    props.piecesHave.toString(),
-                    props.piecesNum.toString(),
+                    props.piecesHave.toInt(),
+                    props.piecesNum.toInt(),
                     Format.size(props.pieceSize),
                 )
             pieces.isEmpty() -> getString(R.string.pieces_unavailable)
             else -> getString(
                 R.string.pieces_summary,
-                have.toString(),
-                pieces.size.toString(),
+                have,
+                pieces.size,
                 if (props != null && props.pieceSize > 0) Format.size(props.pieceSize) else "—",
             )
         }

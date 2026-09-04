@@ -56,4 +56,9 @@
         android:id="@+id/add_trackers_menu"
         android:title="@string/add_trackers"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/add_web_seeds_menu"
+        android:title="@string/add_web_seed_title"
+        app:showAsAction="never" />
 </menu>

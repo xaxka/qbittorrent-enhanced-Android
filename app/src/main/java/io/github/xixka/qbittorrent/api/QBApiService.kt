@@ -122,6 +122,18 @@ interface QBApiService {
         @PartMap fields: Map<String, okhttp3.RequestBody> = emptyMap(),
     ): Response<ResponseBody>
 
+    // qBittorrent 5.0 renamed pause/resume to stop/start and REMOVED the
+    // legacy actions (torrentscontroller has no pauseAction/resumeAction),
+    // so a 5.x engine answers 404 for the old paths — never pausing the
+    // torrent. Both sets are declared; the repository picks by response.
+    @FormUrlEncoded
+    @POST("api/v2/torrents/stop")
+    suspend fun stop(@Field("hashes") hashes: String): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/start")
+    suspend fun start(@Field("hashes") hashes: String): Response<ResponseBody>
+
     @FormUrlEncoded
     @POST("api/v2/torrents/pause")
     suspend fun pause(@Field("hashes") hashes: String): Response<ResponseBody>
@@ -232,6 +244,33 @@ interface QBApiService {
     @FormUrlEncoded
     @POST("api/v2/torrents/removeTrackers")
     suspend fun removeTrackers(
+        @Field("hash") hash: String,
+        @Field("urls") urls: String,
+    ): Response<ResponseBody>
+
+    // ---------- web seeds (qBC TorrentWebSeedsTab parity) ----------
+
+    @GET("api/v2/torrents/webseeds")
+    suspend fun webSeeds(@Query("hash") hash: String): List<WebSeed>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/addWebSeeds")
+    suspend fun addWebSeeds(
+        @Field("hash") hash: String,
+        @Field("urls") urls: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/editWebSeed")
+    suspend fun editWebSeed(
+        @Field("hash") hash: String,
+        @Field("origUrl") origUrl: String,
+        @Field("newUrl") newUrl: String,
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("api/v2/torrents/removeWebSeeds")
+    suspend fun removeWebSeeds(
         @Field("hash") hash: String,
         @Field("urls") urls: String,
     ): Response<ResponseBody>
