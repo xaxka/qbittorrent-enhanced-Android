@@ -278,7 +278,7 @@ LAN devices open it without a login LAN devices open it without a login (tap to 
     <string name="stats">Stats</string>
     <string name="filters">Filters</string>
     <string name="drawer_status">Status</string>
-    <string name="drawer_status_downloading">Downloading…</string>
+    <string name="drawer_status_downloading">Downloading</string>
     <string name="drawer_status_downloaded">Downloaded</string>
         <string name="drawer_status_error">Error</string>
     <string name="drawer_sorting">Sorting</string>

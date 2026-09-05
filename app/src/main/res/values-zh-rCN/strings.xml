@@ -274,7 +274,7 @@
     <string name="stats">统计</string>
     <string name="filters">筛选</string>
     <string name="drawer_status">状态</string>
-    <string name="drawer_status_downloading">下载中…</string>
+    <string name="drawer_status_downloading">下载中</string>
     <string name="drawer_status_downloaded">已下载</string>
         <string name="drawer_status_error">错误</string>
     <string name="drawer_sorting">排序</string>
