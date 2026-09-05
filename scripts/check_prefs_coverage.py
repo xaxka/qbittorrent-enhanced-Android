@@ -50,6 +50,22 @@ def required_keys() -> set:
     return {line.strip() for line in REQUIRED_FILE.read_text().splitlines() if line.strip()}
 
 
+# Keys intentionally NOT exposed by the in-app editor because the app OWNS
+# and force-manages them: NoxConfig re-applies the app's own value at every
+# engine start, so a user edit in the editor would be silently reverted on
+# the next restart — showing a control that snaps back is worse than not
+# showing it. Every key here MUST have a matching justification comment and
+# a matching comment in QBPrefSchema.kt.
+APP_MANAGED = {
+    # qB's "bypass authentication for whitelisted subnets" pair: LAN
+    # clients must always log in (round-17 requirement) — the switch is
+    # kept off and re-patched off by NoxConfig.patchConfig, so neither
+    # the toggle nor the subnet list is user-editable in-app.
+    "bypass_auth_subnet_whitelist_enabled",
+    "bypass_auth_subnet_whitelist",
+}
+
+
 def main() -> int:
     if not SCHEMA.exists():
         print(f"FATAL: missing {SCHEMA}")
@@ -60,9 +76,12 @@ def main() -> int:
         print(f"FATAL: empty/missing {REQUIRED_FILE}")
         return 2
 
-    missing = sorted(required - written)
+    missing = sorted(required - written - APP_MANAGED)
     print(f"preference keys in the schema: {len(written)}")
     print(f"required engine keys ({REQUIRED_FILE.name}): {len(required)}")
+    print(f"app-managed keys (owned by NoxConfig, hidden on purpose): {len(APP_MANAGED)}")
+    for k in sorted(APP_MANAGED & required):
+        print(f"    - {k}")
 
     if missing:
         print("\nMISSING preference keys (qBittorrent Enhanced config the "
@@ -73,7 +92,8 @@ def main() -> int:
 
     print("OK: the dynamic settings editor schema covers the complete "
           "qBittorrent Enhanced WebUI Options key set (unknown future keys "
-          "are handled generically at runtime).")
+          "are handled generically at runtime; app-managed keys are "
+          "enforced by NoxConfig instead).")
     return 0
 
 
