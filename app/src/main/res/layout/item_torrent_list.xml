@@ -102,7 +102,7 @@
                     android:ellipsize="end"
                     android:gravity="center_vertical"
                     android:maxLines="1"
-                    tools:text="1 Mb/2 Mb (50%) • 01:00" />
+                    tools:text="1 GiB/4 GiB • 50% • 1:00:00" />
 
                 <TextView
                     android:id="@+id/peers"

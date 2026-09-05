@@ -1,5 +1,6 @@
 package io.github.xixka.qbittorrent.ui.main
 
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -81,8 +82,19 @@ class TorrentListAdapter(
                 append("↓ ${Format.speed(t.dlSpeed)} | ↑ ${Format.speed(t.upSpeed)}")
             }
             binding.downloadCounter.text = buildString {
-                append("${Format.size(t.completed)} / ${Format.size(t.size)}")
-                if (t.progress < 1.0 && t.eta in 1..8639999) append(" • ${Format.duration(t.eta)}")
+                // LibreTorrent download_counter_ETA_template parity:
+                // "received/total • percent% • ETA" — the ETA shows ∞ at the
+                // engine's 8640000 s cap, is omitted at 0 (finished/seeding),
+                // and 100%-complete torrents report the total as received.
+                val total = Format.size(t.size)
+                val received = if (t.progress >= 1.0) total else Format.size(t.completed)
+                val percent = if (t.size == 0L) 0 else (t.progress * 100).toInt().coerceIn(0, 100)
+                append(received).append("/").append(total)
+                append(" • ").append(percent).append("%")
+                when {
+                    t.eta >= 8640000L -> append(" • ∞")
+                    t.eta > 0L -> append(" • ").append(DateUtils.formatElapsedTime(t.eta))
+                }
             }
             binding.peers.text = "${t.numSeeds}/${t.numLeechsTotal}"
 
