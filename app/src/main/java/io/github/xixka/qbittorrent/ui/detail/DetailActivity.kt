@@ -666,10 +666,11 @@ class DetailActivity : AppCompatActivity() {
         FragmentStateAdapter(activity) {
 
         override fun createFragment(position: Int): Fragment = when (position) {
-            0 -> InfoFragment()
-            1 -> FilesFragment()
-            2 -> TrackersFragment()
-            3 -> PeersFragment()
+            0 -> StateFragment()
+            1 -> InfoFragment()
+            2 -> FilesFragment()
+            3 -> TrackersFragment()
+            4 -> PeersFragment()
             else -> WebSeedsFragment()
         }
 
@@ -678,16 +679,17 @@ class DetailActivity : AppCompatActivity() {
 
     companion object {
         private val TAB_TITLES = intArrayOf(
+            R.string.tab_state,
             R.string.tab_overview,
             R.string.tab_files,
             R.string.tab_trackers,
             R.string.tab_peers,
             R.string.tab_web_seeds,
         )
-        const val TAB_FILES = 1
-        const val TAB_TRACKERS = 2
-        const val TAB_PEERS = 3
-        const val TAB_WEBSEEDS = 4
+        const val TAB_FILES = 2
+        const val TAB_TRACKERS = 3
+        const val TAB_PEERS = 4
+        const val TAB_WEBSEEDS = 5
         private const val EXTRA_HASH = "hash"
         private const val EXTRA_NAME = "name"
 

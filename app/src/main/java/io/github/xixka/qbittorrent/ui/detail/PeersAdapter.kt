@@ -81,14 +81,9 @@ class PeersAdapter(
                 (peer.relevance * 100).coerceIn(0.0, 100.0),
             )
 
-            // qBC flags banner: raw flags joined by spaces inside a rounded
-            // secondaryContainer surface with a flag icon.
-            if (peer.flags.isBlank()) {
-                binding.peerFlagsBubble.visibility = View.GONE
-            } else {
-                binding.peerFlagsBubble.visibility = View.VISIBLE
-                binding.peerFlags.text = peer.flags
-            }
+            // connection flags as a stat column (em dash when the peer
+            // reports none) — the raw letters decode in the details dialog
+            binding.peerFlags.text = peer.flags.ifBlank { "—" }
 
             binding.peerCard.setOnClickListener { onClick(peer) }
             binding.peerCard.setOnLongClickListener {

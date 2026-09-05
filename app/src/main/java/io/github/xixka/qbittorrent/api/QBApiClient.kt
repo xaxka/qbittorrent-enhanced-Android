@@ -84,6 +84,40 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+        // qBC advanced settings: per-server request timeout (seconds), a
+        // Basic-auth gate ahead of the qBittorrent login, and free-form
+        // custom headers ("Name: Value" per line).
+        if (cfg.requestTimeout > 0) {
+            val t = cfg.requestTimeout.toLong()
+            builder.readTimeout(t, TimeUnit.SECONDS)
+            builder.writeTimeout(t, TimeUnit.SECONDS)
+        }
+        if (cfg.basicAuth) {
+            val credentials = okhttp3.Credentials.basic(
+                cfg.basicAuthUsername, cfg.basicAuthPassword,
+            )
+            builder.addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("Authorization", credentials)
+                        .build()
+                )
+            }
+        }
+        if (cfg.customHeaders.isNotBlank()) {
+            val headers = cfg.customHeaders.lines()
+                .map { it.trim() }
+                .filter { it.contains(':') }
+                .map { it.substringBefore(':').trim() to it.substringAfter(':').trim() }
+                .filter { (name, value) -> name.isNotEmpty() && value.isNotEmpty() }
+            if (headers.isNotEmpty()) {
+                builder.addInterceptor { chain ->
+                    val request = chain.request().newBuilder()
+                    headers.forEach { (name, value) -> request.header(name, value) }
+                    chain.proceed(request.build())
+                }
+            }
+        }
         if (cfg.trustAllCerts) {
             applyTrustAll(builder)
         }

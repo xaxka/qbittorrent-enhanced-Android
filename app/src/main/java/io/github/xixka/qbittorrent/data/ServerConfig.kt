@@ -11,6 +11,12 @@ data class ServerConfig(
     val username: String = "admin",
     val password: String = "",
     val trustAllCerts: Boolean = false,
+    // qBC per-server advanced settings
+    val requestTimeout: Int = 0,
+    val customHeaders: String = "",
+    val basicAuth: Boolean = false,
+    val basicAuthUsername: String = "",
+    val basicAuthPassword: String = "",
 ) {
     val isConfigured: Boolean get() = host.isNotBlank()
 

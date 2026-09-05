@@ -161,6 +161,23 @@ class DetailOverviewViewModel(app: Application, hash: String) :
     private val _tags = MutableStateFlow<List<String>?>(null)
     val tags: StateFlow<List<String>?> = _tags.asStateFlow()
 
+    /** Two tabs (state / overview) share this poller: it stays active while
+     *  EITHER page is the visible one — ViewPager2 resumes the incoming
+     *  page before pausing the outgoing one, so a single boolean would
+     *  flicker the poller off on every tab switch. */
+    private var stateTabActive = false
+    private var infoTabActive = false
+
+    fun setStateTabActive(active: Boolean) {
+        stateTabActive = active
+        setScreenActive(stateTabActive || infoTabActive)
+    }
+
+    fun setInfoTabActive(active: Boolean) {
+        infoTabActive = active
+        setScreenActive(stateTabActive || infoTabActive)
+    }
+
     override fun performLoad(): Job = viewModelScope.launch {
         val torrentDeferred = async { runCatching { repository.torrent(hash) } }
         val propertiesDeferred = async { runCatching { repository.properties(hash) } }

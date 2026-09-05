@@ -345,6 +345,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="error_no_file_manager">没有可用的文件管理器</string>
     <string name="add_link_hint">HTTP、磁力或种子链接</string>
     <string name="tab_overview">概览</string>
+    <string name="tab_state">状态</string>
+    <string name="settings_server_advanced">高级设置</string>
+    <string name="settings_server_advanced_timeout">请求超时（秒）</string>
+    <string name="settings_server_advanced_headers">自定义 HTTP 头</string>
+    <string name="settings_server_advanced_headers_hint">每行一条：名称: 值</string>
+    <string name="settings_server_basic_auth">Basic 认证</string>
+    <string name="settings_server_basic_auth_username">Basic 认证用户名</string>
+    <string name="settings_server_basic_auth_password">Basic 认证密码</string>
     <string name="tab_files">文件</string>
     <string name="tab_trackers">Trackers</string>
     <string name="tab_peers">节点</string>

@@ -350,6 +350,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="error_no_file_manager">No file manager available</string>
     <string name="add_link_hint">HTTP, magnet or torrent link</string>
     <string name="tab_overview">Overview</string>
+    <string name="tab_state">State</string>
+    <string name="settings_server_advanced">Advanced settings</string>
+    <string name="settings_server_advanced_timeout">Request timeout (seconds)</string>
+    <string name="settings_server_advanced_headers">Custom HTTP headers</string>
+    <string name="settings_server_advanced_headers_hint">One per line â Name: Value</string>
+    <string name="settings_server_basic_auth">Basic authentication</string>
+    <string name="settings_server_basic_auth_username">Basic auth username</string>
+    <string name="settings_server_basic_auth_password">Basic auth password</string>
     <string name="tab_files">Files</string>
     <string name="tab_trackers">Trackers</string>
     <string name="tab_peers">Peers</string>

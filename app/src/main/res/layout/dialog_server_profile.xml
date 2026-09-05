@@ -8,6 +8,7 @@
      doubling them makes the floating label and the placeholder overlap. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:scrollbars="vertical">
@@ -101,6 +102,93 @@
         <!-- qBC moves this to a per-server "advanced settings" page; the
              Android-View port keeps it visible in the same dialog so no
              second screen is needed. -->
+        <!-- qBC per-server advanced settings, inlined into the dialog:
+             request timeout, custom HTTP headers, Basic auth and the
+             trust-all switch. -->
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            style="?attr/textAppearanceTitleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="@string/settings_server_advanced" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/settings_server_advanced_timeout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/timeoutInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/settings_server_advanced_headers"
+            app:helperText="@string/settings_server_advanced_headers_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/headersInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:minLines="2" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/basicAuthSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/settings_server_basic_auth" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/basicAuthUserLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/settings_server_basic_auth_username"
+            android:visibility="gone"
+            app:startIconDrawable="@drawable/ic_person_24px"
+            tools:visibility="visible">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/basicAuthUserInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/basicAuthPassLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/settings_server_basic_auth_password"
+            android:visibility="gone"
+            app:endIconMode="password_toggle"
+            app:startIconDrawable="@drawable/ic_lock_24px"
+            tools:visibility="visible">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/basicAuthPassInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/trustAllSwitch"
             android:layout_width="match_parent"

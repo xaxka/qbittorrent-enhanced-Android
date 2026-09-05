@@ -357,6 +357,12 @@ data class ServerProfile(
     val username: String = "admin",
     val password: String = "",
     val trustAllCerts: Boolean = false,
+    // qBC per-server advanced settings
+    val requestTimeout: Int = 0,
+    val customHeaders: String = "",
+    val basicAuth: Boolean = false,
+    val basicAuthUsername: String = "",
+    val basicAuthPassword: String = "",
 ) {
     fun toServerConfig(): ServerConfig = ServerConfig(
         host = host,
@@ -366,6 +372,11 @@ data class ServerProfile(
         username = username,
         password = password,
         trustAllCerts = trustAllCerts,
+        requestTimeout = requestTimeout,
+        customHeaders = customHeaders,
+        basicAuth = basicAuth,
+        basicAuthUsername = basicAuthUsername,
+        basicAuthPassword = basicAuthPassword,
     )
 
     fun displayName(): String = name.ifBlank { host }
