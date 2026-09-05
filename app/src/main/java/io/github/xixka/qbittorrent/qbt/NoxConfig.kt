@@ -69,7 +69,8 @@ object NoxConfig {
      * Two complementary fixes live in this file's call chain:
      *
      *  1. DNS over HTTPS (see util/DohResolver.kt): LocalEngineManager asks a
-     *     DoH server (AliDNS/DNSPod/custom, configurable in Settings) for the
+     *     DoH server (domestic/foreign preset or custom, opt-in and
+     *     configurable in Settings) for the
      *     CURRENT addresses of the three bootstrap routers and hands the
      *     resolved list to [seed] as `bootstrapNodes` — encrypted answers
      *     cannot be poisoned, and the IPs stay fresh instead of rotting.

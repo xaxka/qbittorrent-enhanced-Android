@@ -213,6 +213,12 @@ class SettingsFragment : Fragment() {
             getString(R.string.doh_provider_alidns)
         io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL ->
             getString(R.string.doh_provider_dnspod)
+        io.github.xixka.qbittorrent.data.Prefs.DOH_CLOUDFLARE_URL ->
+            getString(R.string.doh_provider_cloudflare)
+        io.github.xixka.qbittorrent.data.Prefs.DOH_GOOGLE_URL ->
+            getString(R.string.doh_provider_google)
+        io.github.xixka.qbittorrent.data.Prefs.DOH_QUAD9_URL ->
+            getString(R.string.doh_provider_quad9)
         else -> prefs.dohUrl
     }
 
@@ -294,30 +300,30 @@ class SettingsFragment : Fragment() {
 
     /** DoH provider picker: two presets plus a custom endpoint editor. */
     private fun showDohProviderDialog() {
+        // Domestic providers first (the DoH fix targets CN carrier networks),
+        // then the foreign ones for networks where those are blocked or
+        // mistrusted, then the custom-URL editor.
         val presets = listOf(
-            io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL to getString(R.string.doh_provider_alidns),
-            io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL to getString(R.string.doh_provider_dnspod),
+            io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL to R.string.doh_provider_alidns,
+            io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL to R.string.doh_provider_dnspod,
+            io.github.xixka.qbittorrent.data.Prefs.DOH_CLOUDFLARE_URL to R.string.doh_provider_cloudflare,
+            io.github.xixka.qbittorrent.data.Prefs.DOH_GOOGLE_URL to R.string.doh_provider_google,
+            io.github.xixka.qbittorrent.data.Prefs.DOH_QUAD9_URL to R.string.doh_provider_quad9,
         )
-        val labels = (presets.map { it.second } + getString(R.string.doh_provider_custom)).toTypedArray()
-        val current = when (prefs.dohUrl) {
-            io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL -> 0
-            io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL -> 1
-            else -> 2
-        }
+        val labels = (presets.map { getString(it.second) } + getString(R.string.doh_provider_custom)).toTypedArray()
+        val current = presets.indexOfFirst { it.first == prefs.dohUrl }
+            .let { if (it >= 0) it else presets.size }
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.settings_doh_provider)
             .setSingleChoiceItems(labels, current) { dialog, which ->
-                when (which) {
-                    0 -> prefs.dohUrl = io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL
-                    1 -> prefs.dohUrl = io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL
-                    else -> {
-                        dialog.dismiss()
-                        showDohCustomUrlDialog()
-                        return@setSingleChoiceItems
-                    }
+                if (which < presets.size) {
+                    prefs.dohUrl = presets[which].first
+                    dialog.dismiss()
+                    rebuildRows()
+                } else {
+                    dialog.dismiss()
+                    showDohCustomUrlDialog()
                 }
-                dialog.dismiss()
-                rebuildRows()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

@@ -543,6 +543,9 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="settings_doh_provider">Servidor DoH</string>
     <string name="doh_provider_alidns">AliDNS (dns.alidns.com)</string>
     <string name="doh_provider_dnspod">DNSPod (doh.pub)</string>
+    <string name="doh_provider_cloudflare">Cloudflare (1.1.1.1)</string>
+    <string name="doh_provider_google">Google (8.8.8.8)</string>
+    <string name="doh_provider_quad9">Quad9 (9.9.9.9)</string>
     <string name="doh_provider_custom">Personalizado…</string>
     <string name="doh_custom_hint">URL del endpoint DoH (API JSON, p. ej. https://dns.alidns.com/resolve)</string>
     <string name="doh_custom_invalid">La URL debe ser un enlace https a un endpoint DoH JSON</string>

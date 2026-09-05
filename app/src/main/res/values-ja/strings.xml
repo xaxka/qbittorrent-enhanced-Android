@@ -542,6 +542,9 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="settings_doh_provider">DoH サーバー</string>
     <string name="doh_provider_alidns">AliDNS（dns.alidns.com）</string>
     <string name="doh_provider_dnspod">DNSPod（doh.pub）</string>
+    <string name="doh_provider_cloudflare">Cloudflare (1.1.1.1)</string>
+    <string name="doh_provider_google">Google (8.8.8.8)</string>
+    <string name="doh_provider_quad9">Quad9 (9.9.9.9)</string>
     <string name="doh_provider_custom">カスタム…</string>
     <string name="doh_custom_hint">DoH エンドポイント URL（JSON API、例: https://dns.alidns.com/resolve）</string>
     <string name="doh_custom_invalid">URL は DoH JSON エンドポイントへの https リンクである必要があります</string>

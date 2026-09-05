@@ -121,14 +121,15 @@ class Prefs(context: Context) {
 
     /**
      * Resolve the DHT bootstrap router hostnames through DoH at every engine
-     * start. ON by default: encrypted answers cannot be poisoned on-path, so
-     * the "DHT nodes: 0" failure mode of Chinese carrier networks (China
-     * Mobile in particular) is fixed without any manual step. Users who do
-     * not want the DoH provider to see their lookups can turn it off — the
-     * static-IP bootstrap fallback keeps working either way.
+     * start. OFF by default — an opt-in: the static-IP bootstrap fallback
+     * keeps DHT working without it, and the app must not silently send
+     * bootstrap lookups to a third-party provider (domestic or foreign)
+     * the user never chose. Turning it on fixes the "DHT nodes: 0" failure
+     * mode of DNS-poisoning carrier networks (China Mobile in particular);
+     * the provider is selectable in Settings.
      */
     var dohEnabled: Boolean
-        get() = sp.getBoolean(KEY_DOH_ENABLED, true)
+        get() = sp.getBoolean(KEY_DOH_ENABLED, false)
         set(value) = sp.edit().putBoolean(KEY_DOH_ENABLED, value).apply()
 
     /** DoH endpoint (JSON API style, `GET <url>?name=…&type=1`). */
@@ -327,10 +328,20 @@ class Prefs(context: Context) {
         const val KEY_DOH_URL = "doh_url"
         const val KEY_DOH_LAST_BOOTSTRAP = "doh_last_bootstrap"
 
-        /** Preset DoH providers (JSON API style). Domestic ones by default:
-         *  they are reachable and fast inside China, where the fix matters. */
+        /**
+         * Preset DoH providers (JSON API style). Domestic ones first (they
+         * are reachable and fast inside China, where the DoH fix matters);
+         * the foreign ones (Cloudflare / Google / Quad9) are for networks
+         * where the domestic resolvers themselves are blocked or mistrusted.
+         * All speak the `?name=…&type=1` JSON API the resolver expects:
+         * Cloudflare on the plain /dns-query endpoint when addressed with
+         * Accept: application/dns-json, Quad9 JSON on port 5053.
+         */
         const val DOH_ALIDNS_URL = "https://dns.alidns.com/resolve"
         const val DOH_DNSPOD_URL = "https://doh.pub/resolve"
+        const val DOH_CLOUDFLARE_URL = "https://cloudflare-dns.com/dns-query"
+        const val DOH_GOOGLE_URL = "https://dns.google/resolve"
+        const val DOH_QUAD9_URL = "https://dns.quad9.net:5053/dns-query"
         const val DOH_DEFAULT_URL = DOH_ALIDNS_URL
     }
 }
