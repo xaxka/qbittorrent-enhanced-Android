@@ -853,6 +853,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="peer_stat_downloaded">Downloaded</string>
     <string name="peer_stat_uploaded">Uploaded</string>
     <string name="peer_stat_relevance">Relevance</string>
+    <string name="peer_stat_flags">Flags</string>
     <string name="torrent_peers_details_download_speed">Download Speed</string>
     <string name="torrent_peers_details_upload_speed">Upload Speed</string>
     <string name="torrent_peers_details_country">Country</string>
