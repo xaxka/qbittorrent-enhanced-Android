@@ -1,6 +1,7 @@
 package io.github.xixka.qbittorrent.ui.detail
 
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -156,6 +157,35 @@ class InfoFragment : Fragment() {
         }
 
         binding.stateText.setText(TorrentStates.labelRes(torrent.state))
+
+        // LibreTorrent status-panel tiles (fragment_torrent_details_state):
+        // speed, seeds/leechers, share ratio / availability, downloaded /
+        // ETA, uploaded / pieces — big values under titled mini-cards.
+        binding.stateSpeed.text =
+            "↓ ${Format.speed(torrent.dlSpeed)} | ↑ ${Format.speed(torrent.upSpeed)}"
+        binding.stateSeeds.text = context.getString(
+            R.string.torrent_overview_seeds_format,
+            props.seeds.toInt(),
+            props.seedsTotal.toInt(),
+        )
+        binding.stateLeechers.text = context.getString(
+            R.string.torrent_overview_peers_format,
+            props.peers.toInt(),
+            props.peersTotal.toInt(),
+        )
+        binding.stateRatio.text = String.format(Locale.ROOT, "%.2f", torrent.ratio)
+        binding.stateAvailability.text = torrent.availability
+            .takeIf { it >= 0 }?.let { String.format(Locale.ROOT, "%.3f", it) } ?: "—"
+        binding.stateDownloaded.text = Format.size(torrent.downloaded)
+        binding.stateEta.text = when {
+            torrent.eta >= 8640000L -> "∞"
+            torrent.eta > 0L -> DateUtils.formatElapsedTime(torrent.eta)
+            else -> "—"
+        }
+        binding.stateUploaded.text = Format.size(torrent.uploaded)
+        binding.statePieces.text =
+            if (props.piecesNum > 0) "${props.piecesHave}/${props.piecesNum}" else "—"
+
         // qBC: "↓ speed" is drawn in colorPrimary and "↑ speed" in
         // colorTertiary, joined by a single space (buildAnnotatedString)
         binding.speedText.text = SpannableStringBuilder().apply {

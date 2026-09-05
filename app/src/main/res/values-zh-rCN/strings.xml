@@ -166,6 +166,15 @@
     <string name="detail_seeded_for">做种时长</string>
     <string name="detail_completed_on">完成时间</string>
     <string name="detail_availability">可用性</string>
+    <string name="torrent_speed">速度</string>
+    <string name="torrent_seeds">做种</string>
+    <string name="torrent_leechers">下载数</string>
+    <string name="torrent_share_ratio">分享率</string>
+    <string name="torrent_availability">可用性</string>
+    <string name="torrent_downloaded">已下载</string>
+    <string name="torrent_uploaded">已上传</string>
+    <string name="torrent_eta">剩余时间</string>
+    <string name="torrent_pieces">分块</string>
 
     <string name="detail_popularity">流行度</string>
     <string name="detail_last_activity">最后活动</string>

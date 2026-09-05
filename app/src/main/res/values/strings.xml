@@ -166,6 +166,15 @@
     <string name="detail_seeded_for">Seeded for</string>
     <string name="detail_completed_on">Completed on</string>
     <string name="detail_availability">Availability</string>
+    <string name="torrent_speed">Speed</string>
+    <string name="torrent_seeds">Seeds</string>
+    <string name="torrent_leechers">Leechers</string>
+    <string name="torrent_share_ratio">Share ratio</string>
+    <string name="torrent_availability">Availability</string>
+    <string name="torrent_downloaded">Downloaded</string>
+    <string name="torrent_uploaded">Uploaded</string>
+    <string name="torrent_eta">ETA</string>
+    <string name="torrent_pieces">Pieces</string>
 
     <string name="detail_popularity">Popularity</string>
     <string name="detail_last_activity">Last activity</string>
