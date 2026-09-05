@@ -92,11 +92,6 @@ class PeersAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(ItemQbcPeerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    private fun countryName(code: String): String {
-        val name = Locale("", code).displayCountry
-        return if (name.equals(code, ignoreCase = true)) code else name
-    }
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int) =
         holder.bind(getItem(position), getItem(position).endpoint in selected, onClick, onLongClick)
 
@@ -108,4 +103,13 @@ class PeersAdapter(
             override fun areContentsTheSame(oldItem: Peer, newItem: Peer) = oldItem == newItem
         }
     }
+}
+
+/**
+ * qBC: localized country name from the engine's ISO-3166 alpha-2 code.
+ * Falls back to the raw code when the locale has no entry for it.
+ */
+private fun countryName(code: String): String {
+    val name = Locale("", code).displayCountry
+    return if (name.equals(code, ignoreCase = true)) code else name
 }

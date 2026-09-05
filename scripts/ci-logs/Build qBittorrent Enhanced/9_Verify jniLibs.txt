@@ -1,0 +1,58 @@
+﻿2026-09-05T03:52:36.6594227Z ##[group]Run ls -laR app/src/main/jniLibs
+2026-09-05T03:52:36.6594629Z [36;1mls -laR app/src/main/jniLibs[0m
+2026-09-05T03:52:36.6594968Z [36;1mfor abi in arm64-v8a armeabi-v7a x86_64; do[0m
+2026-09-05T03:52:36.6595598Z [36;1m  test -s "app/src/main/jniLibs/$abi/libqbittorrent-nox.so" || { echo "ERROR: missing libqbittorrent-nox.so for $abi"; exit 1; }[0m
+2026-09-05T03:52:36.6596437Z [36;1m  test -s "app/src/main/jniLibs/$abi/libc++_shared.so" || { echo "ERROR: missing libc++_shared.so for $abi"; exit 1; }[0m
+2026-09-05T03:52:36.6597240Z [36;1mdone[0m
+2026-09-05T03:52:36.6632731Z shell: /usr/bin/bash -e {0}
+2026-09-05T03:52:36.6633014Z env:
+2026-09-05T03:52:36.6633216Z   QT_VER: 6.8.3
+2026-09-05T03:52:36.6633441Z   OPENSSL_VER: 3.5.1
+2026-09-05T03:52:36.6633661Z   BOOST_VER: 1.86.0
+2026-09-05T03:52:36.6633873Z   ZLIB_NG_VER: 2.3.3
+2026-09-05T03:52:36.6634116Z   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+2026-09-05T03:52:36.6634431Z   QBT_VERSION: 5.2.3.10
+2026-09-05T03:52:36.6634694Z   LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
+2026-09-05T03:52:36.6635059Z   ANDROID_PLATFORM: android-24
+2026-09-05T03:52:36.6635314Z   NDK_CCACHE: ccache
+2026-09-05T03:52:36.6635647Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-05T03:52:36.6636157Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-05T03:52:36.6636584Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-05T03:52:36.6637138Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-05T03:52:36.6637508Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-05T03:52:36.6637964Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-05T03:52:36.6638460Z   DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-05T03:52:36.6638814Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-05T03:52:36.6639103Z   VERSION_NAME: 5.2.3.10
+2026-09-05T03:52:36.6639350Z   VERSION_CODE: 1788580355
+2026-09-05T03:52:36.6639580Z   SHORT_SHA: afee7de
+2026-09-05T03:52:36.6639814Z   BUILT_AT: 2026-09-05T03:52:35Z
+2026-09-05T03:52:36.6640067Z ##[endgroup]
+2026-09-05T03:52:36.6713813Z app/src/main/jniLibs:
+2026-09-05T03:52:36.6714166Z total 20
+2026-09-05T03:52:36.6714436Z drwxr-xr-x 5 runner runner 4096 Sep  5 03:52 .
+2026-09-05T03:52:36.6714800Z drwxr-xr-x 5 runner runner 4096 Sep  5 03:52 ..
+2026-09-05T03:52:36.6715405Z drwxr-xr-x 2 runner runner 4096 Sep  5 03:52 arm64-v8a
+2026-09-05T03:52:36.6716053Z drwxr-xr-x 2 runner runner 4096 Sep  5 03:52 armeabi-v7a
+2026-09-05T03:52:36.6717201Z drwxr-xr-x 2 runner runner 4096 Sep  5 03:52 x86_64
+2026-09-05T03:52:36.6717614Z 
+2026-09-05T03:52:36.6717790Z app/src/main/jniLibs/arm64-v8a:
+2026-09-05T03:52:36.6718219Z total 27804
+2026-09-05T03:52:36.6718655Z drwxr-xr-x 2 runner runner     4096 Sep  5 03:52 .
+2026-09-05T03:52:36.6719252Z drwxr-xr-x 5 runner runner     4096 Sep  5 03:52 ..
+2026-09-05T03:52:36.6720077Z -rw-r--r-- 1 runner runner  1794776 Sep  5 03:52 libc++_shared.so
+2026-09-05T03:52:36.6720644Z -rw-r--r-- 1 runner runner 26664696 Sep  5 03:52 libqbittorrent-nox.so
+2026-09-05T03:52:36.6720968Z 
+2026-09-05T03:52:36.6721086Z app/src/main/jniLibs/armeabi-v7a:
+2026-09-05T03:52:36.6721357Z total 21740
+2026-09-05T03:52:36.6721610Z drwxr-xr-x 2 runner runner     4096 Sep  5 03:52 .
+2026-09-05T03:52:36.6721957Z drwxr-xr-x 5 runner runner     4096 Sep  5 03:52 ..
+2026-09-05T03:52:36.6722359Z -rw-r--r-- 1 runner runner  1301936 Sep  5 03:52 libc++_shared.so
+2026-09-05T03:52:36.6722794Z -rw-r--r-- 1 runner runner 20950272 Sep  5 03:52 libqbittorrent-nox.so
+2026-09-05T03:52:36.6723133Z 
+2026-09-05T03:52:36.6723245Z app/src/main/jniLibs/x86_64:
+2026-09-05T03:52:36.6723493Z total 28572
+2026-09-05T03:52:36.6723736Z drwxr-xr-x 2 runner runner     4096 Sep  5 03:52 .
+2026-09-05T03:52:36.6724075Z drwxr-xr-x 5 runner runner     4096 Sep  5 03:52 ..
+2026-09-05T03:52:36.6724463Z -rw-r--r-- 1 runner runner  1617608 Sep  5 03:52 libc++_shared.so
+2026-09-05T03:52:36.6724906Z -rw-r--r-- 1 runner runner 27630024 Sep  5 03:52 libqbittorrent-nox.so

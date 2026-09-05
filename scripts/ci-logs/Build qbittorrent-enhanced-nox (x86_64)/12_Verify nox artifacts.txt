@@ -1,0 +1,28 @@
+﻿2026-09-05T03:52:04.2982254Z ##[group]Run ls -laR qbt-out
+2026-09-05T03:52:04.2983181Z [36;1mls -laR qbt-out[0m
+2026-09-05T03:52:04.2984644Z [36;1mtest -s "qbt-out/x86_64/libqbittorrent-nox.so" || { echo "missing libqbittorrent-nox.so"; exit 1; }[0m
+2026-09-05T03:52:04.2986906Z [36;1mtest -s "qbt-out/x86_64/libc++_shared.so" || { echo "missing libc++_shared.so"; exit 1; }[0m
+2026-09-05T03:52:04.3024187Z shell: /usr/bin/bash -e {0}
+2026-09-05T03:52:04.3025032Z env:
+2026-09-05T03:52:04.3025680Z   QT_VER: 6.8.3
+2026-09-05T03:52:04.3026384Z   OPENSSL_VER: 3.5.1
+2026-09-05T03:52:04.3027135Z   BOOST_VER: 1.86.0
+2026-09-05T03:52:04.3027851Z   ZLIB_NG_VER: 2.3.3
+2026-09-05T03:52:04.3028819Z   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+2026-09-05T03:52:04.3029819Z   QBT_VERSION: 5.2.3.10
+2026-09-05T03:52:04.3030672Z   LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
+2026-09-05T03:52:04.3031683Z   ANDROID_PLATFORM: android-24
+2026-09-05T03:52:04.3032499Z   NDK_CCACHE: ccache
+2026-09-05T03:52:04.3033204Z ##[endgroup]
+2026-09-05T03:52:04.3118211Z qbt-out:
+2026-09-05T03:52:04.3119175Z total 12
+2026-09-05T03:52:04.3119928Z drwxr-xr-x 3 runner runner 4096 Sep  4 09:30 .
+2026-09-05T03:52:04.3121000Z drwxr-xr-x 9 runner runner 4096 Sep  5 03:52 ..
+2026-09-05T03:52:04.3122106Z drwxr-xr-x 2 runner runner 4096 Sep  4 09:30 x86_64
+2026-09-05T03:52:04.3122808Z 
+2026-09-05T03:52:04.3123107Z qbt-out/x86_64:
+2026-09-05T03:52:04.3123844Z total 28572
+2026-09-05T03:52:04.3124635Z drwxr-xr-x 2 runner runner     4096 Sep  4 09:30 .
+2026-09-05T03:52:04.3125732Z drwxr-xr-x 3 runner runner     4096 Sep  4 09:30 ..
+2026-09-05T03:52:04.3147292Z -rw-r--r-- 1 runner runner  1617608 Sep  4 09:30 libc++_shared.so
+2026-09-05T03:52:04.3149324Z -rwxr-xr-x 1 runner runner 27630024 Sep  4 09:30 libqbittorrent-nox.so

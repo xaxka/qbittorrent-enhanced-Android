@@ -1,0 +1,29 @@
+﻿2026-09-05T03:52:03.8995456Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-05T03:52:03.9000066Z ##[group]Run actions/cache@v4
+2026-09-05T03:52:03.9000932Z with:
+2026-09-05T03:52:03.9001618Z   path: qbt-out
+2026-09-05T03:52:03.9003527Z   key: qbt-nox-bionic-x86_64-qbt44ee266a575600d04788623b6939e47443d27ed1-lt2e537ee7afcfa92d02862d81c53db2a363bfdd1e-qt6.8.3-ssl3.5.1-v1
+2026-09-05T03:52:03.9005711Z   enableCrossOsArchive: false
+2026-09-05T03:52:03.9006633Z   fail-on-cache-miss: false
+2026-09-05T03:52:03.9007489Z   lookup-only: false
+2026-09-05T03:52:03.9008258Z   save-always: false
+2026-09-05T03:52:03.9009147Z env:
+2026-09-05T03:52:03.9009812Z   QT_VER: 6.8.3
+2026-09-05T03:52:03.9010551Z   OPENSSL_VER: 3.5.1
+2026-09-05T03:52:03.9011307Z   BOOST_VER: 1.86.0
+2026-09-05T03:52:03.9012076Z   ZLIB_NG_VER: 2.3.3
+2026-09-05T03:52:03.9012898Z   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+2026-09-05T03:52:03.9013924Z   QBT_VERSION: 5.2.3.10
+2026-09-05T03:52:03.9014800Z   LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
+2026-09-05T03:52:03.9015857Z   ANDROID_PLATFORM: android-24
+2026-09-05T03:52:03.9016722Z   NDK_CCACHE: ccache
+2026-09-05T03:52:03.9017469Z ##[endgroup]
+2026-09-05T03:52:03.9870169Z (node:2035) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-05T03:52:03.9872604Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-05T03:52:04.0444782Z Cache hit for: qbt-nox-bionic-x86_64-qbt44ee266a575600d04788623b6939e47443d27ed1-lt2e537ee7afcfa92d02862d81c53db2a363bfdd1e-qt6.8.3-ssl3.5.1-v1
+2026-09-05T03:52:04.0522800Z (node:2035) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-05T03:52:04.2198409Z Received 15818412 of 15818412 (100.0%), 107.8 MBs/sec
+2026-09-05T03:52:04.2200310Z Cache Size: ~15 MB (15818412 B)
+2026-09-05T03:52:04.2224766Z [command]/usr/bin/tar -xf /home/runner/work/_temp/a55fec42-c6c0-4c32-b9e7-cc89abef55aa/cache.tzst -P -C /home/runner/work/qbittorrent-enhanced-Android/qbittorrent-enhanced-Android --use-compress-program unzstd
+2026-09-05T03:52:04.2623212Z Cache restored successfully
+2026-09-05T03:52:04.2693730Z Cache restored from key: qbt-nox-bionic-x86_64-qbt44ee266a575600d04788623b6939e47443d27ed1-lt2e537ee7afcfa92d02862d81c53db2a363bfdd1e-qt6.8.3-ssl3.5.1-v1

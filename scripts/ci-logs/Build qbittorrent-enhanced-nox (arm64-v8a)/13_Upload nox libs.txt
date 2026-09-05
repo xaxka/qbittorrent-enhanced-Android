@@ -1,0 +1,35 @@
+﻿2026-09-05T03:52:07.1973049Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-05T03:52:07.1974400Z ##[group]Run actions/upload-artifact@v4
+2026-09-05T03:52:07.1974684Z with:
+2026-09-05T03:52:07.1974896Z   name: qbt-nox-arm64-v8a
+2026-09-05T03:52:07.1975138Z   path: qbt-out
+2026-09-05T03:52:07.1975353Z   if-no-files-found: error
+2026-09-05T03:52:07.1975881Z   compression-level: 6
+2026-09-05T03:52:07.1976114Z   overwrite: false
+2026-09-05T03:52:07.1976344Z   include-hidden-files: false
+2026-09-05T03:52:07.1976584Z env:
+2026-09-05T03:52:07.1976770Z   QT_VER: 6.8.3
+2026-09-05T03:52:07.1976972Z   OPENSSL_VER: 3.5.1
+2026-09-05T03:52:07.1977181Z   BOOST_VER: 1.86.0
+2026-09-05T03:52:07.1977398Z   ZLIB_NG_VER: 2.3.3
+2026-09-05T03:52:07.1977633Z   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+2026-09-05T03:52:07.1977957Z   QBT_VERSION: 5.2.3.10
+2026-09-05T03:52:07.1978208Z   LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
+2026-09-05T03:52:07.1978512Z   ANDROID_PLATFORM: android-24
+2026-09-05T03:52:07.1978758Z   NDK_CCACHE: ccache
+2026-09-05T03:52:07.1978964Z ##[endgroup]
+2026-09-05T03:52:07.3591493Z (node:2392) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-05T03:52:07.3592791Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-05T03:52:07.3658967Z With the provided path, there will be 2 files uploaded
+2026-09-05T03:52:07.3681705Z Artifact name is valid!
+2026-09-05T03:52:07.3706353Z Root directory input is valid!
+2026-09-05T03:52:07.7321441Z Beginning upload of artifact content to blob storage
+2026-09-05T03:52:08.0888663Z (node:2392) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-05T03:52:09.0613708Z Uploaded bytes 8388608
+2026-09-05T03:52:09.3025773Z Uploaded bytes 16579258
+2026-09-05T03:52:09.3818063Z Finished uploading artifact content to blob storage!
+2026-09-05T03:52:09.3821167Z SHA256 digest of uploaded artifact zip is 658f02c46c0e94704ff160492218cde785d7db5921c374a2dcf92b6e58e2b41e
+2026-09-05T03:52:09.3822923Z Finalizing artifact upload
+2026-09-05T03:52:09.6591486Z Artifact qbt-nox-arm64-v8a.zip successfully finalized. Artifact ID 9962439739
+2026-09-05T03:52:09.6592670Z Artifact qbt-nox-arm64-v8a has been successfully uploaded! Final size is 16579258 bytes. Artifact ID is 9962439739
+2026-09-05T03:52:09.6599267Z Artifact download URL: https://github.com/xaxka/qbittorrent-enhanced-Android/actions/runs/33943024817/artifacts/9962439739

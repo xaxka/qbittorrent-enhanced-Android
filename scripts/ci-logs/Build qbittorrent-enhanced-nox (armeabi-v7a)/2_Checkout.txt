@@ -1,0 +1,84 @@
+﻿2026-09-05T03:52:03.3467908Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-05T03:52:03.3479266Z ##[group]Run actions/checkout@v4
+2026-09-05T03:52:03.3480548Z with:
+2026-09-05T03:52:03.3481562Z   repository: xaxka/qbittorrent-enhanced-Android
+2026-09-05T03:52:03.3490692Z   token: ***
+2026-09-05T03:52:03.3491603Z   ssh-strict: true
+2026-09-05T03:52:03.3492518Z   ssh-user: git
+2026-09-05T03:52:03.3493457Z   persist-credentials: true
+2026-09-05T03:52:03.3494528Z   clean: true
+2026-09-05T03:52:03.3495720Z   sparse-checkout-cone-mode: true
+2026-09-05T03:52:03.3496929Z   fetch-depth: 1
+2026-09-05T03:52:03.3497858Z   fetch-tags: false
+2026-09-05T03:52:03.3498800Z   show-progress: true
+2026-09-05T03:52:03.3499760Z   lfs: false
+2026-09-05T03:52:03.3500648Z   submodules: false
+2026-09-05T03:52:03.3501659Z   set-safe-directory: true
+2026-09-05T03:52:03.3502726Z   allow-unsafe-pr-checkout: false
+2026-09-05T03:52:03.3504144Z env:
+2026-09-05T03:52:03.3504999Z   QT_VER: 6.8.3
+2026-09-05T03:52:03.3506048Z   OPENSSL_VER: 3.5.1
+2026-09-05T03:52:03.3506994Z   BOOST_VER: 1.86.0
+2026-09-05T03:52:03.3507916Z   ZLIB_NG_VER: 2.3.3
+2026-09-05T03:52:03.3508946Z   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+2026-09-05T03:52:03.3510198Z   QBT_VERSION: 5.2.3.10
+2026-09-05T03:52:03.3511285Z   LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
+2026-09-05T03:52:03.3512572Z   ANDROID_PLATFORM: android-24
+2026-09-05T03:52:03.3513625Z   NDK_CCACHE: ccache
+2026-09-05T03:52:03.3514900Z ##[endgroup]
+2026-09-05T03:52:03.4558603Z Syncing repository: xaxka/qbittorrent-enhanced-Android
+2026-09-05T03:52:03.4561541Z ##[group]Getting Git version info
+2026-09-05T03:52:03.4563439Z Working directory is '/home/runner/work/qbittorrent-enhanced-Android/qbittorrent-enhanced-Android'
+2026-09-05T03:52:03.4566315Z [command]/usr/bin/git version
+2026-09-05T03:52:03.4637535Z git version 2.55.0
+2026-09-05T03:52:03.4659302Z ##[endgroup]
+2026-09-05T03:52:03.4676508Z Temporarily overriding HOME='/home/runner/work/_temp/acad1632-07e8-4f6d-afd9-bc4c990fcccf' before making global git config changes
+2026-09-05T03:52:03.4681517Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-05T03:52:03.4686043Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/qbittorrent-enhanced-Android/qbittorrent-enhanced-Android
+2026-09-05T03:52:03.4731574Z Deleting the contents of '/home/runner/work/qbittorrent-enhanced-Android/qbittorrent-enhanced-Android'
+2026-09-05T03:52:03.4736027Z ##[group]Initializing the repository
+2026-09-05T03:52:03.4739886Z [command]/usr/bin/git init /home/runner/work/qbittorrent-enhanced-Android/qbittorrent-enhanced-Android
+2026-09-05T03:52:03.4811580Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-05T03:52:03.4813952Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-05T03:52:03.4816389Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-05T03:52:03.4817968Z hint: call:
+2026-09-05T03:52:03.4818862Z hint:
+2026-09-05T03:52:03.4819968Z hint: 	git config --global init.defaultBranch <name>
+2026-09-05T03:52:03.4821306Z hint:
+2026-09-05T03:52:03.4822595Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-05T03:52:03.4824529Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-05T03:52:03.4826253Z hint:
+2026-09-05T03:52:03.4827206Z hint: 	git branch -m <name>
+2026-09-05T03:52:03.4828240Z hint:
+2026-09-05T03:52:03.4829586Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-05T03:52:03.4837774Z Initialized empty Git repository in /home/runner/work/qbittorrent-enhanced-Android/qbittorrent-enhanced-Android/.git/
+2026-09-05T03:52:03.4846871Z [command]/usr/bin/git remote add origin https://github.com/xaxka/qbittorrent-enhanced-Android
+2026-09-05T03:52:03.4893924Z ##[endgroup]
+2026-09-05T03:52:03.4896562Z ##[group]Disabling automatic garbage collection
+2026-09-05T03:52:03.4898629Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-05T03:52:03.4934788Z ##[endgroup]
+2026-09-05T03:52:03.4937640Z ##[group]Setting up auth
+2026-09-05T03:52:03.4942614Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-05T03:52:03.4988662Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-05T03:52:03.5338054Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-05T03:52:03.5387709Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-05T03:52:03.5643009Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-05T03:52:03.5682112Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-05T03:52:03.5924513Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-05T03:52:03.5966197Z ##[endgroup]
+2026-09-05T03:52:03.5967921Z ##[group]Fetching the repository
+2026-09-05T03:52:03.5976555Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +afee7defdeaf31c464cec810b46b1f73fbc8fc0f:refs/remotes/origin/master
+2026-09-05T03:52:04.1334926Z From https://github.com/xaxka/qbittorrent-enhanced-Android
+2026-09-05T03:52:04.1337491Z  * [new ref]         afee7defdeaf31c464cec810b46b1f73fbc8fc0f -> origin/master
+2026-09-05T03:52:04.1341928Z ##[endgroup]
+2026-09-05T03:52:04.1343653Z ##[group]Determining the checkout info
+2026-09-05T03:52:04.1345756Z ##[endgroup]
+2026-09-05T03:52:04.1348290Z [command]/usr/bin/git sparse-checkout disable
+2026-09-05T03:52:04.1398144Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-05T03:52:04.1456806Z ##[group]Checking out the ref
+2026-09-05T03:52:04.1460288Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+2026-09-05T03:52:04.1703572Z Reset branch 'master'
+2026-09-05T03:52:04.1708717Z branch 'master' set up to track 'origin/master'.
+2026-09-05T03:52:04.1716411Z ##[endgroup]
+2026-09-05T03:52:04.1760636Z [command]/usr/bin/git log -1 --format=%H
+2026-09-05T03:52:04.1789989Z afee7defdeaf31c464cec810b46b1f73fbc8fc0f

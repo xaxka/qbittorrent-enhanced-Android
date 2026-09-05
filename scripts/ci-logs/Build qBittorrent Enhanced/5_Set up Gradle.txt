@@ -1,0 +1,41 @@
+﻿2026-09-05T03:52:18.3049328Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-05T03:52:18.3051379Z ##[group]Run gradle/actions/setup-gradle@v3
+2026-09-05T03:52:18.3052009Z with:
+2026-09-05T03:52:18.3052533Z   cache-disabled: false
+2026-09-05T03:52:18.3053098Z   cache-read-only: false
+2026-09-05T03:52:18.3053678Z   cache-write-only: false
+2026-09-05T03:52:18.3054275Z   cache-overwrite-existing: false
+2026-09-05T03:52:18.3054946Z   gradle-home-cache-includes: caches
+notifications
+
+2026-09-05T03:52:18.3055692Z   gradle-home-cache-cleanup: false
+2026-09-05T03:52:18.3056309Z   add-job-summary: always
+2026-09-05T03:52:18.3057074Z   add-job-summary-as-pr-comment: never
+2026-09-05T03:52:18.3057730Z   dependency-graph: disabled
+2026-09-05T03:52:18.3058362Z   dependency-graph-continue-on-failure: true
+2026-09-05T03:52:18.3059084Z   build-scan-publish: false
+2026-09-05T03:52:18.3059673Z   validate-wrappers: false
+2026-09-05T03:52:18.3060265Z   generate-job-summary: true
+2026-09-05T03:52:18.3060874Z   gradle-home-cache-strict-match: false
+2026-09-05T03:52:18.3061512Z   workflow-job-context: null
+2026-09-05T03:52:18.3064630Z   github-token: ***
+2026-09-05T03:52:18.3065166Z env:
+2026-09-05T03:52:18.3065656Z   QT_VER: 6.8.3
+2026-09-05T03:52:18.3066177Z   OPENSSL_VER: 3.5.1
+2026-09-05T03:52:18.3066715Z   BOOST_VER: 1.86.0
+2026-09-05T03:52:18.3067446Z   ZLIB_NG_VER: 2.3.3
+2026-09-05T03:52:18.3068060Z   QBT_REF: 44ee266a575600d04788623b6939e47443d27ed1
+2026-09-05T03:52:18.3068721Z   QBT_VERSION: 5.2.3.10
+2026-09-05T03:52:18.3069318Z   LT_REF: 2e537ee7afcfa92d02862d81c53db2a363bfdd1e
+2026-09-05T03:52:18.3069993Z   ANDROID_PLATFORM: android-24
+2026-09-05T03:52:18.3070569Z   NDK_CCACHE: ccache
+2026-09-05T03:52:18.3071252Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-05T03:52:18.3072198Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-05T03:52:18.3072958Z ##[endgroup]
+2026-09-05T03:52:18.5032667Z (node:2231) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-05T03:52:18.5035188Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-05T03:52:19.9044869Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-09-05T03:52:19.9048414Z ##[group]Restore Gradle state from cache
+2026-09-05T03:52:19.9797947Z ##[warning]Failed to restore gradle-home-v1|Linux|build[5df42585ae8f8da228c604b8b4e8707c]-afee7defdeaf31c464cec810b46b1f73fbc8fc0f: Error: Cache service responded with 400
+2026-09-05T03:52:19.9897950Z Gradle User Home cache not found. Will initialize empty.
+2026-09-05T03:52:19.9898955Z ##[endgroup]
