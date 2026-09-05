@@ -257,8 +257,6 @@ object LocalEngineManager {
         while (logLines.size > 200) logLines.removeFirst()
     }
 
-    companion object {
-        /** `VmRSS:       141234 kB` line of /proc/\<pid\>/status. */
-        private val VmRSS_REGEX = Regex("VmRSS:\\s+(\\d+) kB")
-    }
+    /** `VmRSS:       141234 kB` line of /proc/\<pid\>/status. */
+    private val VmRSS_REGEX = Regex("VmRSS:\\s+(\\d+) kB")
 }
