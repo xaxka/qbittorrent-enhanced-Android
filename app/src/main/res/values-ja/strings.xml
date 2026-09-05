@@ -296,10 +296,16 @@
     <string name="add_category">カテゴリを追加</string>
     <string name="session_listen_port">サーバー：%1$s</string>
     <string name="dht_nodes">エンジン：%1$s</string>
-    <string name="about_message">Android 向け qBittorrent クライアント
+        <string name="about_message">拡張エンジン内蔵の Android 用 qBittorrent クライアント。
 
-UI は LibreTorrent（GPL-3.0）の移植です
-https://github.com/proninyaroslav/libretorrent</string>
+UI は LibreTorrent (GPL-3.0) の移植です
+https://github.com/proninyaroslav/libretorrent
+
+機能は qBitController (GPL-3.0) を参考にしています
+https://github.com/Bartuzen/qBitController
+
+エンジン: c0re100 の qBittorrent Enhanced Edition (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">読み込み中…</string>
     <string name="edit_torrent_name">トレント名を編集</string>
     <string name="dir_chooser_title">ダウンロードディレクトリを選択</string>
@@ -341,7 +347,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">最新です（%1$s）</string>
     <string name="update_check_failed">更新の確認に失敗しました：%1$s</string>
     <string name="error_no_browser">利用できるブラウザがありません</string>
-    <string name="about_version">バージョン：%1$s</string>
     <string name="qbt_settings_title">qBittorrent 設定</string>
     <string name="qbt_tab_downloads">ダウンロード</string>
     <string name="qbt_tab_speed">速度</string>
@@ -1056,4 +1061,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">アクセスを許可</string>
     <string name="storage_access_granted">ストレージへのアクセスを許可しました</string>
     <string name="storage_access_denied">アクセスが拒否されました。ダウンロードは失敗します</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">トレントを作成</string>
+    <string name="create_torrent_source">ソース</string>
+    <string name="create_torrent_pick_file">ファイルを選択</string>
+    <string name="create_torrent_pick_folder">フォルダーを選択</string>
+    <string name="create_torrent_name_hint">トレント名</string>
+    <string name="create_torrent_name_helper">ソース名から自動入力</string>
+    <string name="create_torrent_trackers">トラッカー</string>
+    <string name="create_torrent_trackers_helper">1行に1つのURL。空行で新しいティア</string>
+    <string name="create_torrent_web_seeds">Web シード</string>
+    <string name="create_torrent_comment">コメント</string>
+    <string name="create_torrent_piece_size">ピースサイズ</string>
+    <string name="create_torrent_piece_auto">自動</string>
+    <string name="create_torrent_private">プライベートトレント</string>
+    <string name="create_torrent_private_helper">DHT と PEX を無効化</string>
+    <string name="create_torrent_start_seeding">すぐにシード開始</string>
+    <string name="create_torrent_start_seeding_helper">選択したソースを指定してエンジンへ追加</string>
+    <string name="create_torrent_create">作成</string>
+    <string name="create_torrent_hashing">ピースを計算中…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">トレントを作成しました</string>
+    <string name="create_torrent_save_file">.torrent ファイルを保存</string>
+    <string name="create_torrent_seeding_added">シード用としてエンジンに追加しました</string>
+    <string name="create_torrent_failed_fmt">トレントの作成に失敗しました: %1$s</string>
+    <string name="create_torrent_need_source">先にファイルまたはフォルダーを選択してください</string>
+    <string name="create_torrent_saved_fmt">%1$s に保存しました</string>
+    <string name="create_torrent_add_failed">エンジンへ追加できませんでした</string>
+    <string name="update_downloading">アップデートをダウンロード中…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">ダウンロードに失敗しました: %1$s</string>
+    <string name="update_install">インストール</string>
+    <string name="update_install_permission_hint">このソースからのインストールには Android の許可が必要です。システム設定で許可してから戻り、インストールをタップしてください。</string>
+    <string name="update_install_open_settings">設定を開く</string>
+    <string name="update_download_canceled">ダウンロードを中止しました</string>
+    <string name="categories_empty">カテゴリはまだありません</string>
+    <string name="category_torrents_fmt">%1$d 件のトレント</string>
+    <string name="category_exists_fmt">カテゴリ「%1$s」は既に存在します</string>
 </resources>

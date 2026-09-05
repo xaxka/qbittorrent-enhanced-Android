@@ -297,10 +297,16 @@ LAN devices open it without a login LAN devices open it without a login (tap to 
     <string name="add_category">Add category</string>
     <string name="session_listen_port">Server: %1$s</string>
     <string name="dht_nodes">Engine: %1$s</string>
-    <string name="about_message">qBittorrent client for Android
+        <string name="about_message">qBittorrent client for Android with a built-in Enhanced engine.
 
 UI is a port of LibreTorrent (GPL-3.0)
-https://github.com/proninyaroslav/libretorrent</string>
+https://github.com/proninyaroslav/libretorrent
+
+Feature set references qBitController (GPL-3.0)
+https://github.com/Bartuzen/qBitController
+
+Engine: qBittorrent Enhanced Edition by c0re100 (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="force_announce_torrent">Force reannounce</string>
     <string name="load_message">Loading…</string>
     <string name="edit_torrent_name">Edit torrent name</string>
@@ -343,7 +349,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">You are up to date (%1$s)</string>
     <string name="update_check_failed">Update check failed: %1$s</string>
     <string name="error_no_browser">No browser available</string>
-    <string name="about_version">Version: %1$s</string>
     <string name="qbt_settings_title">qBittorrent settings</string>
     <string name="qbt_tab_downloads">Downloads</string>
     <string name="qbt_tab_speed">Speed</string>
@@ -1057,4 +1062,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">Grant access</string>
     <string name="storage_access_granted">Storage access granted</string>
     <string name="storage_access_denied">Storage access denied — downloads will fail</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">Create torrent</string>
+    <string name="create_torrent_source">Source</string>
+    <string name="create_torrent_pick_file">Choose file</string>
+    <string name="create_torrent_pick_folder">Choose folder</string>
+    <string name="create_torrent_name_hint">Torrent name</string>
+    <string name="create_torrent_name_helper">Prefilled from the source name</string>
+    <string name="create_torrent_trackers">Trackers</string>
+    <string name="create_torrent_trackers_helper">One URL per line; a blank line starts a new tier</string>
+    <string name="create_torrent_web_seeds">Web seeds</string>
+    <string name="create_torrent_comment">Comment</string>
+    <string name="create_torrent_piece_size">Piece size</string>
+    <string name="create_torrent_piece_auto">Auto</string>
+    <string name="create_torrent_private">Private torrent</string>
+    <string name="create_torrent_private_helper">Disables DHT and PEX</string>
+    <string name="create_torrent_start_seeding">Start seeding immediately</string>
+    <string name="create_torrent_start_seeding_helper">Adds the torrent to the engine, pointing at the selected source</string>
+    <string name="create_torrent_create">Create</string>
+    <string name="create_torrent_hashing">Hashing pieces…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">Torrent created</string>
+    <string name="create_torrent_save_file">Save .torrent file</string>
+    <string name="create_torrent_seeding_added">Added to the engine for seeding</string>
+    <string name="create_torrent_failed_fmt">Failed to create torrent: %1$s</string>
+    <string name="create_torrent_need_source">Choose a file or a folder first</string>
+    <string name="create_torrent_saved_fmt">Saved: %1$s</string>
+    <string name="create_torrent_add_failed">Could not add the torrent to the engine</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">Download failed: %1$s</string>
+    <string name="update_install">Install</string>
+    <string name="update_install_permission_hint">Android requires your permission to install apps from this source. Allow it in the system settings, then come back and tap Install.</string>
+    <string name="update_install_open_settings">Open settings</string>
+    <string name="update_download_canceled">Download canceled</string>
+    <string name="categories_empty">No categories yet</string>
+    <string name="category_torrents_fmt">%1$d torrents</string>
+    <string name="category_exists_fmt">Category “%1$s” already exists</string>
 </resources>

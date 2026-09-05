@@ -296,10 +296,16 @@
     <string name="add_category">Thêm danh mục</string>
     <string name="session_listen_port">Máy chủ: %1$s</string>
     <string name="dht_nodes">Engine: %1$s</string>
-    <string name="about_message">Máy khách qBittorrent cho Android
+        <string name="about_message">Ứng dụng qBittorrent cho Android kèm engine Enhanced tích hợp sẵn.
 
-Giao diện là bản chuyển thể từ LibreTorrent (GPL-3.0)
-https://github.com/proninyaroslav/libretorrent</string>
+Giao diện port từ LibreTorrent (GPL-3.0)
+https://github.com/proninyaroslav/libretorrent
+
+Chức năng tham chiếu qBitController (GPL-3.0)
+https://github.com/Bartuzen/qBitController
+
+Engine: qBittorrent Enhanced Edition của c0re100 (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">Đang tải…</string>
     <string name="edit_torrent_name">Sửa tên torrent</string>
     <string name="dir_chooser_title">Chọn thư mục tải xuống</string>
@@ -341,7 +347,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">Bạn đang dùng phiên bản mới nhất (%1$s)</string>
     <string name="update_check_failed">Kiểm tra cập nhật thất bại: %1$s</string>
     <string name="error_no_browser">Không có trình duyệt</string>
-    <string name="about_version">Phiên bản: %1$s</string>
     <string name="qbt_settings_title">Cài đặt qBittorrent</string>
     <string name="qbt_tab_downloads">Tải xuống</string>
     <string name="qbt_tab_speed">Tốc độ</string>
@@ -1056,4 +1061,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">Cấp quyền</string>
     <string name="storage_access_granted">Đã cấp quyền truy cập bộ nhớ</string>
     <string name="storage_access_denied">Đã từ chối quyền — tải xuống sẽ thất bại</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">Tạo torrent</string>
+    <string name="create_torrent_source">Nguồn</string>
+    <string name="create_torrent_pick_file">Chọn tệp</string>
+    <string name="create_torrent_pick_folder">Chọn thư mục</string>
+    <string name="create_torrent_name_hint">Tên torrent</string>
+    <string name="create_torrent_name_helper">Tự điền từ tên nguồn</string>
+    <string name="create_torrent_trackers">Tracker</string>
+    <string name="create_torrent_trackers_helper">Mỗi dòng một URL; dòng trống bắt đầu tầng mới</string>
+    <string name="create_torrent_web_seeds">Web seed</string>
+    <string name="create_torrent_comment">Ghi chú</string>
+    <string name="create_torrent_piece_size">Kích thước mảnh</string>
+    <string name="create_torrent_piece_auto">Tự động</string>
+    <string name="create_torrent_private">Torrent riêng</string>
+    <string name="create_torrent_private_helper">Tắt DHT và PEX</string>
+    <string name="create_torrent_start_seeding">Bắt đầu seed ngay</string>
+    <string name="create_torrent_start_seeding_helper">Thêm torrent vào engine trỏ tới nguồn đã chọn</string>
+    <string name="create_torrent_create">Tạo</string>
+    <string name="create_torrent_hashing">Đang tính mảnh…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">Đã tạo torrent</string>
+    <string name="create_torrent_save_file">Lưu tệp .torrent</string>
+    <string name="create_torrent_seeding_added">Đã thêm vào engine để seed</string>
+    <string name="create_torrent_failed_fmt">Không thể tạo torrent: %1$s</string>
+    <string name="create_torrent_need_source">Hãy chọn tệp hoặc thư mục trước</string>
+    <string name="create_torrent_saved_fmt">Đã lưu: %1$s</string>
+    <string name="create_torrent_add_failed">Không thể thêm torrent vào engine</string>
+    <string name="update_downloading">Đang tải bản cập nhật…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">Tải xuống thất bại: %1$s</string>
+    <string name="update_install">Cài đặt</string>
+    <string name="update_install_permission_hint">Android cần quyền cài ứng dụng từ nguồn này. Hãy cấp quyền trong cài đặt hệ thống rồi quay lại và nhấn Cài đặt.</string>
+    <string name="update_install_open_settings">Mở cài đặt</string>
+    <string name="update_download_canceled">Đã hủy tải xuống</string>
+    <string name="categories_empty">Chưa có danh mục nào</string>
+    <string name="category_torrents_fmt">%1$d torrent</string>
+    <string name="category_exists_fmt">Danh mục “%1$s” đã tồn tại</string>
 </resources>

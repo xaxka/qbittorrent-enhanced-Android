@@ -297,10 +297,16 @@
     <string name="add_category">Добавить категорию</string>
     <string name="session_listen_port">Сервер: %1$s</string>
     <string name="dht_nodes">Движок: %1$s</string>
-    <string name="about_message">Клиент qBittorrent для Android
+        <string name="about_message">Клиент qBittorrent для Android со встроенным движком Enhanced.
 
 Интерфейс — порт LibreTorrent (GPL-3.0)
-https://github.com/proninyaroslav/libretorrent</string>
+https://github.com/proninyaroslav/libretorrent
+
+Функциональность отталкивается от qBitController (GPL-3.0)
+https://github.com/Bartuzen/qBitController
+
+Движок: qBittorrent Enhanced Edition от c0re100 (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">Загрузка…</string>
     <string name="edit_torrent_name">Изменить имя торрента</string>
     <string name="dir_chooser_title">Выберите папку загрузок</string>
@@ -342,7 +348,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">У вас последняя версия (%1$s)</string>
     <string name="update_check_failed">Не удалось проверить обновления: %1$s</string>
     <string name="error_no_browser">Нет доступного браузера</string>
-    <string name="about_version">Версия: %1$s</string>
     <string name="qbt_settings_title">Настройки qBittorrent</string>
     <string name="qbt_tab_downloads">Загрузки</string>
     <string name="qbt_tab_speed">Скорость</string>
@@ -1065,4 +1070,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">Разрешить доступ</string>
     <string name="storage_access_granted">Доступ к хранилищу разрешён</string>
     <string name="storage_access_denied">Доступ запрещён — загрузки не будут работать</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">Создать торрент</string>
+    <string name="create_torrent_source">Источник</string>
+    <string name="create_torrent_pick_file">Выбрать файл</string>
+    <string name="create_torrent_pick_folder">Выбрать папку</string>
+    <string name="create_torrent_name_hint">Имя торрента</string>
+    <string name="create_torrent_name_helper">Заполняется из имени источника</string>
+    <string name="create_torrent_trackers">Трекеры</string>
+    <string name="create_torrent_trackers_helper">Один URL на строку; пустая строка — новый уровень</string>
+    <string name="create_torrent_web_seeds">Веб-сиды</string>
+    <string name="create_torrent_comment">Комментарий</string>
+    <string name="create_torrent_piece_size">Размер блока</string>
+    <string name="create_torrent_piece_auto">Авто</string>
+    <string name="create_torrent_private">Приватный торрент</string>
+    <string name="create_torrent_private_helper">Отключает DHT и PEX</string>
+    <string name="create_torrent_start_seeding">Сразу начать раздачу</string>
+    <string name="create_torrent_start_seeding_helper">Добавляет торрент в движок с путём выбранного источника</string>
+    <string name="create_torrent_create">Создать</string>
+    <string name="create_torrent_hashing">Хеширование блоков…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">Торрент создан</string>
+    <string name="create_torrent_save_file">Сохранить файл .torrent</string>
+    <string name="create_torrent_seeding_added">Добавлен в движок для раздачи</string>
+    <string name="create_torrent_failed_fmt">Не удалось создать торрент: %1$s</string>
+    <string name="create_torrent_need_source">Сначала выберите файл или папку</string>
+    <string name="create_torrent_saved_fmt">Сохранено: %1$s</string>
+    <string name="create_torrent_add_failed">Не удалось добавить торрент в движок</string>
+    <string name="update_downloading">Загрузка обновления…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">Ошибка загрузки: %1$s</string>
+    <string name="update_install">Установить</string>
+    <string name="update_install_permission_hint">Android требует разрешение на установку приложений из этого источника. Разрешите его в настройках системы, затем вернитесь и нажмите «Установить».</string>
+    <string name="update_install_open_settings">Открыть настройки</string>
+    <string name="update_download_canceled">Загрузка отменена</string>
+    <string name="categories_empty">Категорий пока нет</string>
+    <string name="category_torrents_fmt">Торрентов: %1$d</string>
+    <string name="category_exists_fmt">Категория «%1$s» уже существует</string>
 </resources>

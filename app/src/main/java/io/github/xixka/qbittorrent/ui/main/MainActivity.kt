@@ -6,11 +6,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.PopupMenu
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -29,13 +29,16 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textview.MaterialTextView
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServerConfig
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityMainBinding
 import io.github.xixka.qbittorrent.databinding.DialogAddLinkBinding
+import io.github.xixka.qbittorrent.databinding.SheetFabMenuBinding
 import io.github.xixka.qbittorrent.databinding.HomeDrawerContentBinding
+import io.github.xixka.qbittorrent.ui.createtorrent.CreateTorrentActivity
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.ServerState
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
@@ -570,7 +573,11 @@ class MainActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.update_available_title))
             .setMessage(getString(R.string.update_available_message, update.version) + notes)
-            .setPositiveButton(R.string.update_download) { _, _ -> openUrl(update.apkUrl ?: update.htmlUrl) }
+            .setPositiveButton(R.string.update_download) { _, _ ->
+                // In-app multi-threaded download + install — no browser,
+                // no manual APK download anymore.
+                io.github.xixka.qbittorrent.util.UpdateInstaller.downloadAndInstall(this, update)
+            }
             .setNeutralButton(R.string.update_release_page) { _, _ -> openUrl(update.htmlUrl) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -620,21 +627,28 @@ class MainActivity : AppCompatActivity() {
         binding.homeContent.contextualAppBar.title = getString(R.string.selected_count, count)
     }
 
-    private fun showFabMenu(anchor: View) {
-        val ctx = ContextThemeWrapper(
-            this,
-            R.style.App_Components_FloatingActionButton_Menu,
-        )
-        val popup = PopupMenu(ctx, anchor)
-        popup.menuInflater.inflate(R.menu.home_fab, popup.menu)
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.add_link -> showAddLinkDialog()
-                R.id.open_file -> pickTorrentFile()
-            }
-            true
+    private fun showFabMenu(@Suppress("UNUSED_PARAMETER") anchor: View) {
+        // A bottom sheet replaces the old PopupMenu: the popup opened
+        // downward from the screen-bottom FAB and was clipped/covered by the
+        // bottom navigation, while a bottom sheet always expands upward and
+        // can never be blocked. It also scales with the extra entries
+        // (create torrent).
+        val sheet = BottomSheetDialog(this)
+        val content = SheetFabMenuBinding.inflate(layoutInflater)
+        content.actionAddLink.setOnClickListener {
+            sheet.dismiss()
+            showAddLinkDialog()
         }
-        popup.show()
+        content.actionOpenFile.setOnClickListener {
+            sheet.dismiss()
+            pickTorrentFile()
+        }
+        content.actionCreateTorrent.setOnClickListener {
+            sheet.dismiss()
+            CreateTorrentActivity.start(this)
+        }
+        sheet.setContentView(content.root)
+        sheet.show()
     }
 
     private fun showAddLinkDialog() {
@@ -749,7 +763,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        d.addCategoryButton.setOnClickListener { showAddCategoryDialog() }
+        d.addCategoryButton.setOnClickListener { showCategoriesManager() }
         d.addTagButton.setOnClickListener { showAddTagDialog() }
 
         // Quick speed limits: the speed-display rows under the transfer
@@ -851,15 +865,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showRenameCategoryDialog(name: String) {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_input, null)
-        view.findViewById<TextInputEditText>(R.id.input)?.setText(name)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_category, null)
+        val nameInput = view.findViewById<TextInputEditText>(R.id.category_name)
+        val pathInput = view.findViewById<TextInputEditText>(R.id.category_save_path)
+        nameInput?.setText(name)
+        // Prefill the current save path from the live categories API.
+        lifecycleScope.launch {
+            runCatching { repo().categories() }.getOrNull()?.get(name)?.let { meta ->
+                pathInput?.setText(meta.savePath)
+            }
+        }
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.category_rename)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newName = input.text?.toString()?.trim().orEmpty()
-                if (newName.isNotEmpty() && newName != name) {
+                val newName = nameInput?.text?.toString()?.trim().orEmpty()
+                val newPath = pathInput?.text?.toString()?.trim().orEmpty()
+                if (newName.isNotEmpty()) {
                     lifecycleScope.launch {
                         // Renaming = create the new category, move the torrents,
                         // then drop the old one (the WebUI does the same dance
@@ -869,9 +891,9 @@ class MainActivity : AppCompatActivity() {
                             val hashes = viewModel.state.value.torrents
                                 .filter { it.category == name }
                                 .map { it.hash }
-                            repo.createCategory(newName, "")
+                            repo.createCategory(newName, newPath)
                             if (hashes.isNotEmpty()) repo.setCategory(hashes, newName)
-                            repo.removeCategory(name)
+                            if (newName != name) repo.removeCategory(name)
                         }
                         viewModel.refresh()
                     }
@@ -909,6 +931,59 @@ class MainActivity : AppCompatActivity() {
                 }
                 viewModel.refresh()
             }
+        }
+    }
+
+    /**
+     * Categories manager (分流): every row — name, save path and torrent
+     * count — is generated live from the official categories API, so the
+     * screen always mirrors the connected engine (or remote server).
+     */
+    private fun showCategoriesManager() {
+        lifecycleScope.launch {
+            val cats = runCatching { repo().categories() }.getOrDefault(emptyMap())
+            val counts = viewModel.state.value.torrents
+                .filter { it.category.isNotBlank() }
+                .groupingBy { it.category }.eachCount()
+            val list = LayoutInflater.from(this@MainActivity)
+                .inflate(R.layout.dialog_categories_manager, null)
+                .findViewById<LinearLayout>(R.id.categories_list)
+            if (cats.isEmpty()) {
+                val empty = MaterialTextView(this@MainActivity).apply {
+                    setTextAppearance(
+                        com.google.android.material.R.style.TextAppearance_Material3_BodyMedium
+                    )
+                    setTextColor(
+                        com.google.android.material.color.MaterialColors.getColor(
+                            this, android.R.attr.textColorSecondary
+                        )
+                    )
+                    text = getString(R.string.categories_empty)
+                    setPadding(48, 32, 48, 32)
+                }
+                list.addView(empty)
+            } else {
+                for ((name, meta) in cats.toSortedMap()) {
+                    val row = LayoutInflater.from(this@MainActivity)
+                        .inflate(R.layout.item_category_row, list, false)
+                    row.findViewById<MaterialTextView>(R.id.category_row_name).text = name
+                    val pathText = meta.savePath.ifBlank { "—" }
+                    val count = counts[name] ?: 0
+                    row.findViewById<MaterialTextView>(R.id.category_row_path).text =
+                        getString(R.string.category_torrents_fmt, count) + " · " + pathText
+                    row.setOnClickListener { showManageCategoryDialog(name) }
+                    list.addView(row)
+                }
+            }
+            MaterialAlertDialogBuilder(this@MainActivity)
+                .setTitle(R.string.categories)
+                .setView(list.parent as View)
+                .setPositiveButton(R.string.add_category) { d, _ ->
+                    d.dismiss()
+                    showAddCategoryDialog()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
 

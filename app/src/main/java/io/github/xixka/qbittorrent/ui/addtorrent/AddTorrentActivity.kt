@@ -14,6 +14,7 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
+import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.databinding.ActivityAddTorrentBinding
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
@@ -53,6 +54,14 @@ class AddTorrentActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri != null) readFile(uri)
         }
+
+    /** Live values the add form is prefilled from (official API). */
+    private data class Defaults(
+        val categories: List<String>,
+        val categoryMeta: Map<String, QBCategory>,
+        val savePath: String,
+        val prefs: JsonObject?,
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,29 +117,40 @@ class AddTorrentActivity : AppCompatActivity() {
     /** Categories + defaults from the connected instance, like the WebUI. */
     private fun loadServerDefaults() {
         lifecycleScope.launch {
-            val (categories, savePath, prefs) = withContext(Dispatchers.IO) {
+            val defaults = withContext(Dispatchers.IO) {
                 runCatching {
                     val repo = ServiceLocator.repository(this@AddTorrentActivity)
-                    Triple(
-                        repo.categories().keys.filter { it.isNotBlank() }.sorted(),
+                    val meta = repo.categories()
+                    Defaults(
+                        meta.keys.filter { it.isNotBlank() }.sorted(),
+                        meta,
                         repo.defaultSavePath(),
                         repo.appPreferences(),
                     )
-                }.getOrNull() ?: Triple(emptyList(), "", null as JsonObject?)
+                }.getOrNull() ?: Defaults(emptyList(), emptyMap(), "", null)
             }
-            if (categories.isNotEmpty()) {
+            if (defaults.categories.isNotEmpty()) {
                 binding.categoryInput.setAdapter(
                     ArrayAdapter(
                         this@AddTorrentActivity,
                         android.R.layout.simple_list_item_1,
-                        categories,
+                        defaults.categories,
                     )
                 )
+                // Selecting a category switches the save path to that
+                // category's own path — exactly what the WebUI does (the
+                // paths come live from the categories API).
+                binding.categoryInput.setOnItemClickListener { _, _, position, _ ->
+                    val path = defaults.categoryMeta[defaults.categories.getOrNull(position)]?.savePath
+                    if (!path.isNullOrBlank()) {
+                        binding.savePathInput.setText(path)
+                    }
+                }
             }
-            if (savePath.isNotBlank() && binding.savePathInput.text?.isBlank() == true) {
-                binding.savePathInput.setText(savePath)
+            if (defaults.savePath.isNotBlank() && binding.savePathInput.text?.isBlank() == true) {
+                binding.savePathInput.setText(defaults.savePath)
             }
-            prefs?.let { p ->
+            defaults.prefs?.let { p ->
                 // "Start torrent" checkbox mirrors the server preference, like the WebUI
                 binding.pausedSwitch.isChecked =
                     p.get("add_stopped_enabled")?.asBoolean == true

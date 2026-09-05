@@ -297,10 +297,16 @@ LAN cihazları giriş yapmadan açabilir (adresi kopyalamak için dokunun)</stri
     <string name="add_category">Kategori ekle</string>
     <string name="session_listen_port">Sunucu: %1$s</string>
     <string name="dht_nodes">Motor: %1$s</string>
-    <string name="about_message">Android için qBittorrent istemcisi
+        <string name="about_message">Gelişmiş motor gömülü Android qBittorrent istemcisi.
 
-Arayüz LibreTorrent’in (GPL-3.0) bir uyarlamasıdır
-https://github.com/proninyaroslav/libretorrent</string>
+Arayüz LibreTorrent (GPL-3.0) portudur
+https://github.com/proninyaroslav/libretorrent
+
+Özellikler qBitController (GPL-3.0) referans alınmıştır
+https://github.com/Bartuzen/qBitController
+
+Motor: c0re100 tarafından geliştirilen qBittorrent Enhanced Edition (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">Yükleniyor…</string>
     <string name="edit_torrent_name">Torrent adını düzenle</string>
     <string name="dir_chooser_title">İndirme dizinini seçin</string>
@@ -342,7 +348,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">Güncelsiniz (%1$s)</string>
     <string name="update_check_failed">Güncelleme denetimi başarısız: %1$s</string>
     <string name="error_no_browser">Kullanılabilir tarayıcı yok</string>
-    <string name="about_version">Sürüm: %1$s</string>
     <string name="qbt_settings_title">qBittorrent ayarları</string>
     <string name="qbt_tab_downloads">İndirmeler</string>
     <string name="qbt_tab_speed">Hız</string>
@@ -1057,4 +1062,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">Erişim ver</string>
     <string name="storage_access_granted">Depolama erişimi verildi</string>
     <string name="storage_access_denied">Erişim reddedildi; indirmeler başarısız olacak</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">Torrent oluştur</string>
+    <string name="create_torrent_source">Kaynak</string>
+    <string name="create_torrent_pick_file">Dosya seç</string>
+    <string name="create_torrent_pick_folder">Klasör seç</string>
+    <string name="create_torrent_name_hint">Torrent adı</string>
+    <string name="create_torrent_name_helper">Kaynak adından otomatik doldurulur</string>
+    <string name="create_torrent_trackers">Tracker’lar</string>
+    <string name="create_torrent_trackers_helper">Her satıra bir URL; boş satır yeni katman başlatır</string>
+    <string name="create_torrent_web_seeds">Web seed</string>
+    <string name="create_torrent_comment">Yorum</string>
+    <string name="create_torrent_piece_size">Parça boyutu</string>
+    <string name="create_torrent_piece_auto">Otomatik</string>
+    <string name="create_torrent_private">Özel torrent</string>
+    <string name="create_torrent_private_helper">DHT ve PEX devre dışı</string>
+    <string name="create_torrent_start_seeding">Hemen seed başlat</string>
+    <string name="create_torrent_start_seeding_helper">Seçilen kaynağı göstererek torrenti motora ekler</string>
+    <string name="create_torrent_create">Oluştur</string>
+    <string name="create_torrent_hashing">Parçalar hesaplanıyor…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">Torrent oluşturuldu</string>
+    <string name="create_torrent_save_file">.torrent dosyasını kaydet</string>
+    <string name="create_torrent_seeding_added">Seed için motora eklendi</string>
+    <string name="create_torrent_failed_fmt">Torrent oluşturulamadı: %1$s</string>
+    <string name="create_torrent_need_source">Önce bir dosya veya klasör seçin</string>
+    <string name="create_torrent_saved_fmt">Kaydedildi: %1$s</string>
+    <string name="create_torrent_add_failed">Torrent motora eklenemedi</string>
+    <string name="update_downloading">Güncelleme indiriliyor…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">İndirme başarısız: %1$s</string>
+    <string name="update_install">Yükle</string>
+    <string name="update_install_permission_hint">Android bu kaynaktan uygulama yükleme izni ister. Sistem ayarlarında izin verin, sonra dönüp Yükle öğesine dokunun.</string>
+    <string name="update_install_open_settings">Ayarları aç</string>
+    <string name="update_download_canceled">İndirme iptal edildi</string>
+    <string name="categories_empty">Henüz kategori yok</string>
+    <string name="category_torrents_fmt">%1$d torrent</string>
+    <string name="category_exists_fmt">“%1$s” kategorisi zaten var</string>
 </resources>

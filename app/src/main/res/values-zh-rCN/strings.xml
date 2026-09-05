@@ -298,10 +298,16 @@
     <string name="add_category">添加分类</string>
     <string name="session_listen_port">服务器：%1$s</string>
     <string name="dht_nodes">引擎：%1$s</string>
-    <string name="about_message">Android 版 qBittorrent 客户端
+        <string name="about_message">内置增强引擎的 Android qBittorrent 客户端。
 
 界面移植自 LibreTorrent（GPL-3.0）
-https://github.com/proninyaroslav/libretorrent</string>
+https://github.com/proninyaroslav/libretorrent
+
+功能参考 qBitController（GPL-3.0）
+https://github.com/Bartuzen/qBitController
+
+引擎：c0re100 的 qBittorrent Enhanced Edition（GPL-2.0）
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">加载中…</string>
     <string name="edit_torrent_name">编辑种子名称</string>
     <string name="dir_chooser_title">选择下载目录</string>
@@ -343,7 +349,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">已是最新版本（%1$s）</string>
     <string name="update_check_failed">检查更新失败：%1$s</string>
     <string name="error_no_browser">没有可用的浏览器</string>
-    <string name="about_version">版本：%1$s</string>
     <string name="qbt_settings_title">qBittorrent 设置</string>
     <string name="qbt_tab_downloads">下载</string>
     <string name="qbt_tab_speed">速度</string>
@@ -1058,4 +1063,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">授予权限</string>
     <string name="storage_access_granted">已授予存储权限</string>
     <string name="storage_access_denied">存储权限被拒绝，下载将失败</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">制作种子</string>
+    <string name="create_torrent_source">内容来源</string>
+    <string name="create_torrent_pick_file">选择文件</string>
+    <string name="create_torrent_pick_folder">选择文件夹</string>
+    <string name="create_torrent_name_hint">种子名称</string>
+    <string name="create_torrent_name_helper">自动填入来源名称</string>
+    <string name="create_torrent_trackers">Tracker</string>
+    <string name="create_torrent_trackers_helper">每行一个 URL，空行开启新的层级</string>
+    <string name="create_torrent_web_seeds">Web seed</string>
+    <string name="create_torrent_comment">备注</string>
+    <string name="create_torrent_piece_size">分片大小</string>
+    <string name="create_torrent_piece_auto">自动</string>
+    <string name="create_torrent_private">私有种子</string>
+    <string name="create_torrent_private_helper">禁用 DHT 和 PEX</string>
+    <string name="create_torrent_start_seeding">立即开始做种</string>
+    <string name="create_torrent_start_seeding_helper">将该种子以选定来源为保存路径添加到引擎</string>
+    <string name="create_torrent_create">开始制作</string>
+    <string name="create_torrent_hashing">正在计算分片…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">种子制作完成</string>
+    <string name="create_torrent_save_file">保存 .torrent 文件</string>
+    <string name="create_torrent_seeding_added">已添加到引擎开始做种</string>
+    <string name="create_torrent_failed_fmt">制作种子失败：%1$s</string>
+    <string name="create_torrent_need_source">请先选择文件或文件夹</string>
+    <string name="create_torrent_saved_fmt">已保存：%1$s</string>
+    <string name="create_torrent_add_failed">无法将种子添加到引擎</string>
+    <string name="update_downloading">正在下载更新…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">下载失败：%1$s</string>
+    <string name="update_install">安装</string>
+    <string name="update_install_permission_hint">Android 需要授权此应用安装未知应用。请在系统设置中允许后返回并点击安装。</string>
+    <string name="update_install_open_settings">打开设置</string>
+    <string name="update_download_canceled">已取消下载</string>
+    <string name="categories_empty">还没有分类</string>
+    <string name="category_torrents_fmt">%1$d 个种子</string>
+    <string name="category_exists_fmt">分类“%1$s”已存在</string>
 </resources>

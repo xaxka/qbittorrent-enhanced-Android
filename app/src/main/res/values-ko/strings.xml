@@ -297,10 +297,16 @@ LAN 기기는 로그인 없이 열 수 있습니다(탭하여 주소 복사)</st
     <string name="add_category">카테고리 추가</string>
     <string name="session_listen_port">서버: %1$s</string>
     <string name="dht_nodes">엔진: %1$s</string>
-    <string name="about_message">Android용 qBittorrent 클라이언트
+        <string name="about_message">향상된 엔진을 내장한 Android용 qBittorrent 클라이언트.
 
-UI는 LibreTorrent(GPL-3.0)의 포트입니다
-https://github.com/proninyaroslav/libretorrent</string>
+UI는 LibreTorrent (GPL-3.0) 포트입니다
+https://github.com/proninyaroslav/libretorrent
+
+기능은 qBitController (GPL-3.0)를 참고했습니다
+https://github.com/Bartuzen/qBitController
+
+엔진: c0re100의 qBittorrent Enhanced Edition (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">불러오는 중…</string>
     <string name="edit_torrent_name">토렌트 이름 편집</string>
     <string name="dir_chooser_title">다운로드 디렉터리 선택</string>
@@ -342,7 +348,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">최신 버전입니다(%1$s)</string>
     <string name="update_check_failed">업데이트 확인 실패: %1$s</string>
     <string name="error_no_browser">사용 가능한 브라우저가 없습니다</string>
-    <string name="about_version">버전: %1$s</string>
     <string name="qbt_settings_title">qBittorrent 설정</string>
     <string name="qbt_tab_downloads">다운로드</string>
     <string name="qbt_tab_speed">속도</string>
@@ -1057,4 +1062,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">접근 허용</string>
     <string name="storage_access_granted">저장소 접근이 허용되었습니다</string>
     <string name="storage_access_denied">접근이 거부되어 다운로드가 실패합니다</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">토런트 만들기</string>
+    <string name="create_torrent_source">소스</string>
+    <string name="create_torrent_pick_file">파일 선택</string>
+    <string name="create_torrent_pick_folder">폴더 선택</string>
+    <string name="create_torrent_name_hint">토런트 이름</string>
+    <string name="create_torrent_name_helper">소스 이름에서 자동 입력</string>
+    <string name="create_torrent_trackers">트래커</string>
+    <string name="create_torrent_trackers_helper">한 줄에 URL 하나. 빈 줄은 새 티어 시작</string>
+    <string name="create_torrent_web_seeds">웹 시드</string>
+    <string name="create_torrent_comment">코멘트</string>
+    <string name="create_torrent_piece_size">피스 크기</string>
+    <string name="create_torrent_piece_auto">자동</string>
+    <string name="create_torrent_private">프라이빗 토런트</string>
+    <string name="create_torrent_private_helper">DHT 및 PEX 비활성화</string>
+    <string name="create_torrent_start_seeding">즉시 시딩 시작</string>
+    <string name="create_torrent_start_seeding_helper">선택한 소스를 지정해 엔진에 추가</string>
+    <string name="create_torrent_create">만들기</string>
+    <string name="create_torrent_hashing">피스 계산 중…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">토런트가 생성되었습니다</string>
+    <string name="create_torrent_save_file">.torrent 파일 저장</string>
+    <string name="create_torrent_seeding_added">시딩을 위해 엔진에 추가됨</string>
+    <string name="create_torrent_failed_fmt">토런트 생성 실패: %1$s</string>
+    <string name="create_torrent_need_source">먼저 파일 또는 폴더를 선택하세요</string>
+    <string name="create_torrent_saved_fmt">%1$s에 저장되었습니다</string>
+    <string name="create_torrent_add_failed">엔진에 추가하지 못했습니다</string>
+    <string name="update_downloading">업데이트 다운로드 중…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">다운로드 실패: %1$s</string>
+    <string name="update_install">설치</string>
+    <string name="update_install_permission_hint">이 출처에서 앱을 설치하려면 Android 권한이 필요합니다. 시스템 설정에서 허용한 후 돌아와 설치를 누르세요.</string>
+    <string name="update_install_open_settings">설정 열기</string>
+    <string name="update_download_canceled">다운로드가 취소되었습니다</string>
+    <string name="categories_empty">아직 카테고리가 없습니다</string>
+    <string name="category_torrents_fmt">토런트 %1$d개</string>
+    <string name="category_exists_fmt">카테고리 “%1$s”이(가) 이미 있습니다</string>
 </resources>

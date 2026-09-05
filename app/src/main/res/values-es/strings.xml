@@ -297,10 +297,16 @@ Los dispositivos de la LAN la abren sin iniciar sesión (toca para copiar la dir
     <string name="add_category">Añadir categoría</string>
     <string name="session_listen_port">Servidor: %1$s</string>
     <string name="dht_nodes">Motor: %1$s</string>
-    <string name="about_message">Cliente de qBittorrent para Android
+        <string name="about_message">Cliente de qBittorrent para Android con motor Enhanced integrado.
 
-La interfaz es un port de LibreTorrent (GPL-3.0)
-https://github.com/proninyaroslav/libretorrent</string>
+Interfaz portada de LibreTorrent (GPL-3.0)
+https://github.com/proninyaroslav/libretorrent
+
+Funciones basadas en qBitController (GPL-3.0)
+https://github.com/Bartuzen/qBitController
+
+Motor: qBittorrent Enhanced Edition de c0re100 (GPL-2.0)
+https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">Cargando…</string>
     <string name="edit_torrent_name">Editar nombre del torrent</string>
     <string name="dir_chooser_title">Elegir el directorio de descargas</string>
@@ -342,7 +348,6 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="update_up_to_date">Estás actualizado (%1$s)</string>
     <string name="update_check_failed">Fallo al buscar actualizaciones: %1$s</string>
     <string name="error_no_browser">No hay navegador disponible</string>
-    <string name="about_version">Versión: %1$s</string>
     <string name="qbt_settings_title">Ajustes de qBittorrent</string>
     <string name="qbt_tab_downloads">Descargas</string>
     <string name="qbt_tab_speed">Velocidad</string>
@@ -1061,4 +1066,42 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="storage_access_grant">Conceder acceso</string>
     <string name="storage_access_granted">Acceso al almacenamiento concedido</string>
     <string name="storage_access_denied">Acceso denegado; las descargas fallarán</string>
+
+    <!-- round 18: create torrent, in-app update download, categories manager -->
+    <string name="create_torrent_title">Crear torrent</string>
+    <string name="create_torrent_source">Origen</string>
+    <string name="create_torrent_pick_file">Elegir archivo</string>
+    <string name="create_torrent_pick_folder">Elegir carpeta</string>
+    <string name="create_torrent_name_hint">Nombre del torrent</string>
+    <string name="create_torrent_name_helper">Se rellena con el nombre del origen</string>
+    <string name="create_torrent_trackers">Trackers</string>
+    <string name="create_torrent_trackers_helper">Una URL por línea; una línea vacía inicia un nuevo nivel</string>
+    <string name="create_torrent_web_seeds">Semillas web</string>
+    <string name="create_torrent_comment">Comentario</string>
+    <string name="create_torrent_piece_size">Tamaño de pieza</string>
+    <string name="create_torrent_piece_auto">Automático</string>
+    <string name="create_torrent_private">Torrent privado</string>
+    <string name="create_torrent_private_helper">Desactiva DHT y PEX</string>
+    <string name="create_torrent_start_seeding">Compartir inmediatamente</string>
+    <string name="create_torrent_start_seeding_helper">Añade el torrent al motor usando el origen elegido</string>
+    <string name="create_torrent_create">Crear</string>
+    <string name="create_torrent_hashing">Calculando piezas…</string>
+    <string name="create_torrent_hashing_fmt">%1$d%% · %2$s / %3$s</string>
+    <string name="create_torrent_done">Torrent creado</string>
+    <string name="create_torrent_save_file">Guardar archivo .torrent</string>
+    <string name="create_torrent_seeding_added">Añadido al motor para compartir</string>
+    <string name="create_torrent_failed_fmt">Error al crear el torrent: %1$s</string>
+    <string name="create_torrent_need_source">Elige primero un archivo o una carpeta</string>
+    <string name="create_torrent_saved_fmt">Guardado: %1$s</string>
+    <string name="create_torrent_add_failed">No se pudo añadir el torrent al motor</string>
+    <string name="update_downloading">Descargando actualización…</string>
+    <string name="update_speed_fmt">%1$s/s · %2$s / %3$s</string>
+    <string name="update_download_failed_fmt">Error de descarga: %1$s</string>
+    <string name="update_install">Instalar</string>
+    <string name="update_install_permission_hint">Android necesita permiso para instalar apps de esta fuente. Permítelo en los ajustes del sistema y vuelve para pulsar Instalar.</string>
+    <string name="update_install_open_settings">Abrir ajustes</string>
+    <string name="update_download_canceled">Descarga cancelada</string>
+    <string name="categories_empty">Aún no hay categorías</string>
+    <string name="category_torrents_fmt">%1$d torrents</string>
+    <string name="category_exists_fmt">La categoría «%1$s» ya existe</string>
 </resources>

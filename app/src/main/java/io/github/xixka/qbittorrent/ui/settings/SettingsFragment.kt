@@ -25,6 +25,7 @@ import io.github.xixka.qbittorrent.ui.log.LogFragment
 import io.github.xixka.qbittorrent.ui.settings.ServerSettingsFragment
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
+import io.github.xixka.qbittorrent.util.UpdateInstaller
 import kotlinx.coroutines.launch
 
 /**
@@ -286,11 +287,10 @@ class SettingsFragment : Fragment() {
             .setTitle(getString(R.string.update_available_title))
             .setMessage(getString(R.string.update_available_message, update.version) + notes)
             .setPositiveButton(R.string.update_download) { _, _ ->
-                runCatching {
-                    startActivity(
-                        Intent(Intent.ACTION_VIEW, android.net.Uri.parse(update.apkUrl ?: update.htmlUrl)),
-                    )
-                }
+                // In-app multi-threaded download + install — no browser,
+                // no manual APK download anymore.
+                (activity as? androidx.fragment.app.FragmentActivity)
+                    ?.let { UpdateInstaller.downloadAndInstall(it, update) }
             }
             .setNeutralButton(R.string.update_release_page) { _, _ ->
                 runCatching {
@@ -302,12 +302,11 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showAboutDialog() {
+        // No version line here: the "Version" settings row right above this
+        // dialog already displays it — repeating it was redundant.
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.about)
-            .setMessage(
-                getString(R.string.about_message) +
-                    "\n\n" + getString(R.string.about_version, BuildConfig.VERSION_NAME)
-            )
+            .setMessage(R.string.about_message)
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }

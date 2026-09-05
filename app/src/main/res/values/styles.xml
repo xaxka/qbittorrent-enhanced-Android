@@ -3,17 +3,6 @@
 
     <!-- LibreTorrent component styles (GPL-3.0), preference-specific styles removed -->
 
-    <style name="App.Components.FloatingActionButton.Menu" parent="Widget.Material3.PopupMenu">
-        <item name="popupMenuBackground">@drawable/fab_menu_background</item>
-        <item name="textAppearanceSmallPopupMenu">
-            @style/App.Components.FloatingActionButton.Menu.Text
-        </item>
-        <item name="textAppearanceLargePopupMenu">
-            @style/App.Components.FloatingActionButton.Menu.Text
-        </item>
-        <item name="iconTint">?attr/colorOnSecondaryContainer</item>
-    </style>
-
     <style name="App.Components.ListItem" parent="Widget.Material3.CardView.Outlined">
         <item name="strokeWidth">0dp</item>
         <item name="cardBackgroundColor">@android:color/transparent</item>
@@ -24,10 +13,6 @@
 
     <style name="App.Components.ListItem.SupportingText" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">?android:attr/textColorSecondary</item>
-    </style>
-
-    <style name="App.Components.FloatingActionButton.Menu.Text" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
     </style>
 
     <style name="App.Components.ErrorReportDialog.StackTrace" parent="TextAppearance.Material3.BodySmall">
