@@ -62,6 +62,10 @@
          the matching translucent track, see TorrentStateColors). -->
     <style name="Widget.App.LinearProgressIndicator" parent="Widget.Material3.LinearProgressIndicator">
         <item name="trackStopIndicatorSize">0dp</item>
+        <!-- the 4dp default gap before the (removed) stop indicator still
+             gets cut out of the drawn bar, leaving a notch at the end —
+             zero it too, or every bar looks broken near 100% -->
+        <item name="trackGapSize">0dp</item>
         <item name="trackThickness">4dp</item>
         <item name="trackCornerRadius">2dp</item>
     </style>
