@@ -83,8 +83,10 @@ class FilesTreeAdapter(
                 binding.expandButton.setOnClickListener { onToggleExpand(node) }
                 binding.typeIcon.setImageResource(R.drawable.ic_folder_24px)
             } else {
-                binding.expandButton.visibility = View.INVISIBLE
-                binding.expandButton.rotation = 0f
+                // GONE, not INVISIBLE: the card offset already encodes the
+                // tree depth — an empty 48dp spacer inside every file card
+                // reads as a second, spurious level of indentation.
+                binding.expandButton.visibility = View.GONE
                 binding.typeIcon.setImageResource(R.drawable.ic_file_24px)
             }
 
