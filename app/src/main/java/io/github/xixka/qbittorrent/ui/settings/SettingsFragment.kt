@@ -163,22 +163,18 @@ class SettingsFragment : Fragment() {
         )
 
         rows += Header(R.string.settings_about)
+        // One merged row: the version shows as the summary, tapping opens
+        // the About dialog (the two rows were redundant duplicates).
         rows += Item(
-            id = ID_VERSION,
+            id = ID_ABOUT,
             icon = R.drawable.ic_info_24px,
-            title = getString(R.string.settings_version),
+            title = getString(R.string.about),
             summary = BuildConfig.VERSION_NAME,
         )
         rows += Item(
             id = ID_CHECK_UPDATE,
             icon = R.drawable.ic_refresh_24px,
             title = getString(R.string.check_for_updates),
-            summary = null,
-        )
-        rows += Item(
-            id = ID_ABOUT,
-            icon = R.drawable.ic_help_24px,
-            title = getString(R.string.about),
             summary = null,
         )
         adapter.submit(rows)
@@ -252,8 +248,6 @@ class SettingsFragment : Fragment() {
             ID_CHECK_UPDATE -> checkUpdate()
 
             ID_ABOUT -> showAboutDialog()
-
-            ID_VERSION -> showAboutDialog()
         }
     }
 
@@ -508,7 +502,6 @@ class SettingsFragment : Fragment() {
         private const val ID_SHOW_RSS = 5
         private const val ID_POLL_INTERVAL = 4
         private const val ID_SERVER = 7
-        private const val ID_VERSION = 8
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10
         private const val ID_LOG = 12
