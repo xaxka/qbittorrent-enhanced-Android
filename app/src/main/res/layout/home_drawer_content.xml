@@ -3,10 +3,12 @@
      same structure, margins (root padding 12dp + 16dp child margins),
      TitleLarge section headers and stock M3 filter chips (checkmark on
      selection, no restyle). Deliberate deviations, all functional:
-     - the chip groups sit in fixed 3-column grids (EqualColumnsChipGroup)
-       instead of LibreTorrent's free-flowing wrap; the chip style keeps
-       the stock look and only clamps to a single line so a long label
-       clips inside its 1/3-drawer cell instead of overflowing;
+     - the chip groups sit in equal-column grids (EqualColumnsChipGroup)
+       instead of LibreTorrent's free-flowing wrap; selection is signalled
+       by the container color (no checkmark — it stole label width and
+       caused avoidable "…"), inner paddings are tightened, and the grid
+       steps down a column (3 → 2 → 1) when a translation's longest label
+       would not fit its cell;
      - stat rows are wrapped in full-width clickable rows: the port opens
        the quick speed-limit sheet from the download/upload rows and the
        statistics popup from the port/DHT rows (LibreTorrent's rows are

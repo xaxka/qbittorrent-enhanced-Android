@@ -66,14 +66,20 @@
         <item name="trackCornerRadius">2dp</item>
     </style>
 
-    <!-- Drawer filter chips, laid out in fixed 3-column grids
-         (EqualColumnsChipGroup). LibreTorrent renders its drawer chips as
-         STOCK M3 filter chips (checkmark on selection, default paddings and
-         14sp label) — that look is kept here untouched; the only addition
-         is single-line + end ellipsis, because the grid stretches every
-         chip to a fixed 1/3-of-drawer cell and a long label must clip
-         instead of overflowing it. -->
+    <!-- Drawer filter chips, laid out in equal-column grids
+         (EqualColumnsChipGroup). Selection is signalled by the container
+         color alone — the leading checkmark is suppressed because it shoves
+         the label sideways in a fixed-width cell and causes avoidable "…".
+         Inner paddings are tightened (default M3 reserves ~24dp) so the
+         label gets most of the cell; single line + end ellipsis stays as
+         the last-resort clip. Long translations are handled by the grid
+         itself (adaptive column fallback), not by smaller text. -->
     <style name="Widget.App.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="checkedIconVisible">false</item>
+        <item name="chipStartPadding">4dp</item>
+        <item name="chipEndPadding">4dp</item>
+        <item name="textStartPadding">4dp</item>
+        <item name="textEndPadding">4dp</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
     </style>
