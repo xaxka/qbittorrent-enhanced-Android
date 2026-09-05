@@ -33,11 +33,17 @@ import java.net.URLEncoder
  */
 object DohResolver {
 
-    /** Reference DHT routers: hostname + the port each one answers on. */
+    /** Reference DHT routers: hostname + the port each one answers on.
+     *  router.utorrent.com / router.bitcomet.org add redundancy; the
+     *  ouinet router is qBittorrent 5.x's own default, built for
+     *  censored networks (dropping it made China Mobile worse). */
     private val BOOTSTRAP_HOSTS = listOf(
         "dht.libtorrent.org" to 25401,
         "dht.transmissionbt.com" to 6881,
         "router.bittorrent.com" to 6881,
+        "router.utorrent.com" to 6881,
+        "router.bitcomet.org" to 6881,
+        "router.bt.ouinet.work" to 6881,
     )
 
     /** Bootstrap IP literals kept as static fallback: they bypass DNS
@@ -50,7 +56,7 @@ object DohResolver {
     )
 
     /** Max entries of the final bootstrap list (hostnames + fresh IPs + literals). */
-    private const val MAX_ENTRIES = 14
+    private const val MAX_ENTRIES = 30
 
     /** Whole-of-operation budget; every query also has its own timeout. */
     private const val TOTAL_TIMEOUT_MS = 6_000L
@@ -86,7 +92,11 @@ object DohResolver {
                 coroutineScope {
                     val answers = BOOTSTRAP_HOSTS.map { (host, port) ->
                         async {
-                            Triple(host, port, runCatching { resolveA(url, host) }.getOrDefault(emptyList()))
+                            // both stacks: China Mobile often passes IPv6
+                            // to foreign hosts when IPv4 UDP is throttled
+                            val v4 = runCatching { resolveType(url, host, 1) }.getOrDefault(emptyList())
+                            val v6 = runCatching { resolveType(url, host, 28) }.getOrDefault(emptyList())
+                            Triple(host, port, v4 to v6)
                         }
                     }.awaitAll()
                     buildBootstrapList(answers, log)
@@ -99,33 +109,39 @@ object DohResolver {
     }
 
     private fun buildBootstrapList(
-        answers: List<Triple<String, Int, List<String>>>,
+        answers: List<Triple<String, Int, Pair<List<String>, List<String>>>>,
         log: (String) -> Unit,
     ): String? {
-        if (answers.all { it.third.isEmpty() }) {
+        if (answers.all { it.third.first.isEmpty() && it.third.second.isEmpty() }) {
             log("doh: endpoint answered none of the bootstrap queries — keeping static bootstrap")
             return null
         }
         val entries = LinkedHashSet<String>(MAX_ENTRIES * 2)
         answers.forEach { (host, port, ips) ->
-            if (ips.isNotEmpty()) log("doh: $host -> ${ips.joinToString(", ")}")
+            val (v4, v6) = ips
+            if (v4.isNotEmpty()) log("doh: $host -> ${v4.joinToString(", ")}")
+            if (v6.isNotEmpty()) log("doh: $host (v6) -> ${v6.joinToString(", ")}")
             entries.add("$host:$port")
-            ips.take(2).forEach { ip -> entries.add("$ip:$port") }
+            v4.take(2).forEach { ip -> entries.add("$ip:$port") }
+            v6.take(2).forEach { ip -> entries.add("[$ip]:$port") }
         }
         BOOTSTRAP_FALLBACK_IPS.forEach { (ip, port) -> entries.add("$ip:$port") }
         return entries.take(MAX_ENTRIES).joinToString(", ")
     }
 
     /**
-     * One A-record lookup through the JSON DoH API:
-     * `GET <dohUrl>?name=<host>&type=1` -> `{"Status":0,"Answer":[{"type":1,"data":"1.2.3.4"}]}`.
+     * One A/AAAA lookup through the JSON DoH API:
+     * `GET <dohUrl>?name=<host>&type=<1|28>` -> `{"Status":0,"Answer":[{"type":1,"data":"1.2.3.4"}]}`.
      * Empty list on any error (timeout, non-200, parse failure, NXDOMAIN).
      */
     suspend fun resolveA(dohUrl: String, host: String): List<String> =
+        resolveType(dohUrl, host, 1)
+
+    private suspend fun resolveType(dohUrl: String, host: String, type: Int): List<String> =
         withContext(Dispatchers.IO) {
             val sep = if (dohUrl.contains('?')) '&' else '?'
             val target =
-                "$dohUrl${sep}name=${URLEncoder.encode(host, "UTF-8")}&type=1"
+                "$dohUrl${sep}name=${URLEncoder.encode(host, "UTF-8")}&type=$type"
             val conn = URL(target).openConnection() as HttpURLConnection
             try {
                 conn.connectTimeout = QUERY_TIMEOUT_MS
@@ -136,7 +152,7 @@ object DohResolver {
                     return@withContext emptyList()
                 }
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
-                parseARecords(body)
+                parseARecords(body, type)
             } catch (e: Exception) {
                 emptyList()
             } finally {
@@ -144,7 +160,7 @@ object DohResolver {
             }
         }
 
-    private fun parseARecords(body: String): List<String> = runCatching {
+    private fun parseARecords(body: String, type: Int): List<String> = runCatching {
         val root = JsonParser.parseString(body).asJsonObject
         if (root.get("Status")?.takeIf { it.isJsonPrimitive }?.asInt != 0) {
             return@runCatching emptyList()
@@ -152,8 +168,8 @@ object DohResolver {
         root.getAsJsonArray("Answer")
             ?.mapNotNull { element ->
                 val answer = element.asJsonObject
-                // type 1 = A record (skip CNAME chains, 5 = 28 = AAAA, SOA…)
-                if (answer.get("type")?.takeIf { it.isJsonPrimitive }?.asInt == 1) {
+                // 1 = A, 28 = AAAA (skip CNAME chains, SOA…)
+                if (answer.get("type")?.takeIf { it.isJsonPrimitive }?.asInt == type) {
                     answer.get("data")?.takeIf { it.isJsonPrimitive }?.asString?.trim()
                 } else {
                     null

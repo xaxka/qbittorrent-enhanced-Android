@@ -92,8 +92,20 @@ object NoxConfig {
     private const val KEY_DHT_BOOTSTRAP = "Session\\DHTBootstrapNodes"
 
     /** Static CN-friendly bootstrap list (public: reference for the DoH
-     *  refresh logic that decides whether the current value is app-managed). */
+     *  refresh logic that decides whether the current value is app-managed).
+     *  Includes the ouinet router — qBittorrent 5.x's own default — plus
+     *  utorrent/bitcomet routers for redundancy. */
     const val DHT_BOOTSTRAP_CN_FRIENDLY =
+        "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
+            "router.utorrent.com:6881, router.bitcomet.org:6881, " +
+            "router.bt.ouinet.work:6881, " +
+            "212.129.33.59:6881, 87.98.162.88:6881, " +
+            "185.157.221.247:25401, 67.215.246.10:6881"
+
+    /** Pre-round-41 seed list: existing installs carry this value in
+     *  qBittorrent.conf, so the DoH refresh must still treat it as
+     *  app-managed (entry-set comparison against BOTH lists). */
+    const val DHT_BOOTSTRAP_LEGACY =
         "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
             "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
 

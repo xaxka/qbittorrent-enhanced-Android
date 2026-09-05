@@ -223,6 +223,7 @@ object LocalEngineManager {
         val current = NoxConfig.readBootstrapValue(context)
         val replaceable = current == null ||
             NoxConfig.sameBootstrapValue(current, NoxConfig.DHT_BOOTSTRAP_CN_FRIENDLY) ||
+            NoxConfig.sameBootstrapValue(current, NoxConfig.DHT_BOOTSTRAP_LEGACY) ||
             NoxConfig.sameBootstrapValue(current, enginePrefs.dohLastBootstrap)
         return if (replaceable) {
             enginePrefs.dohLastBootstrap = fresh
