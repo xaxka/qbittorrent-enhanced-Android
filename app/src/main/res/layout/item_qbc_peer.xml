@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One peer card, qBC PeerItem parity: ip:port + client header, divider,
-     FOUR stat columns (progress / download / upload / connection) rendered
-     like the qBC StatItem composable — 20dp primary icon, medium value,
-     labelSmall muted label — and a rounded flags banner with a flag icon. -->
+<!-- One peer card, qBC PeerItem data with a compact LibreTorrent-style
+     stat grid: value on top (medium weight), muted labelSmall caption
+     below, NO icons — two rows of stats (progress / download / upload /
+     connection, then downloaded / uploaded / relevance) stay scannable
+     while keeping the card short. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -66,6 +67,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
+        <!-- Stat grid: value on top, muted caption below — no icons. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -79,19 +81,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_downloading_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_progress"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="63.5%" />
 
@@ -99,7 +93,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/torrent_peers_details_progress"
@@ -114,19 +108,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_downward_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_download_speed"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="1.2 MiB/s" />
 
@@ -134,7 +120,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/torrent_peers_details_download_speed"
@@ -149,19 +135,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_upward_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_upload_speed"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="340 KiB/s" />
 
@@ -169,7 +147,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/torrent_peers_details_upload_speed"
@@ -184,19 +162,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_speed_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_connection"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="BT" />
 
@@ -204,7 +174,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/torrent_peers_details_connection"
@@ -213,8 +183,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Second stat row: cumulative traffic exchanged with the peer and
-             the relevance (share of its files we need), LibreTorrent-style. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -229,19 +197,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_download_done_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_downloaded_total"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="1.2 GiB" />
 
@@ -249,7 +209,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/peer_stat_downloaded"
@@ -264,19 +224,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_upload_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_uploaded_total"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="340 MiB" />
 
@@ -284,7 +236,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/peer_stat_uploaded"
@@ -299,19 +251,11 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_percent_24px"
-                    app:tint="?attr/colorPrimary" />
-
                 <TextView
                     android:id="@+id/peer_relevance"
                     style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="63%" />
 
@@ -319,7 +263,7 @@
                     style="?attr/textAppearanceLabelSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/peer_stat_relevance"
