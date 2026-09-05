@@ -1300,7 +1300,7 @@ class MainActivity : AppCompatActivity() {
         storagePromptShown = true
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.storage_access_title)
-            .setMessage(getString(R.string.storage_access_message, prefs.engineSavePath))
+            .setMessage(getString(R.string.storage_access_message, ServiceLocator.prefs(this).engineSavePath))
             .setPositiveButton(R.string.storage_access_grant) { _, _ ->
                 val legacy = StorageAccess.legacyRuntimePermission
                 if (legacy != null) {
