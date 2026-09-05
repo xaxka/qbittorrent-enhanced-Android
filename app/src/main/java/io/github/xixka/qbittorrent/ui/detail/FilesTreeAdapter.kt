@@ -8,6 +8,7 @@ import androidx.core.view.MarginLayoutParamsCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.color.MaterialColors
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ItemQbcFileBinding
@@ -24,12 +25,16 @@ import java.util.Locale
 class FilesTreeAdapter(
     private val selected: Set<String>,
     private val expanded: Set<String>,
+    private val onPriorityToggle: (TorrentFileNode, Int) -> Unit,
     private val onClick: (TorrentFileNode) -> Unit,
     private val onLongClick: (TorrentFileNode) -> Unit,
     private val onToggleExpand: (TorrentFileNode) -> Unit,
 ) : ListAdapter<TorrentFileNode, FilesTreeAdapter.ViewHolder>(DIFF) {
 
-    class ViewHolder(private val binding: ItemQbcFileBinding) :
+    class ViewHolder(
+        private val binding: ItemQbcFileBinding,
+        private val onPriorityToggle: (TorrentFileNode, Int) -> Unit,
+    ) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
@@ -41,6 +46,24 @@ class FilesTreeAdapter(
             onToggleExpand: (TorrentFileNode) -> Unit,
         ) {
             val context = binding.root.context
+
+            // Download toggle (LibreTorrent checkbox parity): checked = the
+            // file/folder downloads; a folder with mixed priorities shows
+            // the indeterminate state. Tapping sends NORMAL for checked and
+            // DO_NOT_DOWNLOAD (0) for unchecked — for folders the engine
+            // applies the priority to every descendant file.
+            binding.fileCheck.setOnCheckedChangeListener(null)
+            binding.fileCheck.checkedState = when (node.priority) {
+                null -> MaterialCheckBox.STATE_INDETERMINATE
+                0 -> MaterialCheckBox.STATE_UNCHECKED
+                else -> MaterialCheckBox.STATE_CHECKED
+            }
+            binding.fileCheck.setOnCheckedChangeListener { _, _ ->
+                val target = if (
+                    binding.fileCheck.checkedState == MaterialCheckBox.STATE_CHECKED
+                ) 1 else 0
+                onPriorityToggle(node, target)
+            }
 
             // folder-depth indentation (qBC: (level - 1) * 12dp)
             val density = context.resources.displayMetrics.density
@@ -119,7 +142,10 @@ class FilesTreeAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(ItemQbcFileBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        ViewHolder(
+            ItemQbcFileBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            onPriorityToggle,
+        )
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val node = getItem(position)

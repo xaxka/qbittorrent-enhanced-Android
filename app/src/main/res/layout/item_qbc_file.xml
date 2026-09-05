@@ -21,6 +21,16 @@
         android:paddingTop="4dp"
         android:paddingBottom="4dp">
 
+        <!-- Download toggle: checked = downloads, unchecked = skipped
+             (priority 0), indeterminate = folder with mixed priorities. -->
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/file_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:minWidth="0dp"
+            android:contentDescription="@null" />
+
         <ImageButton
             android:id="@+id/expand_button"
             android:layout_width="48dp"

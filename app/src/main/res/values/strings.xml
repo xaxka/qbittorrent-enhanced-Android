@@ -270,6 +270,11 @@ LAN devices open it without a login LAN devices open it without a login (tap to 
     <string name="queue_bottom">Bottom priority</string>
     <string name="set_location">Set location</string>
     <string name="action_select_inverse">Select inverse</string>
+    <string name="files_sort">Sort</string>
+    <string name="files_sort_order">Default order</string>
+    <string name="files_sort_name">Name</string>
+    <string name="files_sort_size">Size</string>
+    <string name="files_sort_progress">Progress</string>
     <string name="stats">Stats</string>
     <string name="filters">Filters</string>
     <string name="drawer_status">Status</string>

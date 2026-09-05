@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Files tab toolbar extras: file-list sorting (single-choice). -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/sort_files_menu"
+        android:icon="@drawable/ic_sort_24px"
+        android:title="@string/files_sort"
+        app:showAsAction="ifRoom">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/sort_files_order"
+                    android:checked="true"
+                    android:title="@string/files_sort_order" />
+                <item
+                    android:id="@+id/sort_files_name"
+                    android:title="@string/files_sort_name" />
+                <item
+                    android:id="@+id/sort_files_size"
+                    android:title="@string/files_sort_size" />
+                <item
+                    android:id="@+id/sort_files_progress"
+                    android:title="@string/files_sort_progress" />
+            </group>
+        </menu>
+    </item>
+</menu>

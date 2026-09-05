@@ -18,6 +18,7 @@ import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.FragmentFilesBinding
 import io.github.xixka.qbittorrent.model.TorrentFileNode
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * Files tab, qBC TorrentFilesTab parity: the content as an expandable
@@ -61,6 +62,9 @@ class FilesFragment : Fragment() {
             onClick = ::onNodeClick,
             onLongClick = ::onNodeLongClick,
             onToggleExpand = ::toggleExpand,
+            onPriorityToggle = { node, priority ->
+                viewModel.setPriority(listOf(node.path), priority)
+            },
         )
         binding.fileList.layoutManager = LinearLayoutManager(requireContext())
         binding.fileList.adapter = adapter
@@ -104,6 +108,10 @@ class FilesFragment : Fragment() {
                 }
                 launch {
                     viewModel.isRefreshing.collect { binding.filesRefresh.isRefreshing = it }
+                }
+                // Toolbar sort menu (DetailActivity): re-flatten on change
+                launch {
+                    viewModel.sortMode.collect { submitNodes() }
                 }
             }
         }
@@ -153,11 +161,27 @@ class FilesFragment : Fragment() {
             val node = stack.removeLast()
             if (node !== root) result.add(node)
             if (node is TorrentFileNode.Folder && (node.level == 0 || node.path in expandedPaths)) {
-                node.children.asReversed().forEach(stack::add)
+                sortedChildren(node).asReversed().forEach(stack::add)
             }
         }
         return result
     }
+
+    /** Toolbar sort applied within every folder: folders always group
+     *  first, then files by the chosen key (ORDER = engine file order). */
+    private fun sortedChildren(folder: TorrentFileNode.Folder): List<TorrentFileNode> =
+        when (viewModel.sortMode.value) {
+            FilesSortMode.ORDER -> folder.children
+            FilesSortMode.NAME -> folder.children.sortedWith(
+                compareBy({ it !is TorrentFileNode.Folder }, { it.name.lowercase(Locale.ROOT) })
+            )
+            FilesSortMode.SIZE -> folder.children.sortedWith(
+                compareBy({ it !is TorrentFileNode.Folder }, { -it.size })
+            )
+            FilesSortMode.PROGRESS -> folder.children.sortedWith(
+                compareBy({ it !is TorrentFileNode.Folder }, { it.progress })
+            )
+        }
 
     private fun submitNodes() {
         val root = lastRoot ?: return

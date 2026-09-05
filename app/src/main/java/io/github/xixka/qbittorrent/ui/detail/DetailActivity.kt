@@ -131,6 +131,18 @@ class DetailActivity : AppCompatActivity() {
         menu.clear()
         menuInflater.inflate(R.menu.torrent_detail, menu)
         when (currentTab) {
+            TAB_FILES -> {
+                menuInflater.inflate(R.menu.torrent_detail_files, menu)
+                // reflect the active sort mode in the single-choice submenu
+                menu.findItem(
+                    when (filesViewModel.sortMode.value) {
+                        FilesSortMode.NAME -> R.id.sort_files_name
+                        FilesSortMode.SIZE -> R.id.sort_files_size
+                        FilesSortMode.PROGRESS -> R.id.sort_files_progress
+                        else -> R.id.sort_files_order
+                    }
+                )?.isChecked = true
+            }
             TAB_TRACKERS -> menuInflater.inflate(R.menu.torrent_detail_trackers, menu)
             TAB_PEERS -> menuInflater.inflate(R.menu.torrent_detail_peers, menu)
             TAB_WEBSEEDS -> menuInflater.inflate(R.menu.torrent_detail_web_seeds, menu)
@@ -205,6 +217,19 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
+        R.id.sort_files_order -> {
+            filesViewModel.setSortMode(FilesSortMode.ORDER); true
+        }
+        R.id.sort_files_name -> {
+            filesViewModel.setSortMode(FilesSortMode.NAME); true
+        }
+        R.id.sort_files_size -> {
+            filesViewModel.setSortMode(FilesSortMode.SIZE); true
+        }
+        R.id.sort_files_progress -> {
+            filesViewModel.setSortMode(FilesSortMode.PROGRESS); true
+        }
+
         R.id.pause_resume_torrent_menu -> {
             val torrent = overviewViewModel.torrent.value
             if (torrent == null) {

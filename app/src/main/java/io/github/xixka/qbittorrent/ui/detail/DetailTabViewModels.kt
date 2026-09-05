@@ -334,6 +334,9 @@ class DetailOverviewViewModel(app: Application, hash: String) :
     }
 }
 
+/** File list sorting (files toolbar menu). ORDER = engine file order. */
+enum class FilesSortMode { ORDER, NAME, SIZE, PROGRESS }
+
 /**
  * Files tab: the torrent content as a qBC TorrentFileNode tree, with
  * priority / rename (file and folder) support.
@@ -343,6 +346,13 @@ class DetailFilesViewModel(app: Application, hash: String) :
 
     private val _root = MutableStateFlow<TorrentFileNode.Folder?>(null)
     val root: StateFlow<TorrentFileNode.Folder?> = _root.asStateFlow()
+
+    private val _sortMode = MutableStateFlow(FilesSortMode.ORDER)
+    val sortMode: StateFlow<FilesSortMode> = _sortMode.asStateFlow()
+
+    fun setSortMode(mode: FilesSortMode) {
+        _sortMode.value = mode
+    }
 
     override fun performLoad(): Job = viewModelScope.launch {
         runCatching { repository.files(hash) }

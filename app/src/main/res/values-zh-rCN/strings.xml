@@ -762,6 +762,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="torrent_action_category">设置分类</string>
     <string name="torrent_action_tags">设置标签</string>
     <string name="action_select_inverse">反选</string>
+    <string name="files_sort">排序</string>
+    <string name="files_sort_order">默认顺序</string>
+    <string name="files_sort_name">名称</string>
+    <string name="files_sort_size">大小</string>
+    <string name="files_sort_progress">进度</string>
     <string name="torrent_peers_action_add">添加用户</string>
     <string name="torrent_trackers_action_add">添加 Trackers</string>
     <string name="torrent_action_copy">复制</string>
