@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import com.google.android.material.chip.Chip
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -59,6 +60,7 @@ class AddTorrentActivity : AppCompatActivity() {
     private data class Defaults(
         val categories: List<String>,
         val categoryMeta: Map<String, QBCategory>,
+        val tags: List<String>,
         val savePath: String,
         val prefs: JsonObject?,
     )
@@ -114,7 +116,9 @@ class AddTorrentActivity : AppCompatActivity() {
         }
     }
 
-    /** Categories + defaults from the connected instance, like the WebUI. */
+    /** Categories + tags + defaults from the connected instance, like the
+     *  WebUI / qBC AddTorrent dialog: every offered option is generated
+     *  live from the Web API, nothing is hardcoded. */
     private fun loadServerDefaults() {
         lifecycleScope.launch {
             val defaults = withContext(Dispatchers.IO) {
@@ -124,11 +128,13 @@ class AddTorrentActivity : AppCompatActivity() {
                     Defaults(
                         meta.keys.filter { it.isNotBlank() }.sorted(),
                         meta,
+                        repo.tags(),
                         repo.defaultSavePath(),
                         repo.appPreferences(),
                     )
-                }.getOrNull() ?: Defaults(emptyList(), emptyMap(), "", null)
+                }.getOrNull() ?: Defaults(emptyList(), emptyMap(), emptyList(), "", null)
             }
+            renderTagChips(defaults.tags)
             if (defaults.categories.isNotEmpty()) {
                 binding.categoryInput.setAdapter(
                     ArrayAdapter(
@@ -186,6 +192,34 @@ class AddTorrentActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    /** Multi-select tag chips generated live from /torrents/tags
+     *  (qBC AddTorrent parity); the section stays hidden until the server
+     *  list arrives and is GONE again when it is empty. */
+    private fun renderTagChips(tags: List<String>) {
+        val group = binding.tagsChipGroup
+        group.removeAllViews()
+        binding.tagsSection.visibility = if (tags.isEmpty()) View.GONE else View.VISIBLE
+        tags.forEach { tag ->
+            val chip = layoutInflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            chip.text = tag
+            // Filter-style chip: stays unselected until tapped; the checked
+            // state IS the selection (read back at submit time).
+            chip.isCheckable = true
+            chip.isChecked = false
+            group.addView(chip)
+        }
+    }
+
+    /** Tags currently checked in the tag chip group (may be empty). */
+    private fun selectedTags(): List<String> {
+        val group = binding.tagsChipGroup
+        return (0 until group.childCount)
+            .mapNotNull { group.getChildAt(it) as? Chip }
+            .filter { it.isChecked }
+            .mapNotNull { it.text?.toString()?.trim() }
+            .filter { it.isNotEmpty() }
     }
 
     /** Accepts shared magnet/torrent links and .torrent files from other apps. */
@@ -261,6 +295,7 @@ class AddTorrentActivity : AppCompatActivity() {
                             ?.takeIf { it.isNotEmpty() },
                         category = binding.categoryInput.text?.toString()?.trim()
                             ?.takeIf { it.isNotEmpty() },
+                        tags = selectedTags(),
                         paused = binding.pausedSwitch.isChecked,
                         sequential = binding.sequentialSwitch.isChecked,
                         skipChecking = binding.skipCheckingSwitch.isChecked,

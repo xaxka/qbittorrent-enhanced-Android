@@ -189,6 +189,24 @@
                 android:text="@string/create_torrent_start_seeding_helper"
                 android:textColor="?android:attr/textColorSecondary" />
 
+            <!-- Category for the seeded copy: options are generated live
+                 from /api/v2/torrents/categories, exactly like the add
+                 dialog. Editable, so a brand-new category name can be typed
+                 too (the engine auto-registers it on add). -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/add_category_hint">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/categoryInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/createButton"
                 android:layout_width="match_parent"

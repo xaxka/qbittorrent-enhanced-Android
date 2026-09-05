@@ -209,7 +209,8 @@ class PeersFragment : Fragment() {
             .show()
     }
 
-    /** qBC PeerDetailsDialog parity: overview / transfer / flags / files. */
+    /** qBC PeerDetailsDialog parity: overview / transfer / flags / files,
+     *  rendered with the shared qBC-InfoRow-style aligned columns. */
     private fun showPeerDetailsDialog(peer: Peer) {
         val rowsBinding = DialogPeerDetailsBinding.inflate(layoutInflater)
         val container = rowsBinding.peerDetailsRows
@@ -254,6 +255,10 @@ class PeersFragment : Fragment() {
         }
 
         addRow(R.string.torrent_peers_details_section_files, peer.files.ifBlank { "—" })
+
+        // Shared column alignment: one common label width for the whole
+        // dialog (max label text, capped at 40%), qBC InfoRow parity.
+        DetailParamRows.alignLabels(container)
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(peer.endpoint)

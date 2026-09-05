@@ -113,6 +113,7 @@ class TorrentRepository(private val client: QBApiClient) {
         fileName: String = "torrent.torrent",
         savePath: String? = null,
         category: String? = null,
+        tags: List<String>? = null,
         paused: Boolean = false,
         sequential: Boolean = false,
         skipChecking: Boolean = false,
@@ -130,6 +131,10 @@ class TorrentRepository(private val client: QBApiClient) {
             urls?.trim()?.takeIf { it.isNotEmpty() }?.let { put("urls", it) }
             savePath?.takeIf { it.isNotBlank() }?.let { put("savepath", it.trim()) }
             category?.takeIf { it.isNotBlank() }?.let { put("category", it.trim()) }
+            // /torrents/add takes a single comma-separated tags list; the
+            // engine creates any unknown tag on the fly.
+            tags?.map { it.trim() }?.filter { it.isNotEmpty() }?.takeIf { it.isNotEmpty() }
+                ?.let { put("tags", it.joinToString(",")) }
             put("paused", paused.toString())
             put("stopped", paused.toString())
             put("sequentialDownload", sequential.toString())

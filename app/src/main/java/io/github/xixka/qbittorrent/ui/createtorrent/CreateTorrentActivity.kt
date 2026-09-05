@@ -98,7 +98,26 @@ class CreateTorrentActivity : AppCompatActivity() {
             selectedPiece = pieceValues.getOrNull(position)
         }
 
+        loadCategories()
+
         updateSeedingAvailability()
+    }
+
+    /** Category dropdown options are generated live from
+     *  /api/v2/torrents/categories (Web API v2 — nothing hardcoded); the
+     *  field stays editable so a new category name can be typed as well. */
+    private fun loadCategories() {
+        lifecycleScope.launch {
+            val categories = withContext(Dispatchers.IO) {
+                runCatching {
+                    ServiceLocator.repository(this@CreateTorrentActivity)
+                        .categories().keys.filter { it.isNotBlank() }.sorted()
+                }.getOrDefault(emptyList())
+            }
+            binding.categoryInput.setAdapter(
+                ArrayAdapter(this@CreateTorrentActivity, android.R.layout.simple_list_item_1, categories)
+            )
+        }
     }
 
     private fun onSourcePicked(uri: Uri, isTree: Boolean) {
@@ -118,6 +137,9 @@ class CreateTorrentActivity : AppCompatActivity() {
         val canSeed = uri != null && realPath != null &&
             SafPaths.engineCanRead(this, uri, sourceIsTree)
         binding.startSeedingSwitch.isEnabled = canSeed
+        // The category only labels the seeded copy — without seeding there
+        // is nothing to label, so the dropdown follows the switch.
+        binding.categoryInput.isEnabled = canSeed
     }
 
     private fun displayNameOf(uri: Uri, isTree: Boolean): String? {
@@ -204,6 +226,8 @@ class CreateTorrentActivity : AppCompatActivity() {
                                     fileBytes = made.bytes,
                                     fileName = "${made.name}.torrent",
                                     savePath = path,
+                                    category = binding.categoryInput.text?.toString()?.trim()
+                                        ?.takeIf { it.isNotEmpty() },
                                     skipChecking = true,
                                 )
                                 true

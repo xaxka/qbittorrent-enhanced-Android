@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -289,20 +288,11 @@ class InfoFragment : Fragment() {
         group.visibility = if (group.childCount == 0) View.GONE else View.VISIBLE
     }
 
-    /** Reuses row views across polls (texts updated in place). */
-    private fun renderRows(container: ViewGroup, rows: List<Pair<Int, String>>) {
-        if (container.childCount != rows.size) {
-            container.removeAllViews()
-            rows.forEach { layoutInflater.inflate(R.layout.item_detail_param, container, true) }
-        }
-        rows.forEachIndexed { index, (labelRes, value) ->
-            val row = container.getChildAt(index)
-            row.findViewById<TextView>(R.id.param_label).setText(labelRes)
-            // A blank value would render an empty-looking row; the em dash
-            // keeps the panel readable when the server sent nothing.
-            row.findViewById<TextView>(R.id.param_value).text = value.ifBlank { "—" }
-        }
-    }
+    /** Reuses row views across polls (texts updated in place), qBC InfoRow
+     *  parity: one common label-column width, single-line ellipsized labels
+     *  and left-aligned wrapping values. See [DetailParamRows]. */
+    private fun renderRows(container: ViewGroup, rows: List<Pair<Int, String>>) =
+        DetailParamRows.bind(requireContext(), container, rows)
 
     /** qBC PiecesBottomSheet parity: heatmap + legend + per-piece summary. */
     private fun showPieceMapSheet() {

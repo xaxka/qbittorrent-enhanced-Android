@@ -1,24 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One label/value parameter row of the detail overview card (LibreTorrent
-     TorrentDetailsInfoFragment parameter-row pattern, qBitController overview
-     field parity). No autoLink: Android's phone/link detectors misfire on
-     dates, hashes and port numbers (tapping a row value used to open the
-     dialer); textIsSelectable keeps copy-to-clipboard. Both columns carry
-     weights so a long value (hash, save path, comment) wraps instead of
-     crushing the label column to zero width. -->
+<!-- One label/value parameter row of the detail overview cards and the peer
+     details dialog (qBitController InfoRow parity). The qBC reference
+     measures EVERY label of a card, gives all label columns the SAME width
+     (max measured width, capped at 40% of the available width) and keeps the
+     label on ONE line (end-ellipsized) so every value column starts at the
+     same x position and every row has the same height — the previous
+     fixed-weight 0.38/0.62 split with a right-aligned value column wrapped
+     hashes, save paths and comments into ragged, right-flushed multi-line
+     blobs (the "broken layout" report).
+
+     The label width is assigned at runtime by DetailParamRows.bind(); the
+     value column fills the remaining width and is LEFT-aligned so wrapped
+     text reads top-to-bottom. No autoLink anywhere (phone/url detectors
+     misfire on dates, hashes and ports); textIsSelectable keeps
+     copy-to-clipboard. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:baselineAligned="false"
     android:orientation="horizontal"
-    android:paddingVertical="4dp">
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp">
 
     <TextView
         android:id="@+id/param_label"
         style="?attr/textAppearanceBodyMedium"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="0.38"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="?attr/colorOnSurfaceVariant" />
 
     <TextView
@@ -27,7 +37,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_weight="0.62"
-        android:gravity="end"
+        android:layout_weight="1"
         android:textIsSelectable="true" />
 </LinearLayout>
