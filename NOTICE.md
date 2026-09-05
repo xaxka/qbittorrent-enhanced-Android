@@ -12,14 +12,6 @@ This project is licensed under the GNU AGPL-3.0 (see `LICENSE`).
   adapted to the qBittorrent Web API data layer. Original copyright belongs to
   Yaroslav Pronin and LibreTorrent contributors.
 
-* **OpenListAndroid** — https://github.com/xaxka/OpenListAndroid (AGPL-3.0)
-  `.github/scripts/build-qbt-nox-bionic.sh` is derived from OpenListAndroid's
-  bionic cross-compilation pipeline for `qbittorrent-enhanced-nox`
-  (NDK r27c + Qt 6.8 static + OpenSSL 3.5 + libtorrent RC_1_2 + zlib-ng).
-  The runtime approach (packaging the engine as `libqbittorrent-nox.so` in
-  jniLibs, launching via `ProcessBuilder` with `LD_LIBRARY_PATH`) follows the
-  same project's design.
-
 * **qBittorrent Enhanced Edition** — https://github.com/c0re100/qBittorrent-Enhanced-Edition
   (GPL) and **qBittorrent** — https://github.com/qbittorrent/qBittorrent (GPL):
   the `enhanced` flavor bundles a `qbittorrent-enhanced-nox` binary built from
