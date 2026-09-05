@@ -1076,7 +1076,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">프로필 이름</string>
     <string name="server_profile_empty">서버가 없습니다. 하나 추가하세요</string>
     <string name="storage_access_title">저장소 접근 허용</string>
-    <string name="storage_access_message">다운로드는 /storage/emulated/0/Download/qbittorrent에 저장됩니다. 엔진이 쓸 수 있도록 앱에 모든 파일 접근 권한을 허용하세요.</string>
+    <string name="storage_access_message">다운로드는 %1$s에 저장됩니다. 엔진이 쓸 수 있도록 앱에 모든 파일 접근 권한을 허용하세요.</string>
     <string name="storage_access_grant">접근 허용</string>
     <string name="storage_access_granted">저장소 접근이 허용되었습니다</string>
     <string name="storage_access_denied">접근이 거부되어 다운로드가 실패합니다</string>

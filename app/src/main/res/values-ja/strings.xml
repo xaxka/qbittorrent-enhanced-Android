@@ -1075,7 +1075,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">プロファイル名</string>
     <string name="server_profile_empty">サーバー未設定。追加してください</string>
     <string name="storage_access_title">ストレージへのアクセスを許可</string>
-    <string name="storage_access_message">ダウンロードは /storage/emulated/0/Download/qbittorrent に保存されます。エンジンが書き込めるよう、すべてのファイルへのアクセスを許可してください。</string>
+    <string name="storage_access_message">ダウンロードは %1$s に保存されます。エンジンが書き込めるよう、すべてのファイルへのアクセスを許可してください。</string>
     <string name="storage_access_grant">アクセスを許可</string>
     <string name="storage_access_granted">ストレージへのアクセスを許可しました</string>
     <string name="storage_access_denied">アクセスが拒否されました。ダウンロードは失敗します</string>

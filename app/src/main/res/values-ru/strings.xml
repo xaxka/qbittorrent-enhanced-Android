@@ -1084,7 +1084,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">Название профиля</string>
     <string name="server_profile_empty">Серверы не настроены — добавьте один</string>
     <string name="storage_access_title">Разрешить доступ к хранилищу</string>
-    <string name="storage_access_message">Загрузки сохраняются в /storage/emulated/0/Download/qbittorrent. Разрешите приложению доступ ко всем файлам, чтобы движок мог туда писать.</string>
+    <string name="storage_access_message">Загрузки сохраняются в %1$s. Разрешите приложению доступ ко всем файлам, чтобы движок мог туда писать.</string>
     <string name="storage_access_grant">Разрешить доступ</string>
     <string name="storage_access_granted">Доступ к хранилищу разрешён</string>
     <string name="storage_access_denied">Доступ запрещён — загрузки не будут работать</string>

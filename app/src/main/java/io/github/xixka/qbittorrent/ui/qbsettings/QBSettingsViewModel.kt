@@ -211,8 +211,13 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
         diff.get("web_ui_password")?.takeIf { it.isJsonPrimitive }?.asString?.let {
             if (it.isNotBlank()) prefs.enginePassword = it
         }
-        diff.get("save_path")?.takeIf { it.isJsonPrimitive }?.asString?.let {
-            if (it.isNotBlank()) prefs.engineSavePath = it
+        diff.get("save_path")?.takeIf { it.isJsonPrimitive }?.asString?.let { raw ->
+            // Normalize the mirrored value to the app's canonical form (the
+            // default has no trailing slash): a WebUI-entered
+            // "/storage/…/qbittorrent/" would otherwise live on as a second
+            // spelling of the same folder.
+            val normalized = raw.trim().trimEnd('/')
+            if (normalized.isNotBlank()) prefs.engineSavePath = normalized
         }
         ServiceLocator.resetClient()
     }

@@ -1079,7 +1079,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">Nom du profil</string>
     <string name="server_profile_empty">Aucun serveur configuré — ajoutez-en un</string>
     <string name="storage_access_title">Autoriser l’accès au stockage</string>
-    <string name="storage_access_message">Les téléchargements sont enregistrés dans /storage/emulated/0/Download/qbittorrent. Autorisez l’app à accéder à tous les fichiers pour que le moteur puisse y écrire.</string>
+    <string name="storage_access_message">Les téléchargements sont enregistrés dans %1$s. Autorisez l’app à accéder à tous les fichiers pour que le moteur puisse y écrire.</string>
     <string name="storage_access_grant">Autoriser l’accès</string>
     <string name="storage_access_granted">Accès au stockage accordé</string>
     <string name="storage_access_denied">Accès refusé — les téléchargements échoueront</string>

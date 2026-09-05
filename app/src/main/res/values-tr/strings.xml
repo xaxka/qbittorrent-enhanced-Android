@@ -1076,7 +1076,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">Profil adı</string>
     <string name="server_profile_empty">Henüz sunucu yok — bir tane ekleyin</string>
     <string name="storage_access_title">Depolama erişimine izin ver</string>
-    <string name="storage_access_message">İndirmeler /storage/emulated/0/Download/qbittorrent klasörüne kaydedilir. Motorun oraya yazabilmesi için uygulamaya tüm dosyalara erişim izni verin.</string>
+    <string name="storage_access_message">İndirmeler %1$s klasörüne kaydedilir. Motorun oraya yazabilmesi için uygulamaya tüm dosyalara erişim izni verin.</string>
     <string name="storage_access_grant">Erişim ver</string>
     <string name="storage_access_granted">Depolama erişimi verildi</string>
     <string name="storage_access_denied">Erişim reddedildi; indirmeler başarısız olacak</string>

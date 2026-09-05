@@ -1078,7 +1078,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">配置名称</string>
     <string name="server_profile_empty">尚未配置服务器——添加一个以远程连接</string>
     <string name="storage_access_title">允许存储访问</string>
-    <string name="storage_access_message">下载将保存到 /storage/emulated/0/Download/qbittorrent。请授予应用“所有文件访问”权限，以便引擎写入该目录。</string>
+    <string name="storage_access_message">下载将保存到 %1$s。请授予应用“所有文件访问”权限，以便引擎写入该目录。</string>
     <string name="storage_access_grant">授予权限</string>
     <string name="storage_access_granted">已授予存储权限</string>
     <string name="storage_access_denied">存储权限被拒绝，下载将失败</string>

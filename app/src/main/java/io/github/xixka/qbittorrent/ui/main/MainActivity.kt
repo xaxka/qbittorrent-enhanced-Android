@@ -1285,10 +1285,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * One prompt per process: the bundled engine downloads into the PUBLIC
-     * /storage/emulated/0/Download/qbittorrent folder, and raw-path writes
-     * there need "All files access" (Android 11+) / the classic WRITE grant
-     * (Android 9-10). Without it every download fails with a write error.
+     * One prompt per process: the bundled engine downloads into the
+     * configured engine save path (the PUBLIC Download/qbittorrent folder by
+     * default), and raw-path writes there need "All files access"
+     * (Android 11+) / the classic WRITE grant (Android 9-10). Without it
+     * every download fails with a write error.
      */
     private fun maybePromptForStorageAccess(localEngine: Boolean) {
         if (!localEngine || storagePromptShown) return
@@ -1299,7 +1300,7 @@ class MainActivity : AppCompatActivity() {
         storagePromptShown = true
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.storage_access_title)
-            .setMessage(getString(R.string.storage_access_message))
+            .setMessage(getString(R.string.storage_access_message, prefs.engineSavePath))
             .setPositiveButton(R.string.storage_access_grant) { _, _ ->
                 val legacy = StorageAccess.legacyRuntimePermission
                 if (legacy != null) {

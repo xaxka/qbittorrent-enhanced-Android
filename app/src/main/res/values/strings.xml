@@ -1077,7 +1077,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">Profile name</string>
     <string name="server_profile_empty">No servers configured yet — add one to connect remotely</string>
     <string name="storage_access_title">Allow storage access</string>
-    <string name="storage_access_message">Downloads are saved to /storage/emulated/0/Download/qbittorrent. Grant the app access to all files so the engine can write there.</string>
+    <string name="storage_access_message">Downloads are saved to %1$s. Grant the app access to all files so the engine can write there.</string>
     <string name="storage_access_grant">Grant access</string>
     <string name="storage_access_granted">Storage access granted</string>
     <string name="storage_access_denied">Storage access denied — downloads will fail</string>

@@ -1075,7 +1075,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_profile_name">Tên cấu hình</string>
     <string name="server_profile_empty">Chưa có máy chủ — hãy thêm một máy chủ</string>
     <string name="storage_access_title">Cho phép truy cập bộ nhớ</string>
-    <string name="storage_access_message">Tải xuống được lưu vào /storage/emulated/0/Download/qbittorrent. Hãy cấp cho ứng dụng quyền truy cập tất cả tệp để engine có thể ghi vào đó.</string>
+    <string name="storage_access_message">Tải xuống được lưu vào %1$s. Hãy cấp cho ứng dụng quyền truy cập tất cả tệp để engine có thể ghi vào đó.</string>
     <string name="storage_access_grant">Cấp quyền</string>
     <string name="storage_access_granted">Đã cấp quyền truy cập bộ nhớ</string>
     <string name="storage_access_denied">Đã từ chối quyền — tải xuống sẽ thất bại</string>
