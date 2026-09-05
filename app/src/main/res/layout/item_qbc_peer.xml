@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One peer card, qBC PeerItem parity: ip:port + client header, divider,
-     three stat columns (progress / download / upload) and a flags row. -->
+     FOUR stat columns (progress / download / upload / connection) rendered
+     like the qBC StatItem composable — 20dp primary icon, medium value,
+     labelSmall muted label — and a rounded flags banner with a flag icon. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -58,17 +60,6 @@
                 tools:text="qBittorrent 5.2.0" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/peer_connection"
-            style="?attr/textAppearanceBodySmall"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:visibility="gone"
-            tools:text="Connection: µTP"
-            tools:visibility="visible" />
-
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,78 +76,174 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_peers_details_progress"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_downloading_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/peer_progress"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="63.5%" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_peers_details_progress"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_peers_details_download_speed"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_downward_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/peer_download_speed"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="1.2 MiB/s" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_peers_details_download_speed"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_peers_details_upload_speed"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_upward_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/peer_upload_speed"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="340 KiB/s" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_peers_details_upload_speed"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_speed_24px"
+                    app:tint="?attr/colorPrimary" />
+
+                <TextView
+                    android:id="@+id/peer_connection"
+                    style="?attr/textAppearanceTitleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
+                    tools:text="BT" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_peers_details_connection"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/peer_flags"
-            style="?attr/textAppearanceBodySmall"
+        <!-- qBC flags banner: rounded secondaryContainer surface with a
+             16dp flag icon leading the raw connection flags. -->
+        <LinearLayout
+            android:id="@+id/peer_flags_bubble"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:background="@drawable/bg_message_bubble"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp"
             android:visibility="gone"
-            tools:text="d u E P"
-            tools:visibility="visible" />
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_flag_24px"
+                app:tint="?attr/colorOnSecondaryContainer" />
+
+            <TextView
+                android:id="@+id/peer_flags"
+                style="?attr/textAppearanceBodySmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                tools:text="d u E P" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -4,12 +4,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
+import com.google.android.material.color.MaterialColors
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.FragmentTorrentInfoBinding
 import io.github.xixka.qbittorrent.databinding.SheetPieceMapBinding
@@ -152,25 +156,31 @@ class InfoFragment : Fragment() {
         }
 
         binding.stateText.setText(TorrentStates.labelRes(torrent.state))
-        // qBC: the two speed chips are joined by a single space
-        binding.speedText.text = buildString {
-            if (torrent.dlSpeed > 0) append("↓ ").append(Format.speed(torrent.dlSpeed))
-            if (torrent.dlSpeed > 0 && torrent.upSpeed > 0) append(" ")
-            if (torrent.upSpeed > 0) append("↑ ").append(Format.speed(torrent.upSpeed))
-        }
-
-        // ---- pieces card header (qBC TorrentPiecesHeaderAdapter parity) ----
-        binding.piecesSummary.text =
-            if (props.piecesNum > 0) {
-                context.getString(
-                    R.string.pieces_summary,
-                    props.piecesHave.toInt(),
-                    props.piecesNum.toInt(),
-                    Format.size(props.pieceSize),
+        // qBC: "↓ speed" is drawn in colorPrimary and "↑ speed" in
+        // colorTertiary, joined by a single space (buildAnnotatedString)
+        binding.speedText.text = SpannableStringBuilder().apply {
+            if (torrent.dlSpeed > 0) {
+                val start = length
+                append("↓ ").append(Format.speed(torrent.dlSpeed))
+                setSpan(
+                    ForegroundColorSpan(
+                        MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorPrimary)
+                    ),
+                    start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
-            } else {
-                getString(R.string.pieces_unavailable)
             }
+            if (torrent.dlSpeed > 0 && torrent.upSpeed > 0) append(" ")
+            if (torrent.upSpeed > 0) {
+                val start = length
+                append("↑ ").append(Format.speed(torrent.upSpeed))
+                setSpan(
+                    ForegroundColorSpan(
+                        MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorTertiary)
+                    ),
+                    start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+            }
+        }
 
         // ---- Information card (qBC field order; rows hidden when the
         // engine has no answer yet, qBC null-handling parity) ----
@@ -266,23 +276,25 @@ class InfoFragment : Fragment() {
         renderRows(binding.transferRows, transferRows)
     }
 
-    /** Display-only category + tags chips (qBC Progress card). */
+    /** Display-only category + tags chips (qBC Progress card): the category
+     *  renders as a primaryContainer block and each tag as a
+     *  tertiaryContainer block, like qBC's CategoryChip / TagChip. */
     private fun renderChips(torrent: TorrentInfo) {
         val group = binding.tagsChipGroup
         group.removeAllViews()
         val inflater = layoutInflater
         if (torrent.category.isNotBlank()) {
-            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            val chip = inflater.inflate(
+                R.layout.item_overview_category_chip, group, false,
+            ) as TextView
             chip.text = torrent.category
-            chip.isClickable = false
-            chip.isCheckable = false
             group.addView(chip)
         }
         torrent.tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }.forEach { tag ->
-            val chip = inflater.inflate(R.layout.item_tag_chip, group, false) as Chip
+            val chip = inflater.inflate(
+                R.layout.item_overview_tag_chip, group, false,
+            ) as TextView
             chip.text = tag
-            chip.isClickable = false
-            chip.isCheckable = false
             group.addView(chip)
         }
         group.visibility = if (group.childCount == 0) View.GONE else View.VISIBLE
@@ -294,31 +306,13 @@ class InfoFragment : Fragment() {
     private fun renderRows(container: ViewGroup, rows: List<Pair<Int, String>>) =
         DetailParamRows.bind(requireContext(), container, rows)
 
-    /** qBC PiecesBottomSheet parity: heatmap + legend + per-piece summary. */
+    /** qBC PiecesBottomSheet parity: piece grid + primary-alpha legend. */
     private fun showPieceMapSheet() {
         val sheetBinding = SheetPieceMapBinding.inflate(layoutInflater)
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(sheetBinding.root)
 
-        val pieces = viewModel.pieces.value
-        val props = viewModel.properties.value
-        val have = pieces.count { it == 2 }
-        sheetBinding.piecesSummary.text = when {
-            pieces.isEmpty() && props != null && props.piecesNum > 0 -> getString(
-                R.string.pieces_summary,
-                props.piecesHave.toInt(),
-                props.piecesNum.toInt(),
-                Format.size(props.pieceSize),
-            )
-            pieces.isEmpty() -> getString(R.string.pieces_unavailable)
-            else -> getString(
-                R.string.pieces_summary,
-                have,
-                pieces.size,
-                if (props != null && props.pieceSize > 0) Format.size(props.pieceSize) else "—",
-            )
-        }
-        sheetBinding.pieceHeatmap.submit(pieces)
+        sheetBinding.pieceHeatmap.submit(viewModel.pieces.value)
         dialog.show()
     }
 

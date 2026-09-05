@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Overview tab, qBitController TorrentOverviewTab parity: torrent name,
      progress card (chips / progress line / state bar / speeds), clickable
-     pieces bar card, Information card and Transfer card, pull-to-refresh. -->
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     pieces bar card, Information card and Transfer card, pull-to-refresh. --><androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/overview_refresh"
@@ -72,7 +71,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingBottom="4dp"
-                        app:chipSpacingVertical="4dp" />
+                        app:chipSpacingHorizontal="8dp"
+                        app:chipSpacingVertical="8dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -150,25 +150,14 @@
                     android:paddingBottom="12dp">
 
                     <TextView
-                        style="?attr/textAppearanceBodyMedium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:gravity="center"
-                        android:text="@string/tab_pieces"
-                        android:textColor="?attr/colorPrimary"
-                        tools:text="Pieces" />
-
-                    <!-- qBC pieces header: live count + piece size above the bar -->
-                    <TextView
-                        android:id="@+id/pieces_summary"
-                        style="?attr/textAppearanceBodySmall"
+                        style="?attr/textAppearanceBodyLarge"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:gravity="center"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        tools:text="123 / 456 · 4 MiB" />
+                        android:text="@string/tab_pieces"
+                        android:textColor="?attr/colorPrimary"
+                        tools:text="Pieces" />
 
                     <io.github.xixka.qbittorrent.ui.detail.PieceBarView
                         android:id="@+id/piece_bar"
@@ -195,7 +184,7 @@
                     android:paddingBottom="8dp">
 
                     <TextView
-                        style="?attr/textAppearanceBodyMedium"
+                        style="?attr/textAppearanceBodyLarge"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
@@ -228,7 +217,7 @@
                     android:paddingBottom="8dp">
 
                     <TextView
-                        style="?attr/textAppearanceBodyMedium"
+                        style="?attr/textAppearanceBodyLarge"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"

@@ -43,11 +43,12 @@ class TrackersAdapter(
             binding.statDownloaded.text =
                 tracker.numDownloaded.takeIf { it >= 0 }?.toString() ?: "—"
 
+            // qBC message banner: the RAW tracker message inside a rounded
+            // secondaryContainer surface with an info icon (no prefix).
             val msg = tracker.msg
-            binding.message.visibility =
+            binding.messageBubble.visibility =
                 if (msg.isNullOrBlank()) android.view.View.GONE else android.view.View.VISIBLE
-            binding.message.text =
-                binding.root.context.getString(R.string.torrent_trackers_message, msg)
+            binding.message.text = msg.orEmpty()
 
             if (isSelectable) {
                 binding.card.setOnClickListener { onClick(tracker) }

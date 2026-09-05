@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One tracker card, qBC TrackerItem parity: url header, divider, four
-     stat columns (peers / seeds / leeches / downloaded) and a message
-     banner when the tracker reports one. -->
+     stat columns rendered exactly like the qBC StatItem composable —
+     20dp primary-tinted icon on top, medium-weight value under it,
+     labelSmall muted label at the bottom — and a rounded message banner
+     with an info icon when the tracker reports one. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -46,102 +48,172 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_trackers_peers"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_people_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/stat_peers"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="12" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_trackers_peers"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_trackers_seeds"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_upward_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/stat_seeds"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="87" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_trackers_seeds"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_trackers_leeches"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_downward_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/stat_leeches"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="34" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_trackers_leeches"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <TextView
-                    style="?attr/textAppearanceBodySmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/torrent_trackers_downloaded"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_download_24px"
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:id="@+id/stat_downloaded"
-                    style="?attr/textAppearanceBodyMedium"
+                    style="?attr/textAppearanceTitleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
                     tools:text="105" />
+
+                <TextView
+                    style="?attr/textAppearanceLabelSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="@string/torrent_trackers_downloaded"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/message"
-            style="?attr/textAppearanceBodySmall"
+        <!-- qBC message banner: rounded secondaryContainer surface with a
+             16dp info icon leading the raw tracker message. -->
+        <LinearLayout
+            android:id="@+id/message_bubble"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="?attr/colorSecondaryContainer"
+            android:background="@drawable/bg_message_bubble"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:padding="8dp"
-            android:textColor="?attr/colorOnSecondaryContainer"
             android:visibility="gone"
-            tools:text="Tracker message"
-            tools:visibility="visible" />
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_info_24px"
+                app:tint="?attr/colorOnSecondaryContainer" />
+
+            <TextView
+                android:id="@+id/message"
+                style="?attr/textAppearanceBodySmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                tools:text="Tracker message" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

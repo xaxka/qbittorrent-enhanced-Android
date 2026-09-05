@@ -33,22 +33,18 @@ class PeersAdapter(
         ) {
             binding.peerEndpoint.text = peer.endpoint
             binding.peerClient.text = peer.client
-            // qBC: localized country NAME when the engine reports the code
+            // qBC shows a country flag image; the Android-View port renders
+            // the localized country NAME instead (no SVG flag pipeline).
             if (peer.countryCode.isNotBlank()) {
                 binding.peerCountryCode.visibility = android.view.View.VISIBLE
                 binding.peerCountryCode.text = countryName(peer.countryCode)
             } else {
                 binding.peerCountryCode.visibility = android.view.View.GONE
             }
-            // qBC card row: "Connection: BT/µTP/Web" under the header
-            if (peer.connectionStatus.isNotBlank()) {
-                binding.peerConnection.visibility = android.view.View.VISIBLE
-                binding.peerConnection.text = binding.root.context.getString(
-                    R.string.peer_connection_fmt, peer.connectionStatus,
-                )
-            } else {
-                binding.peerConnection.visibility = android.view.View.GONE
-            }
+
+            // qBC card row: four stat columns — progress, download, upload
+            // and the connection column ("BT" / "µTP" / "Web")
+            binding.peerConnection.text = peer.connectionStatus
 
             binding.peerProgress.text = String.format(
                 Locale.ROOT,
@@ -58,13 +54,13 @@ class PeersAdapter(
             binding.peerDownloadSpeed.text = Format.speed(peer.downSpeed)
             binding.peerUploadSpeed.text = Format.speed(peer.upSpeed)
 
+            // qBC flags banner: raw flags joined by spaces inside a rounded
+            // secondaryContainer surface with a flag icon.
             if (peer.flags.isBlank()) {
-                binding.peerFlags.visibility = android.view.View.GONE
+                binding.peerFlagsBubble.visibility = android.view.View.GONE
             } else {
-                binding.peerFlags.visibility = android.view.View.VISIBLE
-                binding.peerFlags.text = binding.root.context.getString(
-                    R.string.torrent_peers_flags, peer.flags,
-                )
+                binding.peerFlagsBubble.visibility = android.view.View.VISIBLE
+                binding.peerFlags.text = peer.flags
             }
 
             binding.peerCard.setOnClickListener { onClick(peer) }

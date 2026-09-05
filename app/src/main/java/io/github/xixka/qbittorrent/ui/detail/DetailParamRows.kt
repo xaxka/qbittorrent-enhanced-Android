@@ -30,7 +30,7 @@ object DetailParamRows {
     private const val LABEL_WIDTH_FRACTION = 0.4f
 
     /** Fixed horizontal chrome of one row (label margin gap is part of the cap). */
-    private const val VALUE_MARGIN_DP = 12
+    private const val VALUE_MARGIN_DP = 8
 
     /**
      * Inflates/refreshes [rows] inside [container], then aligns the label

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One web seed card, qBC WebSeedItem parity: plain elevated card with the
-     URL as the title. -->
+     URL as the (wrapping) title — no click affordance in qBC. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,8 +9,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    android:clickable="true"
-    android:focusable="true"
     app:cardCornerRadius="12dp">
 
     <TextView
@@ -18,8 +16,6 @@
         style="?attr/textAppearanceTitleMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="2"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="12dp"

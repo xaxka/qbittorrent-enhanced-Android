@@ -52,8 +52,6 @@
                 style="?attr/textAppearanceBodyLarge"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="middle"
-                android:maxLines="2"
                 tools:text="ubuntu-24.04.1-desktop-amd64.iso" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator

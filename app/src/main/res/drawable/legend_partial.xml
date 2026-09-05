@@ -1,5 +1,6 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="12dp" android:height="12dp"
     android:viewportWidth="12" android:viewportHeight="12">
-    <path android:fillColor="#E8A100" android:pathData="M2,2 h8 a2,2 0 0 1 2,2 v4 a2,2 0 0 1 -2,2 h-8 a2,2 0 0 1 -2,-2 v-4 a2,2 0 0 1 2,-2 z"/>
+    <!-- qBC legend: theme primary at alpha 0.5 (downloading piece) -->
+    <path android:fillColor="?attr/colorPrimary" android:fillAlpha="0.5" android:pathData="M0,0 h12 v12 h-12 z"/>
 </vector>
