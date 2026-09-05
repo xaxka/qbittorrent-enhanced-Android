@@ -39,7 +39,7 @@ embedding); **features are modelled after
   in-app update check (manual + daily automatic)
 * **LAN WebUI**: other devices on the same network can reach the bundled engine
   from a browser
-* **13 languages**, Material You dynamic colors, immersive edge-to-edge layout,
+* **English and Chinese (Simplified/Traditional)**, Material You dynamic colors, immersive edge-to-edge layout,
   official adaptive icon
 
 ## Download
