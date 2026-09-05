@@ -538,6 +538,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="theme_light">라이트</string>
     <string name="theme_dark">다크</string>
     <string name="pref_poll_interval_sub">토렌트 목록을 %1$d초마다 업데이트</string>
+    <string name="settings_doh">DNS over HTTPS (DoH)</string>
+    <string name="settings_doh_sub">DoH로 암호화하여 DHT 부트스트랩 주소를 확인하고 DNS 오염을 우회 (내장 엔진, 엔진 재시작 후 적용)</string>
+    <string name="settings_doh_provider">DoH 서버</string>
+    <string name="doh_provider_alidns">AliDNS (dns.alidns.com)</string>
+    <string name="doh_provider_dnspod">DNSPod (doh.pub)</string>
+    <string name="doh_provider_custom">사용자 지정…</string>
+    <string name="doh_custom_hint">DoH 엔드포인트 URL (JSON API, 예: https://dns.alidns.com/resolve)</string>
+    <string name="doh_custom_invalid">URL은 DoH JSON 엔드포인트의 https 링크여야 합니다</string>
     <string name="settings_server_connection">서버 연결</string>
     <string name="settings_server_connection_engine">내장 엔진에 연결됨</string>
     <string name="settings_server_connection_not_configured">아직 구성되지 않음</string>

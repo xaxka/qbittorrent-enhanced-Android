@@ -537,6 +537,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="theme_light">Sáng</string>
     <string name="theme_dark">Tối</string>
     <string name="pref_poll_interval_sub">Cập nhật danh sách torrent mỗi %1$d giây</string>
+    <string name="settings_doh">DNS over HTTPS (DoH)</string>
+    <string name="settings_doh_sub">Giải quyết địa chỉ bootstrap DHT qua DoH mã hóa, né nhiễm DNS (động cơ tích hợp; có hiệu lực khi động cơ khởi động lại)</string>
+    <string name="settings_doh_provider">Máy chủ DoH</string>
+    <string name="doh_provider_alidns">AliDNS (dns.alidns.com)</string>
+    <string name="doh_provider_dnspod">DNSPod (doh.pub)</string>
+    <string name="doh_provider_custom">Tùy chỉnh…</string>
+    <string name="doh_custom_hint">URL điểm cuối DoH (API JSON, vd. https://dns.alidns.com/resolve)</string>
+    <string name="doh_custom_invalid">URL phải là liên kết https đến điểm cuối DoH JSON</string>
     <string name="settings_server_connection">Kết nối máy chủ</string>
     <string name="settings_server_connection_engine">Đã kết nối engine tích hợp</string>
     <string name="settings_server_connection_not_configured">Chưa cấu hình</string>

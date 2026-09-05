@@ -538,6 +538,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="theme_light">淺色</string>
     <string name="theme_dark">深色</string>
     <string name="pref_poll_interval_sub">每 %1$d 秒更新一次種子列表</string>
+    <string name="settings_doh">DNS over HTTPS (DoH)</string>
+    <string name="settings_doh_sub">透過 DoH 加密解析 DHT 引導節點位址，繞過電信業者 DNS 污染（內建引擎，重新啟動引擎後生效）</string>
+    <string name="settings_doh_provider">DoH 伺服器</string>
+    <string name="doh_provider_alidns">阿里公共 DNS（dns.alidns.com）</string>
+    <string name="doh_provider_dnspod">DNSPod 公共 DNS（doh.pub）</string>
+    <string name="doh_provider_custom">自訂…</string>
+    <string name="doh_custom_hint">DoH 端點位址（JSON API，如 https://dns.alidns.com/resolve）</string>
+    <string name="doh_custom_invalid">連結必須是 DoH JSON 端點的 https 位址</string>
     <string name="settings_server_connection">伺服器連線</string>
     <string name="settings_server_connection_engine">已連線內建引擎</string>
     <string name="settings_server_connection_not_configured">尚未設定</string>

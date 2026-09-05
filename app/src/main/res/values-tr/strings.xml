@@ -538,6 +538,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="theme_light">Açık</string>
     <string name="theme_dark">Koyu</string>
     <string name="pref_poll_interval_sub">Torrent listesini her %1$d saniyede bir güncelle</string>
+    <string name="settings_doh">DNS over HTTPS (DoH)</string>
+    <string name="settings_doh_sub">DHT önyükleme adreslerini şifreli DoH ile çözerek DNS kirlenmesini atlar (yerleşik motor; motor yeniden başlatıldığında etkili olur)</string>
+    <string name="settings_doh_provider">DoH sunucusu</string>
+    <string name="doh_provider_alidns">AliDNS (dns.alidns.com)</string>
+    <string name="doh_provider_dnspod">DNSPod (doh.pub)</string>
+    <string name="doh_provider_custom">Özel…</string>
+    <string name="doh_custom_hint">DoH uç noktası URL\'si (JSON API, örn. https://dns.alidns.com/resolve)</string>
+    <string name="doh_custom_invalid">URL, bir DoH JSON uç noktasına https bağlantısı olmalıdır</string>
     <string name="settings_server_connection">Sunucu bağlantısı</string>
     <string name="settings_server_connection_engine">Gömülü motorla bağlantılı</string>
     <string name="settings_server_connection_not_configured">Henüz yapılandırılmadı</string>

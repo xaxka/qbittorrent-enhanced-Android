@@ -144,6 +144,24 @@ class SettingsFragment : Fragment() {
         // engine and remote servers belongs INSIDE the server-connection
         // screen (its top switch) — a single canonical entry.
 
+        // DoH (bundled engine): resolves the DHT bootstrap routers through
+        // an encrypted DNS channel so poisoned carrier resolvers cannot
+        // leave "DHT nodes: 0"; the provider is configurable.
+        rows += Item(
+            id = ID_DOH,
+            icon = R.drawable.ic_dns_24px,
+            title = getString(R.string.settings_doh),
+            summary = getString(R.string.settings_doh_sub),
+            switch = true,
+            checked = prefs.dohEnabled,
+        )
+        rows += Item(
+            id = ID_DOH_PROVIDER,
+            icon = R.drawable.ic_dns_24px,
+            title = getString(R.string.settings_doh_provider),
+            summary = dohProviderSummary(),
+        )
+
         rows += Header(R.string.settings_about)
         rows += Item(
             id = ID_VERSION,
@@ -190,6 +208,14 @@ class SettingsFragment : Fragment() {
         else -> getString(R.string.theme_system)
     }
 
+    private fun dohProviderSummary(): String = when (prefs.dohUrl) {
+        io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL ->
+            getString(R.string.doh_provider_alidns)
+        io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL ->
+            getString(R.string.doh_provider_dnspod)
+        else -> prefs.dohUrl
+    }
+
     // ---------------- interactions ----------------
 
     private fun onRowClick(item: Item, checked: Boolean) {
@@ -209,6 +235,13 @@ class SettingsFragment : Fragment() {
             ID_POLL_INTERVAL -> showPollIntervalDialog()
 
             ID_SERVER -> push(ServerSettingsFragment())
+
+            ID_DOH -> {
+                prefs.dohEnabled = checked
+                rebuildRows()
+            }
+
+            ID_DOH_PROVIDER -> showDohProviderDialog()
 
             ID_CHECK_UPDATE -> checkUpdate()
 
@@ -252,6 +285,65 @@ class SettingsFragment : Fragment() {
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 input?.text?.toString()?.trim()?.toIntOrNull()?.let {
                     prefs.pollIntervalSec = it.coerceIn(1, 60)
+                }
+                rebuildRows()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** DoH provider picker: two presets plus a custom endpoint editor. */
+    private fun showDohProviderDialog() {
+        val presets = listOf(
+            io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL to getString(R.string.doh_provider_alidns),
+            io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL to getString(R.string.doh_provider_dnspod),
+        )
+        val labels = (presets.map { it.second } + getString(R.string.doh_provider_custom)).toTypedArray()
+        val current = when (prefs.dohUrl) {
+            io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL -> 0
+            io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL -> 1
+            else -> 2
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.settings_doh_provider)
+            .setSingleChoiceItems(labels, current) { dialog, which ->
+                when (which) {
+                    0 -> prefs.dohUrl = io.github.xixka.qbittorrent.data.Prefs.DOH_ALIDNS_URL
+                    1 -> prefs.dohUrl = io.github.xixka.qbittorrent.data.Prefs.DOH_DNSPOD_URL
+                    else -> {
+                        dialog.dismiss()
+                        showDohCustomUrlDialog()
+                        return@setSingleChoiceItems
+                    }
+                }
+                dialog.dismiss()
+                rebuildRows()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** Custom DoH endpoint editor (JSON API style, https://…). */
+    private fun showDohCustomUrlDialog() {
+        val layout = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_input, null)
+        layout.findViewById<TextInputLayout>(R.id.inputLayout)?.hint =
+            getString(R.string.doh_custom_hint)
+        val input = layout.findViewById<TextInputEditText>(R.id.input)
+        input?.setText(prefs.dohUrl)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.settings_doh_provider)
+            .setView(layout)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = input?.text?.toString()?.trim().orEmpty()
+                if (url.startsWith("https://") && url.substringAfter("https://").contains('/')) {
+                    prefs.dohUrl = url
+                } else {
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        R.string.doh_custom_invalid,
+                        android.widget.Toast.LENGTH_SHORT,
+                    ).show()
                 }
                 rebuildRows()
             }
@@ -414,5 +506,7 @@ class SettingsFragment : Fragment() {
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10
         private const val ID_LOG = 12
+        private const val ID_DOH = 13
+        private const val ID_DOH_PROVIDER = 14
     }
 }

@@ -537,6 +537,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="pref_poll_interval_sub">Actualiser la liste des torrents toutes les %1$d secondes</string>
+    <string name="settings_doh">DNS over HTTPS (DoH)</string>
+    <string name="settings_doh_sub">Résout les adresses d\'amorçage DHT via DoH chiffré, contournant la pollution DNS (moteur intégré ; prend effet au prochain démarrage)</string>
+    <string name="settings_doh_provider">Serveur DoH</string>
+    <string name="doh_provider_alidns">AliDNS (dns.alidns.com)</string>
+    <string name="doh_provider_dnspod">DNSPod (doh.pub)</string>
+    <string name="doh_provider_custom">Personnalisé…</string>
+    <string name="doh_custom_hint">URL du point de terminaison DoH (API JSON, ex. https://dns.alidns.com/resolve)</string>
+    <string name="doh_custom_invalid">L\'URL doit être un lien https vers un point de terminaison DoH JSON</string>
     <string name="settings_server_connection">Connexion au serveur</string>
     <string name="settings_server_connection_engine">Connecté au moteur intégré</string>
     <string name="settings_server_connection_not_configured">Pas encore configuré</string>

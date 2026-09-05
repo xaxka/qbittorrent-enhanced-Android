@@ -53,32 +53,46 @@ object NoxConfig {
     private const val KEY_SAVE_PATH = "Session\\DefaultSavePath"
 
     /*
-     * DHT bootstrap assist for networks with polluted DNS (documented in the
-     * README section "中国移动等网络 DHT 节点为 0 的原因与修复"):
+     * DHT bootstrap assist for networks with polluted DNS (China Mobile and
+     * friends):
      *
      * qBittorrent-Enhanced (unlike upstream qBittorrent) exposes the libtorrent
      * `dht_bootstrap_nodes` setting through the config key
      * `BitTorrent\Session\DHTBootstrapNodes`. Its built-in default is
      * "dht.libtorrent.org:25401, dht.transmissionbt.com:6881,
-     * router.bittorrent.com:6881" — and on Chinese carrier networks (China
-     * Mobile in particular) the GFW poisons the plaintext DNS answers for
-     * dht.libtorrent.org and router.bittorrent.com (they resolve to
-     * facebook/twitter/ntt addresses), so 2 of the 3 default bootstrap
-     * contacts are dead and DHT never bootstraps -> "DHT nodes: 0".
+     * router.bittorrent.com:6881" — and on Chinese carrier networks the GFW
+     * poisons the plaintext DNS answers for dht.libtorrent.org and
+     * router.bittorrent.com (they resolve to facebook/twitter/ntt addresses),
+     * so 2 of the 3 default bootstrap contacts are dead and DHT never
+     * bootstraps -> "DHT nodes: 0".
      *
-     * The fix below seeds a bootstrap list that mixes the one hostname that
-     * still resolves correctly in-country (dht.transmissionbt.com) with IP
-     * literals for all reference routers — literals bypass DNS entirely, so
-     * poisoned resolvers cannot break first contact. Once ANY contact
-     * answers, libtorrent learns real nodes from the swarm, persists them in
-     * its session state, and the bootstrap list stops mattering.
+     * Two complementary fixes live in this file's call chain:
      *
-     * The key is written as "append-if-absent": a value the user saved through
-     * the in-app qB settings editor (dht_bootstrap_nodes) or the WebUI is
-     * never overwritten, so power users keep full control.
+     *  1. DNS over HTTPS (see util/DohResolver.kt): LocalEngineManager asks a
+     *     DoH server (AliDNS/DNSPod/custom, configurable in Settings) for the
+     *     CURRENT addresses of the three bootstrap routers and hands the
+     *     resolved list to [seed] as `bootstrapNodes` — encrypted answers
+     *     cannot be poisoned, and the IPs stay fresh instead of rotting.
+     *  2. The STATIC list below (this constant): hostname + IP literals that
+     *     bypass DNS entirely. It is the seed default, the fallback when DoH
+     *     is disabled/unreachable, and the safety net that guarantees first
+     *     contact even with zero working resolution.
+     *
+     * Once ANY contact answers, libtorrent learns real nodes from the swarm,
+     * persists them in its session state, and the bootstrap list stops
+     * mattering.
+     *
+     * A list the user saved through the in-app qB settings editor
+     * (dht_bootstrap_nodes) or the WebUI is never overwritten: the DoH path
+     * only refreshes values the app itself wrote last (or the static default
+     * / a missing key), tracked via Prefs.dohLastBootstrap + entry-set
+     * comparison (see [sameBootstrapValue]).
      */
     private const val KEY_DHT_BOOTSTRAP = "Session\\DHTBootstrapNodes"
-    private const val DHT_BOOTSTRAP_CN_FRIENDLY =
+
+    /** Static CN-friendly bootstrap list (public: reference for the DoH
+     *  refresh logic that decides whether the current value is app-managed). */
+    const val DHT_BOOTSTRAP_CN_FRIENDLY =
         "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
             "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
 
@@ -114,6 +128,7 @@ object NoxConfig {
         savePath: String,
         username: String = WEBUI_USERNAME,
         password: String = WEBUI_DEFAULT_PASSWORD,
+        bootstrapNodes: String? = null,
     ): Int {
         val conf = configFile(context)
         // remove upgrade residue from a previously interrupted start
@@ -122,9 +137,9 @@ object NoxConfig {
         File(profileDir(context), "qBittorrent/qBittorrent.conf").delete()
 
         if (!conf.isFile) {
-            writeDefaultConfig(conf, webUiPort, lanAccess, savePath, username, password)
+            writeDefaultConfig(conf, webUiPort, lanAccess, savePath, username, password, bootstrapNodes)
         } else {
-            patchConfig(conf, webUiPort, lanAccess, savePath, username, password)
+            patchConfig(conf, webUiPort, lanAccess, savePath, username, password, bootstrapNodes)
         }
         return webUiPort
     }
@@ -136,6 +151,7 @@ object NoxConfig {
         savePath: String,
         username: String,
         password: String,
+        bootstrapNodes: String? = null,
     ) {
         val address = if (lanAccess) "*" else "127.0.0.1"
         conf.writeText(
@@ -150,10 +166,11 @@ object NoxConfig {
                 append("Session\\LSDEnabled=true\n")
                 append("Session\\PeXEnabled=true\n")
                 append("Session\\Port=6881\n")
-                // China-carrier-friendly DHT bootstrap contacts (see the
-                // KEY_DHT_BOOTSTRAP comment above for the full rationale).
+                // DHT bootstrap contacts: the DoH-resolved list when the
+                // caller has one, otherwise the static CN-friendly set (see
+                // the KEY_DHT_BOOTSTRAP comment above).
                 append("Session\\DHTBootstrapNodes=")
-                append(DHT_BOOTSTRAP_CN_FRIENDLY).append('\n')
+                append(bootstrapNodes ?: DHT_BOOTSTRAP_CN_FRIENDLY).append('\n')
                 append("\n[Core]\nAutoExitEnabled=false\n\n")
                 append("[LegalNotice]\nAccepted=true\n\n")
                 append("[Meta]\nMigrationVersion=8\n\n")
@@ -206,9 +223,10 @@ object NoxConfig {
         savePath: String,
         username: String,
         password: String,
+        bootstrapNodes: String? = null,
     ) {
         val address = if (lanAccess) "*" else "127.0.0.1"
-        val desired = mapOf(
+        val desired = mutableMapOf(
             KEY_WEBUI_ADDRESS to address,
             KEY_WEBUI_PORT to webUiPort.toString(),
             KEY_WEBUI_USERNAME to username,
@@ -226,6 +244,12 @@ object NoxConfig {
             KEY_WEBUI_PASSWORD to "\"@ByteArray(" + pbkdf2String(password) + ")\"",
             KEY_SAVE_PATH to escapePath(savePath),
         )
+        // App-managed DoH bootstrap refresh: the caller has ALREADY decided
+        // (current value is absent / static / last app-written) that the key
+        // is ours to update — a plain managed replace, NOT append-if-absent.
+        if (bootstrapNodes != null) {
+            desired[KEY_DHT_BOOTSTRAP] = bootstrapNodes
+        }
         val remaining = desired.toMutableMap()
         val lines = conf.readLines().map { line ->
             var result = line
@@ -243,7 +267,11 @@ object NoxConfig {
         // its own (fresh installs upgrading from an older app). A key the
         // user set through the WebUI / in-app settings editor survives
         // untouched, so app-managed replacement never fights user intent.
-        val ifAbsent = mapOf(KEY_DHT_BOOTSTRAP to DHT_BOOTSTRAP_CN_FRIENDLY)
+        val ifAbsent = if (bootstrapNodes == null) {
+            mapOf(KEY_DHT_BOOTSTRAP to DHT_BOOTSTRAP_CN_FRIENDLY)
+        } else {
+            emptyMap()
+        }
         for ((key, value) in ifAbsent) {
             val present = lines.any { it == "$key=" || it.startsWith("$key=") }
             if (!present) remaining[key] = value
@@ -266,6 +294,35 @@ object NoxConfig {
     }
 
     private fun sectionOf(key: String): String = key.substringBefore('\\')
+
+    /** Current `Session\DHTBootstrapNodes` value, or null when unset. */
+    fun readBootstrapValue(context: android.content.Context): String? {
+        val conf = configFile(context)
+        if (!conf.isFile) return null
+        conf.readLines().forEach { line ->
+            if (line.startsWith("$KEY_DHT_BOOTSTRAP=")) {
+                return line.removePrefix("$KEY_DHT_BOOTSTRAP=").trim().ifEmpty { null }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Bootstrap-list equality that tolerates the engine's own reserialization
+     * of the INI line (comma vs comma-space, entry order, trailing blanks):
+     * two lists are the same when their entry SETS match.
+     */
+    fun sameBootstrapValue(a: String?, b: String?): Boolean {
+        if (a.isNullOrBlank() && b.isNullOrBlank()) return true
+        if (a.isNullOrBlank() || b.isNullOrBlank()) return false
+        return normalizeEntries(a) == normalizeEntries(b)
+    }
+
+    private fun normalizeEntries(value: String): Set<String> =
+        value.split(',', '\n')
+            .map { it.trim().lowercase() }
+            .filter { it.isNotEmpty() }
+            .toSet()
 
     /**
      * PBKDF2 digest in the qBittorrent WebUI wire format:

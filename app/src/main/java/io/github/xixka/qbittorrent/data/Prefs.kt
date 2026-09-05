@@ -117,6 +117,34 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_UPDATE_CHECK_LAST, 0L)
         set(value) = sp.edit().putLong(KEY_UPDATE_CHECK_LAST, value).apply()
 
+    // ---- DNS over HTTPS (local engine DHT bootstrap) ----
+
+    /**
+     * Resolve the DHT bootstrap router hostnames through DoH at every engine
+     * start. ON by default: encrypted answers cannot be poisoned on-path, so
+     * the "DHT nodes: 0" failure mode of Chinese carrier networks (China
+     * Mobile in particular) is fixed without any manual step. Users who do
+     * not want the DoH provider to see their lookups can turn it off — the
+     * static-IP bootstrap fallback keeps working either way.
+     */
+    var dohEnabled: Boolean
+        get() = sp.getBoolean(KEY_DOH_ENABLED, true)
+        set(value) = sp.edit().putBoolean(KEY_DOH_ENABLED, value).apply()
+
+    /** DoH endpoint (JSON API style, `GET <url>?name=…&type=1`). */
+    var dohUrl: String
+        get() = sp.getString(KEY_DOH_URL, DOH_DEFAULT_URL) ?: DOH_DEFAULT_URL
+        set(value) = sp.edit().putString(KEY_DOH_URL, value.trim()).apply()
+
+    /**
+     * The bootstrap list value THIS app wrote last (plain string as it went
+     * into qBittorrent.conf). Used at the next start to distinguish "app-
+     * managed list, safe to refresh" from "user-edited list, keep it".
+     */
+    var dohLastBootstrap: String
+        get() = sp.getString(KEY_DOH_LAST_BOOTSTRAP, "") ?: ""
+        set(value) = sp.edit().putString(KEY_DOH_LAST_BOOTSTRAP, value).apply()
+
     /**
      * Material You dynamic colors, ON by default on devices that support
      * them (Android 12+). Turning it off falls back to the static palette.
@@ -295,6 +323,15 @@ class Prefs(context: Context) {
         const val KEY_SERVERS_JSON = "servers_json"
         const val KEY_ACTIVE_SERVER = "active_server_id"
         const val KEY_SERVERS_MIGRATED = "servers_migrated"
+        const val KEY_DOH_ENABLED = "doh_enabled"
+        const val KEY_DOH_URL = "doh_url"
+        const val KEY_DOH_LAST_BOOTSTRAP = "doh_last_bootstrap"
+
+        /** Preset DoH providers (JSON API style). Domestic ones by default:
+         *  they are reachable and fast inside China, where the fix matters. */
+        const val DOH_ALIDNS_URL = "https://dns.alidns.com/resolve"
+        const val DOH_DNSPOD_URL = "https://doh.pub/resolve"
+        const val DOH_DEFAULT_URL = DOH_ALIDNS_URL
     }
 }
 

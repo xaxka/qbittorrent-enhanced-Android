@@ -537,6 +537,14 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
     <string name="pref_poll_interval_sub">トレントリストを%1$d秒ごとに更新</string>
+    <string name="settings_doh">DNS over HTTPS (DoH)</string>
+    <string name="settings_doh_sub">DoH で暗号化して DHT ブートストラップアドレスを解決し、DNS 汚染を回避（内蔵エンジン、エンジン再起動後に適用）</string>
+    <string name="settings_doh_provider">DoH サーバー</string>
+    <string name="doh_provider_alidns">AliDNS（dns.alidns.com）</string>
+    <string name="doh_provider_dnspod">DNSPod（doh.pub）</string>
+    <string name="doh_provider_custom">カスタム…</string>
+    <string name="doh_custom_hint">DoH エンドポイント URL（JSON API、例: https://dns.alidns.com/resolve）</string>
+    <string name="doh_custom_invalid">URL は DoH JSON エンドポイントへの https リンクである必要があります</string>
     <string name="settings_server_connection">サーバー接続</string>
     <string name="settings_server_connection_engine">内蔵エンジンに接続</string>
     <string name="settings_server_connection_not_configured">未設定</string>
