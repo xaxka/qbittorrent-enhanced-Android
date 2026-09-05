@@ -127,7 +127,7 @@ object ApkDownloader {
                 while (true) {
                     try {
                         downloadPart(url, dest, start + partDone.get(), end, partDone) { n ->
-                            done.addAndGet(n)
+                            done.addAndGet(n.toLong())
                             onProgress(Progress(done.get(), total))
                         }
                         return@async
