@@ -28,7 +28,6 @@ class FilesTreeAdapter(
     private val onPriorityToggle: (TorrentFileNode, Int) -> Unit,
     private val onClick: (TorrentFileNode) -> Unit,
     private val onLongClick: (TorrentFileNode) -> Unit,
-    private val onToggleExpand: (TorrentFileNode) -> Unit,
 ) : ListAdapter<TorrentFileNode, FilesTreeAdapter.ViewHolder>(DIFF) {
 
     class ViewHolder(
@@ -40,10 +39,8 @@ class FilesTreeAdapter(
         fun bind(
             node: TorrentFileNode,
             isSelected: Boolean,
-            isExpanded: Boolean,
             onClick: (TorrentFileNode) -> Unit,
             onLongClick: (TorrentFileNode) -> Unit,
-            onToggleExpand: (TorrentFileNode) -> Unit,
         ) {
             val context = binding.root.context
 
@@ -78,16 +75,9 @@ class FilesTreeAdapter(
             binding.fileName.text = node.name
 
             if (node is TorrentFileNode.Folder) {
-                binding.expandButton.visibility = View.VISIBLE
-                binding.expandButton.rotation = if (isExpanded) 0f else -90f
-                binding.expandButton.setOnClickListener { onToggleExpand(node) }
                 binding.typeIcon.setImageResource(R.drawable.ic_folder_24px)
             } else {
-                // GONE, not INVISIBLE: the card offset already encodes the
-                // tree depth — an empty 48dp spacer inside every file card
-                // reads as a second, spurious level of indentation.
-                binding.expandButton.visibility = View.GONE
-                binding.typeIcon.setImageResource(R.drawable.ic_file_24px)
+                binding.typeIcon.setImageResource(iconFor(node.name))
             }
 
             // priority-colored progress bar (qBC filePriority colors),
@@ -154,11 +144,33 @@ class FilesTreeAdapter(
         holder.bind(
             node = node,
             isSelected = node.path in selected,
-            isExpanded = node.path in expanded,
             onClick = onClick,
             onLongClick = onLongClick,
-            onToggleExpand = onToggleExpand,
         )
+    }
+
+    /** Format-based row icon, LibreTorrent FileTypeUtils parity: video,
+     *  audio, image, archive, document and subtitle extensions get their
+     *  own glyph; everything else falls back to the plain file icon. */
+    private fun iconFor(name: String): Int {
+        val ext = name.substringAfterLast('.', "").lowercase(Locale.ROOT)
+        return when (ext) {
+            "3gp", "avi", "divx", "flv", "m4v", "mkv", "mov", "mp4", "mpeg",
+            "mpg", "ogm", "ogv", "rm", "rmvb", "vob", "webm", "wmv", "yuv",
+            "ts", "m2ts" -> R.drawable.ic_movie_24px
+            "aac", "ac3", "aiff", "flac", "m4a", "m4b", "m4p", "mid", "mp1",
+            "mp2", "mp3", "mpc", "ogg", "opus", "ra", "ram", "wav", "wma" ->
+                R.drawable.ic_music_note_24px
+            "bmp", "gif", "ico", "jpeg", "jpg", "png", "psd", "raw", "svg",
+            "tif", "tiff", "webp", "heic" -> R.drawable.ic_image_24px
+            "7z", "bz2", "cab", "gz", "iso", "rar", "tar", "xz", "zip",
+            "zst" -> R.drawable.ic_archive_24px
+            "csv", "doc", "docx", "htm", "html", "md", "nfo", "odp", "ods",
+            "odt", "pdf", "ppt", "pptx", "rtf", "txt", "xls", "xlsx" ->
+                R.drawable.ic_description_24px
+            "ass", "idx", "srt", "ssa", "sub", "vtt" -> R.drawable.ic_subtitles_24px
+            else -> R.drawable.ic_file_24px
+        }
     }
 
     companion object {

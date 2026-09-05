@@ -61,7 +61,6 @@ class FilesFragment : Fragment() {
             expanded = expandedPaths,
             onClick = ::onNodeClick,
             onLongClick = ::onNodeLongClick,
-            onToggleExpand = ::toggleExpand,
             onPriorityToggle = { node, priority ->
                 viewModel.setPriority(listOf(node.path), priority)
             },

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One row of the torrent content tree, qBC FileItem parity: elevated card
-     indented by folder depth, expand arrow (folders) / 48dp inset (files),
-     type icon, name, priority-colored progress bar and detail line. -->
+<!-- One row of the torrent content tree: elevated card indented by folder
+     depth (hierarchy needs no arrow — tap the row to expand a folder),
+     download checkbox, format-aware type icon, name, priority-colored
+     progress bar and detail line. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
