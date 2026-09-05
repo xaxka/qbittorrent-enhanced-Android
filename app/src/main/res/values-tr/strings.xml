@@ -255,6 +255,12 @@ LAN cihazları giriş yapmadan açabilir (adresi kopyalamak için dokunun)</stri
     <string name="force_reannounce_torrent">Zorunlu duyuru</string>
     <string name="force_announce_torrent">Zorunlu duyuru</string>
     <string name="select_all">Tümünü seç</string>
+    <string name="menu_priority">Öncelik</string>
+    <string name="queue_top">En yüsek öncelik</string>
+    <string name="queue_increase">Önceliği artır</string>
+    <string name="queue_decrease">Önceliği azalt</string>
+    <string name="queue_bottom">En düşük öncelik</string>
+    <string name="set_location">Konumu ayarla</string>
     <string name="stats">İstatistikler</string>
     <string name="filters">Filtreler</string>
     <string name="drawer_status">Durum</string>

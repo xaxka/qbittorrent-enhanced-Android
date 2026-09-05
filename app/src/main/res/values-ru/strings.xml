@@ -255,6 +255,12 @@
     <string name="force_reannounce_torrent">Принудительный анонс</string>
     <string name="force_announce_torrent">Принудительный анонс</string>
     <string name="select_all">Выбрать все</string>
+    <string name="menu_priority">Приоритет</string>
+    <string name="queue_top">Наивысший приоритет</string>
+    <string name="queue_increase">Повысить приоритет</string>
+    <string name="queue_decrease">Понизить приоритет</string>
+    <string name="queue_bottom">Наименьший приоритет</string>
+    <string name="set_location">Задать расположение</string>
     <string name="stats">Статистика</string>
     <string name="filters">Фильтры</string>
     <string name="drawer_status">Состояние</string>

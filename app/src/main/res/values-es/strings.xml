@@ -255,6 +255,12 @@ Los dispositivos de la LAN la abren sin iniciar sesión (toca para copiar la dir
     <string name="force_reannounce_torrent">Forzar anunciarse</string>
     <string name="force_announce_torrent">Forzar anunciarse</string>
     <string name="select_all">Seleccionar todo</string>
+    <string name="menu_priority">Prioridad</string>
+    <string name="queue_top">Máxima prioridad</string>
+    <string name="queue_increase">Aumentar prioridad</string>
+    <string name="queue_decrease">Reducir prioridad</string>
+    <string name="queue_bottom">Mínima prioridad</string>
+    <string name="set_location">Establecer ubicación</string>
     <string name="stats">Estadísticas</string>
     <string name="filters">Filtros</string>
     <string name="drawer_status">Estado</string>

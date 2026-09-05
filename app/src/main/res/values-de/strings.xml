@@ -255,6 +255,12 @@ LAN-Geräte öffnen sie ohne Anmeldung (zum Kopieren der Adresse tippen)</string
     <string name="force_reannounce_torrent">Erzwungene Anmeldung</string>
     <string name="force_announce_torrent">Erzwungene Anmeldung</string>
     <string name="select_all">Alle auswählen</string>
+    <string name="menu_priority">Priorität</string>
+    <string name="queue_top">Höchste Priorität</string>
+    <string name="queue_increase">Priorität erhöhen</string>
+    <string name="queue_decrease">Priorität verringern</string>
+    <string name="queue_bottom">Geringste Priorität</string>
+    <string name="set_location">Speicherort festlegen</string>
     <string name="stats">Statistiken</string>
     <string name="filters">Filter</string>
     <string name="drawer_status">Status</string>

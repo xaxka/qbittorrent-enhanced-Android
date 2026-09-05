@@ -254,6 +254,12 @@ LAN devices open it without a login LAN devices open it without a login (tap to 
     <string name="force_recheck_torrent">Force recheck</string>
     <string name="force_reannounce_torrent">Force reannounce</string>
     <string name="select_all">Select all</string>
+    <string name="menu_priority">Priority</string>
+    <string name="queue_top">Top priority</string>
+    <string name="queue_increase">Increase priority</string>
+    <string name="queue_decrease">Decrease priority</string>
+    <string name="queue_bottom">Bottom priority</string>
+    <string name="set_location">Set location</string>
     <string name="action_select_inverse">Select inverse</string>
     <string name="stats">Stats</string>
     <string name="filters">Filters</string>

@@ -254,6 +254,12 @@
     <string name="force_reannounce_torrent">Ép thông báo</string>
     <string name="force_announce_torrent">Ép thông báo</string>
     <string name="select_all">Chọn tất cả</string>
+    <string name="menu_priority">Ưu tiên</string>
+    <string name="queue_top">Ưu tiên cao nhất</string>
+    <string name="queue_increase">Tăng Ưu tiên</string>
+    <string name="queue_decrease">Giảm Ưu tiên</string>
+    <string name="queue_bottom">Ưu tiên thấp nhất</string>
+    <string name="set_location">Đặt vị trí</string>
     <string name="stats">Thống kê</string>
     <string name="filters">Bộ lọc</string>
     <string name="drawer_status">Trạng thái</string>

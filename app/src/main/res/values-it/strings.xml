@@ -254,6 +254,12 @@
     <string name="force_reannounce_torrent">Annuncio forzato</string>
     <string name="force_announce_torrent">Annuncio forzato</string>
     <string name="select_all">Seleziona tutto</string>
+    <string name="menu_priority">Priorità</string>
+    <string name="queue_top">Priorità massima</string>
+    <string name="queue_increase">Aumenta priorità</string>
+    <string name="queue_decrease">Riduci priorità</string>
+    <string name="queue_bottom">Priorità minima</string>
+    <string name="set_location">Imposta posizione</string>
     <string name="stats">Statistiche</string>
     <string name="filters">Filtri</string>
     <string name="drawer_status">Stato</string>

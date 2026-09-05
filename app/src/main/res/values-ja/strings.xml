@@ -254,6 +254,12 @@
     <string name="force_reannounce_torrent">強制アナウンス</string>
     <string name="force_announce_torrent">強制アナウンス</string>
     <string name="select_all">すべて選択</string>
+    <string name="menu_priority">優先度</string>
+    <string name="queue_top">最優先</string>
+    <string name="queue_increase">優先度を上げる</string>
+    <string name="queue_decrease">優先度を下げる</string>
+    <string name="queue_bottom">最後優先</string>
+    <string name="set_location">保存先を設定</string>
     <string name="stats">統計</string>
     <string name="filters">フィルター</string>
     <string name="drawer_status">状態</string>

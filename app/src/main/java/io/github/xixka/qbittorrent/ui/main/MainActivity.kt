@@ -657,13 +657,56 @@ class MainActivity : AppCompatActivity() {
                 lifecycleScope.launch { runCatching { repo.recheck(hashes) }; viewModel.refresh() }
             R.id.force_announce_torrent_menu ->
                 lifecycleScope.launch { runCatching { repo.reannounce(hashes) }; viewModel.refresh() }
+            R.id.queue_top_torrent_menu ->
+                lifecycleScope.launch { runCatching { repo.topPriority(hashes) }; viewModel.refresh() }
+            R.id.queue_increase_torrent_menu ->
+                lifecycleScope.launch { runCatching { repo.increasePriority(hashes) }; viewModel.refresh() }
+            R.id.queue_decrease_torrent_menu ->
+                lifecycleScope.launch { runCatching { repo.decreasePriority(hashes) }; viewModel.refresh() }
+            R.id.queue_bottom_torrent_menu ->
+                lifecycleScope.launch { runCatching { repo.bottomPriority(hashes) }; viewModel.refresh() }
+            R.id.set_location_torrent_menu -> showSetLocationDialog(hashes)
             R.id.select_all_torrent_menu -> {
                 adapter.selectAll(viewModel.state.value.torrents)
+                onSelectionChanged()
+            }
+            R.id.select_inverse_torrent_menu -> {
+                adapter.invertSelection(viewModel.state.value.torrents)
                 onSelectionChanged()
             }
             else -> return false
         }
         return true
+    }
+
+    /**
+     * qBittorrent WebUI context-menu parity: multi-select "set location"
+     * moves every selected torrent to the typed path (the field is
+     * pre-filled with the first selected torrent's current save path).
+     */
+    private fun showSetLocationDialog(hashes: List<String>) {
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        val hashSet = hashes.toSet()
+        viewModel.state.value.torrents.firstOrNull { it.hash in hashSet }?.let {
+            input?.setText(it.savePath)
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.set_location)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val path = input?.text?.toString()?.trim().orEmpty()
+                if (path.isNotEmpty()) {
+                    lifecycleScope.launch {
+                        runCatching {
+                            ServiceLocator.repository(this@MainActivity).setLocation(hashes, path)
+                        }
+                        viewModel.refresh()
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun onSelectionChanged() {

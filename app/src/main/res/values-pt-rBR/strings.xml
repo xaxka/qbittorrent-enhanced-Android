@@ -255,6 +255,12 @@ Dispositivos da LAN abrem sem login (toque para copiar o endereço)</string>
     <string name="force_reannounce_torrent">Reanúncio forçado</string>
     <string name="force_announce_torrent">Reanúncio forçado</string>
     <string name="select_all">Selecionar tudo</string>
+    <string name="menu_priority">Prioridade</string>
+    <string name="queue_top">Máxima prioridade</string>
+    <string name="queue_increase">Aumentar prioridade</string>
+    <string name="queue_decrease">Diminuir prioridade</string>
+    <string name="queue_bottom">Mínima prioridade</string>
+    <string name="set_location">Definir local</string>
     <string name="stats">Estatísticas</string>
     <string name="filters">Filtros</string>
     <string name="drawer_status">Status</string>

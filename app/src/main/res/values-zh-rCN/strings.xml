@@ -256,6 +256,12 @@
     <string name="force_reannounce_torrent">强制汇报</string>
     <string name="force_announce_torrent">强制汇报</string>
     <string name="select_all">全选</string>
+    <string name="menu_priority">优先级</string>
+    <string name="queue_top">置顶</string>
+    <string name="queue_increase">上移</string>
+    <string name="queue_decrease">下移</string>
+    <string name="queue_bottom">置底</string>
+    <string name="set_location">设置保存位置</string>
     <string name="stats">统计</string>
     <string name="filters">筛选</string>
     <string name="drawer_status">状态</string>

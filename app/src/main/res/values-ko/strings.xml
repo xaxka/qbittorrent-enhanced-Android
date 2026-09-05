@@ -255,6 +255,12 @@ LAN 기기는 로그인 없이 열 수 있습니다(탭하여 주소 복사)</st
     <string name="force_reannounce_torrent">강제 어나운스</string>
     <string name="force_announce_torrent">강제 어나운스</string>
     <string name="select_all">모두 선택</string>
+    <string name="menu_priority">우선순위</string>
+    <string name="queue_top">최우선</string>
+    <string name="queue_increase">우선순위 높히기</string>
+    <string name="queue_decrease">우선순위 낮히기</string>
+    <string name="queue_bottom">최하 우선순위</string>
+    <string name="set_location">저장 위치 설정</string>
     <string name="stats">통계</string>
     <string name="filters">필터</string>
     <string name="drawer_status">상태</string>

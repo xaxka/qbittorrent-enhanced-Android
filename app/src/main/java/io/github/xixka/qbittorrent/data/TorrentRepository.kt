@@ -208,6 +208,12 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun topPriority(hashes: List<String>) =
         client.withAuth { it.topPriority(hashes.joinToString("|")) }
 
+    suspend fun increasePriority(hashes: List<String>) =
+        client.withAuth { it.increasePriority(hashes.joinToString("|")) }
+
+    suspend fun decreasePriority(hashes: List<String>) =
+        client.withAuth { it.decreasePriority(hashes.joinToString("|")) }
+
     suspend fun bottomPriority(hashes: List<String>) =
         client.withAuth { it.bottomPriority(hashes.joinToString("|")) }
 

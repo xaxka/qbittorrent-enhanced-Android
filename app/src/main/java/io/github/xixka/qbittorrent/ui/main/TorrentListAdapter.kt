@@ -46,6 +46,15 @@ class TorrentListAdapter(
         notifyDataSetChanged()
     }
 
+    /** qBC parity: the new selection becomes everything that was NOT
+     *  selected (within the currently listed torrents). */
+    fun invertSelection(all: List<TorrentInfo>) {
+        val inverted = all.map { it.hash }.filter { it !in selected }
+        selected.clear()
+        selected.addAll(inverted)
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(ItemTorrentListBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 

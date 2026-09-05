@@ -26,35 +26,63 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/select_all_torrent_menu"
+        android:title="@string/select_all"
+        android:contentDescription="@string/select_all" />
+
+    <item
+        android:id="@+id/select_inverse_torrent_menu"
+        android:title="@string/action_select_inverse"
+        android:contentDescription="@string/action_select_inverse" />
+
+    <!-- Queue priority, qBittorrent WebUI context-menu parity
+         (top / increase / decrease / bottom). -->
+    <item
+        android:id="@+id/priority_torrent_menu"
+        android:title="@string/menu_priority"
+        android:contentDescription="@string/menu_priority">
+        <menu>
+            <item
+                android:id="@+id/queue_top_torrent_menu"
+                android:title="@string/queue_top"
+                android:contentDescription="@string/queue_top" />
+            <item
+                android:id="@+id/queue_increase_torrent_menu"
+                android:title="@string/queue_increase"
+                android:contentDescription="@string/queue_increase" />
+            <item
+                android:id="@+id/queue_decrease_torrent_menu"
+                android:title="@string/queue_decrease"
+                android:contentDescription="@string/queue_decrease" />
+            <item
+                android:id="@+id/queue_bottom_torrent_menu"
+                android:title="@string/queue_bottom"
+                android:contentDescription="@string/queue_bottom" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/set_location_torrent_menu"
+        android:title="@string/set_location"
+        android:contentDescription="@string/set_location" />
+
+    <item
         android:id="@+id/set_category_torrent_menu"
-        android:icon="@drawable/ic_label_24px"
         android:title="@string/set_category"
         android:contentDescription="@string/set_category" />
 
     <item
         android:id="@+id/set_tags_torrent_menu"
-        android:icon="@drawable/ic_label_24px"
         android:title="@string/set_tags"
         android:contentDescription="@string/set_tags" />
 
     <item
         android:id="@+id/force_recheck_torrent_menu"
-        android:icon="@drawable/ic_repeat_24px"
         android:title="@string/force_recheck_torrent"
-        android:contentDescription="@string/force_recheck_torrent"
-        app:showAsAction="ifRoom" />
+        android:contentDescription="@string/force_recheck_torrent" />
 
     <item
         android:id="@+id/force_announce_torrent_menu"
-        android:icon="@drawable/ic_wifi_tethering_24px"
         android:title="@string/force_announce_torrent"
-        android:contentDescription="@string/force_announce_torrent"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/select_all_torrent_menu"
-        android:icon="@drawable/ic_select_all_24px"
-        android:title="@string/select_all"
-        android:contentDescription="@string/select_all"
-        app:showAsAction="ifRoom" />
+        android:contentDescription="@string/force_announce_torrent" />
 </menu>
