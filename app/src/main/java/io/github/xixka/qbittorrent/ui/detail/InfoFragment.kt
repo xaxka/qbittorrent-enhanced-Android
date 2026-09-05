@@ -145,7 +145,9 @@ class InfoFragment : Fragment() {
 
         binding.progressIndicator.apply {
             setProgress((torrent.progress * 100).toInt().coerceIn(0, 100))
-            val (color, track) = TorrentStateColors.resolve(root, torrent.state)
+            // binding.root (not Fragment.root): the latter is View? and the
+            // color resolver needs a non-null view to read the theme from.
+            val (color, track) = TorrentStateColors.resolve(binding.root, torrent.state)
             setIndicatorColor(color)
             trackColor = track
         }

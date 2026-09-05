@@ -930,7 +930,7 @@ class MainActivity : AppCompatActivity() {
         modeInput?.setAdapter(
             ArrayAdapter(this, android.R.layout.simple_list_item_1, modes)
         )
-        modeInput?.setOnItemClickListener { _, _, position ->
+        modeInput?.setOnItemClickListener { _, _, position, _ ->
             mode = position
             syncModeUi()
         }

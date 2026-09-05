@@ -38,14 +38,15 @@ object TorrentStateColors {
             "stoppedup", "pausedup", "stoppeddl", "pauseddl" ->
                 MaterialColors.getColor(view, com.google.android.material.R.attr.colorOutline)
 
-            // broken family -> error
+            // broken family -> error (framework attr — the material R
+            // only carries the M3-specific roles like colorTertiary below)
             "error", "missingfiles" ->
-                MaterialColors.getColor(view, com.google.android.material.R.attr.colorError)
+                MaterialColors.getColor(view, android.R.attr.colorError)
 
             // everything downloading-ish (incl. stalled, queued, meta,
-            // checking, moving) -> primary
+            // checking, moving) -> primary (framework attr)
             else ->
-                MaterialColors.getColor(view, com.google.android.material.R.attr.colorPrimary)
+                MaterialColors.getColor(view, android.R.attr.colorPrimary)
         }
         return indicator to translucentTrack(indicator)
     }
