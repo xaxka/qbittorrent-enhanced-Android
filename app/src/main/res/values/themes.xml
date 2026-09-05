@@ -74,6 +74,9 @@
         <item name="actionModeBackground">?attr/colorSurfaceContainer</item>
         <item name="materialSearchBarStyle">@style/Widget.App.SearchBar</item>
         <item name="appBarLayoutStyle">@style/Widget.App.AppBarLayout</item>
+        <!-- Kill the M3 stop-indicator dot at the end of every linear
+             progress track app-wide (torrent list, peers, files, info). -->
+        <item name="linearProgressIndicatorStyle">@style/Widget.App.LinearProgressIndicator</item>
     </style>
 
     <style name="AppTheme" parent="BaseTheme" />

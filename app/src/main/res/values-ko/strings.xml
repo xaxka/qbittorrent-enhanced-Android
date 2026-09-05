@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">새 토렌트에 Tracker 자동 추가</string>
     <string name="qbt_add_trackers">추가할 Tracker (한 줄에 하나)</string>
     <string name="qbt_conn_listen">수신 포트</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">들어오는 연결에 사용할 포트</string>
     <string name="qbt_upnp">UPnP / NAT-PMP 포트 포워딩 사용</string>
     <string name="qbt_conn_limits">연결 제한</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">항상 모든 Tracker 계층에 알림</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">qBittorrent 설정 열기</string>
-    <string name="settings_qbt_open_sub">속도 제한, 연결, 개인 정보 보호, 시딩, 웹 UI — 전체 항목을 즉시 적용</string>
+    <string name="settings_qbt_open_sub">속도 제한, 연결, 개인 정보 보호, 시딩, 웹 UI — 전체 항목</string>
     <string name="settings_app_section">앱</string>
     <string name="settings_poll_label">토렌트 목록 새로 고침 간격 (초)</string>
     <string name="settings_engine_group">내장 엔진</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">해시 검사 건너뛰기</string>
     <string name="add_auto_tmm">자동 토렌트 관리</string>
     <string name="add_auto_tmm_sub">카테고리나 저장 경로가 바뀌면 qBittorrent이 토렌트를 이동합니다</string>
-    <string name="qbt_settings_live_hint">변경 사항은 즉시 적용됩니다 — 재시작 불필요</string>
-    <string name="qb_settings_editing_fmt">편집 대상: %1$s — 즉시 적용됨</string>
+    <string name="qb_settings_editing_fmt">편집 대상: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">저장 관리</string>
     <string name="qbt_auto_tmm_default">기본적으로 자동 토렌트 관리 사용</string>

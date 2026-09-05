@@ -5,13 +5,15 @@
      plain text fields — the reported "dropdown selection bug". FilledBox
      variant matches the plain TextInputLayout rows above/below. -->
 <com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/prefDropdownLayout"
     style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
-    android:paddingTop="4dp">
+    android:paddingTop="4dp"
+    app:hintAnimationEnabled="false">
 
     <com.google.android.material.textfield.MaterialAutoCompleteTextView
         android:id="@+id/prefDropdown"

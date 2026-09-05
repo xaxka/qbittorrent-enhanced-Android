@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">自動為新種子新增 Tracker</string>
     <string name="qbt_add_trackers">新增的 Tracker（每行一個）</string>
     <string name="qbt_conn_listen">監聽連接埠</string>
+    <string name="mem_usage">記憶體佔用：%1$s</string>
     <string name="qbt_listen_port">用於傳入連線的連接埠</string>
     <string name="qbt_upnp">使用 UPnP / NAT-PMP 連接埠轉發</string>
     <string name="qbt_conn_limits">連線限制</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">一律向所有 Tracker 層級通告</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">開啟 qBittorrent 設定</string>
-    <string name="settings_qbt_open_sub">限速、連線、隱私、做種、Web 介面——完整參數，即時生效</string>
+    <string name="settings_qbt_open_sub">限速、連線、隱私、做種、Web 介面——完整參數</string>
     <string name="settings_app_section">應用程式</string>
     <string name="settings_poll_label">種子清單重新整理間隔（秒）</string>
     <string name="settings_engine_group">內建引擎</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">跳過雜湊校驗</string>
     <string name="add_auto_tmm">自動 Torrent 管理</string>
     <string name="add_auto_tmm_sub">分類或儲存路徑變化時，qBittorrent 會自動移動 Torrent</string>
-    <string name="qbt_settings_live_hint">修改立即生效，無需重新啟動</string>
-    <string name="qb_settings_editing_fmt">正在編輯：%1$s — 修改立即生效</string>
+    <string name="qb_settings_editing_fmt">正在編輯：%1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">儲存管理</string>
     <string name="qbt_auto_tmm_default">預設啟用自動 Torrent 管理 (TMM)</string>

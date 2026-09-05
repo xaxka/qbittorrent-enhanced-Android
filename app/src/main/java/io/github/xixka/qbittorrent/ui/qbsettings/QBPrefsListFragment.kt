@@ -43,6 +43,13 @@ class QBPrefsListFragment : Fragment() {
         val adapter = QBPrefsAdapter(vm)
         binding.prefsList.layoutManager = LinearLayoutManager(requireContext())
         binding.prefsList.adapter = adapter
+        // Scroll smoothness for the generated form: inflated TextInputLayout
+        // rows are relatively heavy, so keep a wider off-screen view cache
+        // (rows are then reused instead of created as they scroll in — the
+        // "values pop out of nowhere" effect), and drop the item animator
+        // whose cross-fade made rebound rows flash while scrolling.
+        binding.prefsList.itemAnimator = null
+        binding.prefsList.setItemViewCacheSize(12)
         viewLifecycleOwner.lifecycleScope.launch {
             vm.sections.collect { sections ->
                 adapter.entries = sections.getOrNull(sectionIndex)?.entries ?: emptyList()

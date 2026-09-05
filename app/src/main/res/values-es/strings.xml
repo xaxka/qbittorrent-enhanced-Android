@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">Añadir trackers automáticamente a los torrents nuevos</string>
     <string name="qbt_add_trackers">Trackers a añadir (uno por línea)</string>
     <string name="qbt_conn_listen">Puerto de escucha</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Puerto usado para conexiones entrantes</string>
     <string name="qbt_upnp">Usar redirección de puertos UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Límites de conexión</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">Anunciar siempre a todos los niveles de trackers</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">Abrir los ajustes de qBittorrent</string>
-    <string name="settings_qbt_open_sub">Límites de velocidad, conexiones, privacidad, compartición, interfaz web — el juego completo, aplicado al instante</string>
+    <string name="settings_qbt_open_sub">Límites de velocidad, conexiones, privacidad, compartición, interfaz web — el juego completo</string>
     <string name="settings_app_section">Aplicación</string>
     <string name="settings_poll_label">Intervalo de actualización de la lista de torrents (segundos)</string>
     <string name="settings_engine_group">Motor integrado</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">Omitir la verificación de hash</string>
     <string name="add_auto_tmm">Gestión automática del torrent</string>
     <string name="add_auto_tmm_sub">qBittorrent reubica el torrent cuando cambian la categoría o la ruta de guardado</string>
-    <string name="qbt_settings_live_hint">Los cambios se aplican de inmediato, sin reiniciar</string>
-    <string name="qb_settings_editing_fmt">Editando: %1$s — se aplica al instante</string>
+    <string name="qb_settings_editing_fmt">Editando: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Gestión del guardado</string>
     <string name="qbt_auto_tmm_default">Usar el modo de gestión automática por defecto</string>

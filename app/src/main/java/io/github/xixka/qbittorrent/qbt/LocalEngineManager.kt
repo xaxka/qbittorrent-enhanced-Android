@@ -12,6 +12,7 @@ import java.net.URL
 import java.security.KeyStore
 import java.security.cert.Certificate
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -53,6 +54,57 @@ object LocalEngineManager {
             ?.let { File(it, NoxConfig.BINARY_LIB_NAME) }
 
     fun isRunning(): Boolean = processRef.get()?.isAlive == true
+
+    /**
+     * PID of the running engine child, resolved on demand from /proc (java's
+     * [Process.pid] needs API 35). The cmdline of a process we own is
+     * readable, and the engine is our only child carrying the nox binary
+     * path, so matching the first argv token is unambiguous. Cached until
+     * the /proc entry disappears (engine died/restarted) — the resolve
+     * scan is only re-run then. Call from a background thread.
+     */
+    private val cachedPid = AtomicInteger(-1)
+
+    private fun findEnginePid(context: Context): Int {
+        val wanted = binaryFile(context)?.absolutePath ?: return -1
+        val procDir = File("/proc")
+        val candidates = procDir.listFiles { f -> f.name.toIntOrNull() != null } ?: return -1
+        for (dir in candidates) {
+            val cmdline = runCatching {
+                // first NUL-terminated token = executable path
+                File(dir, "cmdline").inputStream().use { s ->
+                    val buf = ByteArray(256)
+                    val n = s.read(buf)
+                    if (n <= 0) return@use ""
+                    val end = buf.indexOf(0.toByte()).takeIf { it >= 0 } ?: n
+                    String(buf, 0, end, Charsets.UTF_8)
+                }
+            }.getOrNull() ?: continue
+            if (cmdline == wanted) return dir.name.toInt()
+        }
+        return -1
+    }
+
+    /**
+     * Resident memory (VmRSS) of the engine process in bytes, or null while
+     * no engine process is alive. Intended to be called from a background
+     * thread (reads a handful of small /proc files); safe to call often.
+     */
+    fun engineRssBytes(context: Context): Long? {
+        // fast path: engine definitively down and no resolved pid — skip the scan
+        if (processRef.get()?.isAlive != true && cachedPid.get() <= 0) return null
+        val ctx = context.applicationContext
+        var pid = cachedPid.get()
+        if (pid <= 0 || !File("/proc/$pid").isDirectory) {
+            pid = findEnginePid(ctx)
+            cachedPid.set(pid)
+            if (pid <= 0) return null
+        }
+        val status = runCatching { File("/proc/$pid/status").readText() }.getOrNull()
+            ?: return null
+        val m = VmRSS_REGEX.find(status) ?: return null
+        return m.groupValues[1].toLongOrNull()?.let { it * 1024L }
+    }
 
     /**
      * Starts the engine and waits until the WebUI answers, then returns the
@@ -203,5 +255,10 @@ object LocalEngineManager {
     private fun appendLog(line: String) {
         logLines.addLast(line)
         while (logLines.size > 200) logLines.removeFirst()
+    }
+
+    companion object {
+        /** `VmRSS:       141234 kB` line of /proc/\<pid\>/status. */
+        private val VmRSS_REGEX = Regex("VmRSS:\\s+(\\d+) kB")
     }
 }

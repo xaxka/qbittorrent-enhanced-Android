@@ -443,6 +443,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">Automatically add trackers to new torrents</string>
     <string name="qbt_add_trackers">Trackers to add (one per line)</string>
     <string name="qbt_conn_listen">Listening port</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Port used for incoming connections</string>
     <string name="qbt_upnp">Use UPnP / NAT-PMP port forwarding</string>
     <string name="qbt_conn_limits">Connection limits</string>
@@ -487,7 +488,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">Always announce to all tiers</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">Open qBittorrent settings</string>
-    <string name="settings_qbt_open_sub">Speed limits, connections, privacy, seeding, WebUI — the full option set, applied live</string>
+    <string name="settings_qbt_open_sub">Speed limits, connections, privacy, seeding, WebUI — the full option set</string>
     <string name="settings_app_section">App</string>
     <string name="settings_poll_label">Torrent list refresh interval (seconds)</string>
     <string name="settings_engine_group">Bundled engine</string>
@@ -558,8 +559,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">Skip hash checking</string>
     <string name="add_auto_tmm">Automatic torrent management</string>
     <string name="add_auto_tmm_sub">qBittorrent relocates the torrent when the category or save path changes</string>
-    <string name="qbt_settings_live_hint">Changes apply immediately — no restart needed</string>
-    <string name="qb_settings_editing_fmt">Editing: %1$s — changes apply live</string>
+    <string name="qb_settings_editing_fmt">Editing: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Saving management</string>
     <string name="qbt_auto_tmm_default">Use automatic torrent management mode by default</string>

@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">Yeni torrentlere otomatik tracker ekle</string>
     <string name="qbt_add_trackers">Eklenecek trackerlar (satır başına bir tane)</string>
     <string name="qbt_conn_listen">Dinleme bağlantı noktası</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Gelen bağlantılar için kullanılan port</string>
     <string name="qbt_upnp">UPnP / NAT-PMP port yönlendirmeyi kullan</string>
     <string name="qbt_conn_limits">Bağlantı sınırları</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">Her zaman tüm tracker katmanlarına duyur</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">qBittorrent ayarlarını aç</string>
-    <string name="settings_qbt_open_sub">Hız sınırları, bağlantılar, gizlilik, gönderme, web arayüzü — tüm seçenekler, anında uygulanır</string>
+    <string name="settings_qbt_open_sub">Hız sınırları, bağlantılar, gizlilik, gönderme, web arayüzü — tüm seçenekler</string>
     <string name="settings_app_section">Uygulama</string>
     <string name="settings_poll_label">Torrent listesi yenileme aralığı (saniye)</string>
     <string name="settings_engine_group">Yerleşik motor</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">Hash doğrulamasını atla</string>
     <string name="add_auto_tmm">Otomatik torrent yönetimi</string>
     <string name="add_auto_tmm_sub">Kategori veya kayıt yolu değiştiğinde qBittorrent torrenti taşır</string>
-    <string name="qbt_settings_live_hint">Değişiklikler anında uygulanır — yeniden başlatma gerekmez</string>
-    <string name="qb_settings_editing_fmt">Düzenleniyor: %1$s — anında uygulanır</string>
+    <string name="qb_settings_editing_fmt">Düzenleniyor: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Kayıt yönetimi</string>
     <string name="qbt_auto_tmm_default">Varsayılan olarak otomatik torrent yönetimi kullan</string>

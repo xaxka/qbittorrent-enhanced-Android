@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">Adicionar trackers automaticamente a novos torrents</string>
     <string name="qbt_add_trackers">Trackers a adicionar (um por linha)</string>
     <string name="qbt_conn_listen">Porta de escuta</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Porta usada para conexões de entrada</string>
     <string name="qbt_upnp">Usar redirecionamento de porta UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Limites de conexão</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">Sempre anunciar a todos os níveis de trackers</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">Abrir as configurações do qBittorrent</string>
-    <string name="settings_qbt_open_sub">Limites de velocidade, conexões, privacidade, compartilhamento, interface web — tudo, aplicado na hora</string>
+    <string name="settings_qbt_open_sub">Limites de velocidade, conexões, privacidade, compartilhamento, interface web — tudo</string>
     <string name="settings_app_section">App</string>
     <string name="settings_poll_label">Intervalo de atualização da lista de torrents (segundos)</string>
     <string name="settings_engine_group">Motor integrado</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">Pular verificação de hash</string>
     <string name="add_auto_tmm">Gerenciamento automático do torrent</string>
     <string name="add_auto_tmm_sub">O qBittorrent realoca o torrent quando a categoria ou o caminho mudar</string>
-    <string name="qbt_settings_live_hint">As alterações se aplicam imediatamente — sem reiniciar</string>
-    <string name="qb_settings_editing_fmt">Editando: %1$s — aplicado imediatamente</string>
+    <string name="qb_settings_editing_fmt">Editando: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Gerenciamento de salvamento</string>
     <string name="qbt_auto_tmm_default">Usar o modo de gerenciamento automático por padrão</string>

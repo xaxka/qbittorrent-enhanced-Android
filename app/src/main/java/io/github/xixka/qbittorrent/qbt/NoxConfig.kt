@@ -140,14 +140,23 @@ object NoxConfig {
                 append("WebUI\\Address=").append(address).append('\n')
                 append("WebUI\\HostHeaderValidation=false\n")
                 append("WebUI\\LocalHostAuth=false\n")
-                // QSettings serializes QByteArray values as
-                // `@ByteArray(<base64 of the raw bytes>)` — the raw bytes here
-                // are the ASCII `salt_b64:key_b64` digest string. Writing the
-                // digest directly (as an earlier version did) makes the ':'
-                // an invalid base64 char: the engine then reads a garbled hash
-                // and NO password ever validates, locking out LAN browsers.
+                // QSettings serializes a QByteArray as `@ByteArray(<raw bytes
+                // as latin1 text>)` — NO base64 layer (qsettings.cpp:
+                // stringToVariant takes the chars between the parens
+                // literally). The engine's password QByteArray therefore
+                // IS the ASCII digest string `salt_b64:key_b64`, so the
+                // correct INI line is the digest itself inside the marker:
+                //   WebUI\Password_PBKDF2="@ByteArray(salt:key)"
+                // The quotes mirror what QSettings itself writes (the
+                // base64 padding '=' triggers iniEscapedString's
+                // needsQuotes) and are stripped transparently on read. An
+                // earlier version base64-encoded the digest a second time:
+                // the engine then read base64 text without the ':'
+                // separator, PBKDF2::verify() could never split it, and NO
+                // password (LAN browser login, app re-login after the
+                // hourly SID expiry) ever validated.
                 append("WebUI\\Password_PBKDF2=\"@ByteArray(")
-                append(java.util.Base64.getEncoder().encodeToString(pbkdf2String(password).toByteArray(Charsets.US_ASCII)))
+                append(pbkdf2String(password))
                 append(")\"\n")
                 append("WebUI\\Port=").append(webUiPort).append('\n')
                 append("WebUI\\ServerDomains=*\n")
@@ -190,11 +199,10 @@ object NoxConfig {
             KEY_WEBUI_WL to LAN_SUBNETS,
             // fresh PBKDF2 digest of the app-tracked password: keeps the
             // engine in sync with what the app logs in with (and what the
-            // Settings screen shows) after every restart
-            KEY_WEBUI_PASSWORD to "\"@ByteArray(" +
-                java.util.Base64.getEncoder().encodeToString(
-                    pbkdf2String(password).toByteArray(Charsets.US_ASCII)
-                ) + ")\"",
+            // Settings screen shows) after every restart. The digest string
+            // goes inside `@ByteArray(...)` VERBATIM — QSettings performs no
+            // base64 decoding of the marker's content (see writeDefaultConfig).
+            KEY_WEBUI_PASSWORD to "\"@ByteArray(" + pbkdf2String(password) + ")\"",
             KEY_SAVE_PATH to escapePath(savePath),
         )
         val remaining = desired.toMutableMap()

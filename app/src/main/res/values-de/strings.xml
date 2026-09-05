@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">Tracker automatisch zu neuen Torrents hinzufügen</string>
     <string name="qbt_add_trackers">Hinzuzufügende Tracker (einer pro Zeile)</string>
     <string name="qbt_conn_listen">Empfangsport</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Port für eingehende Verbindungen</string>
     <string name="qbt_upnp">UPnP / NAT-PMP-Portweiterleitung verwenden</string>
     <string name="qbt_conn_limits">Verbindungsbegrenzungen</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">Immer bei allen Tracker-Ebenen melden</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">qBittorrent-Einstellungen öffnen</string>
-    <string name="settings_qbt_open_sub">Geschwindigkeit, Verbindungen, Privatsphäre, Seeding, WebUI — das komplette Set, sofort wirksam</string>
+    <string name="settings_qbt_open_sub">Geschwindigkeit, Verbindungen, Privatsphäre, Seeding, WebUI — das komplette Set</string>
     <string name="settings_app_section">App</string>
     <string name="settings_poll_label">Aktualisierungsintervall der Torrent-Liste (Sekunden)</string>
     <string name="settings_engine_group">Integrierte Engine</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">Hash-Prüfung überspringen</string>
     <string name="add_auto_tmm">Automatisches Torrent-Management</string>
     <string name="add_auto_tmm_sub">qBittorrent verschiebt den Torrent, wenn Kategorie oder Speicherpfad wechseln</string>
-    <string name="qbt_settings_live_hint">Änderungen greifen sofort — kein Neustart nötig</string>
-    <string name="qb_settings_editing_fmt">Bearbeitet: %1$s — Änderungen gelten sofort</string>
+    <string name="qb_settings_editing_fmt">Bearbeitet: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Speicherverwaltung</string>
     <string name="qbt_auto_tmm_default">Automatischen Torrent-Management-Modus standardmäßig verwenden</string>

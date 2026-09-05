@@ -59,4 +59,15 @@
     </style>
 
     <style name="TextAppearance.App.SectionTitle" parent="TextAppearance.Material3.TitleSmall" />
+
+    <!-- Material 3's LinearProgressIndicator draws a "stop indicator" dot
+         at the end of the track by default (Widget.Material3 style sets
+         trackStopIndicatorSize to the m3 dimen). This app shows plain
+         progress tracks everywhere, so the dot is turned off globally via
+         the theme default (linearProgressIndicatorStyle) — the attribute
+         is the defStyleAttr of every LinearProgressIndicator, including
+         the ones created without an explicit style. -->
+    <style name="Widget.App.LinearProgressIndicator" parent="Widget.Material3.LinearProgressIndicator">
+        <item name="trackStopIndicatorSize">0dp</item>
+    </style>
 </resources>

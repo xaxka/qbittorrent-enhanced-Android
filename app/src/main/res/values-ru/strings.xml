@@ -442,6 +442,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_add_trackers_enabled">Автоматически добавлять трекеры к новым торрентам</string>
     <string name="qbt_add_trackers">Добавляемые трекеры (по одному в строке)</string>
     <string name="qbt_conn_listen">Порт приёма</string>
+    <string name="mem_usage">ОЗУ: %1$s</string>
     <string name="qbt_listen_port">Порт для входящих соединений</string>
     <string name="qbt_upnp">Использовать UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Ограничения соединений</string>
@@ -486,7 +487,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_announce_all_tiers">Анонсировать всем уровням трекеров</string>
     <string name="settings_qbt_section">qBittorrent</string>
     <string name="settings_qbt_open">Открыть настройки qBittorrent</string>
-    <string name="settings_qbt_open_sub">Ограничения скорости, соединения, приватность, раздача, веб-интерфейс — полный набор, применяется сразу</string>
+    <string name="settings_qbt_open_sub">Ограничения скорости, соединения, приватность, раздача, веб-интерфейс — полный набор</string>
     <string name="settings_app_section">Приложение</string>
     <string name="settings_poll_label">Интервал обновления списка торрентов (сек)</string>
     <string name="settings_engine_group">Встроенный движок</string>
@@ -557,8 +558,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="add_skip_checking">Пропустить проверку хэшей</string>
     <string name="add_auto_tmm">Автоматическое управление торрентом</string>
     <string name="add_auto_tmm_sub">qBittorrent перемещает торрент при смене категории или пути сохранения</string>
-    <string name="qbt_settings_live_hint">Изменения применяются сразу — без перезапуска</string>
-    <string name="qb_settings_editing_fmt">Изменяются настройки: %1$s — применяются сразу</string>
+    <string name="qb_settings_editing_fmt">Изменяются настройки: %1$s</string>
     <string name="qbt_tab_rss">RSS</string>
     <string name="qbt_tmm_section">Управление сохранением</string>
     <string name="qbt_auto_tmm_default">По умолчанию использовать автоматическое управление (TMM)</string>

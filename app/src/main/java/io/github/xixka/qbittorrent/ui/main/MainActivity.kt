@@ -1049,21 +1049,30 @@ class MainActivity : AppCompatActivity() {
         }
 
         val d = drawerBinding
-        state.transfer?.let {
-            // LibreTorrent drawer format: transferred data • current speed
-            d.sessionDownloadStat.text = "${Format.size(it.dlInfoData)} • ${Format.speed(it.dlInfoSpeed)}"
-            d.sessionUploadStat.text = "${Format.size(it.upInfoData)} • ${Format.speed(it.upInfoSpeed)}"
-            d.sessionDhtNodesStat.text = getString(R.string.dht_nodes_stat, it.dhtNodes.toString())
-        }
+        // LibreTorrent parity: the stat rows are ALWAYS rebound — a null
+        // transfer (connection dropped, engine restarting) zeroes them
+        // instead of leaving the last poll's values frozen on screen.
+        val t = state.transfer
+        d.sessionDownloadStat.text =
+            "${Format.size(t?.dlInfoData ?: 0L)} • ${Format.speed(t?.dlInfoSpeed ?: 0L)}"
+        d.sessionUploadStat.text =
+            "${Format.size(t?.upInfoData ?: 0L)} • ${Format.speed(t?.upInfoSpeed ?: 0L)}"
+        d.sessionDhtNodesStat.text =
+            getString(R.string.dht_nodes_stat, (t?.dhtNodes ?: 0L).toString())
         // Listening port: the bundled engine's WebUI port, or the active
-        // remote server's port — LibreTorrent drawer row.
+        // remote server's port — LibreTorrent drawer row. The bundled
+        // engine's resident memory (VmRSS) rides along in the same row.
         val listenPort = if (prefs.usingLocalEngine) {
             prefs.enginePort
         } else {
             prefs.activeServer()?.port ?: ServerConfig.DEFAULT_PORT
         }
-        d.sessionListenPortStat.text =
-            getString(R.string.qbt_conn_listen) + ": " + listenPort
+        d.sessionListenPortStat.text = buildString {
+            append(getString(R.string.qbt_conn_listen)).append(": ").append(listenPort)
+            state.engineRss?.let { rss ->
+                append("  •  ").append(getString(R.string.mem_usage, Format.size(rss)))
+            }
+        }
 
         updateDrawerChips(state.categories, state.tags)
     }
