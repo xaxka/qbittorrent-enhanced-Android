@@ -842,6 +842,9 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="torrent_peers_banned">Peers banned successfully.</string>
     <string name="torrent_peers_invalid">Entered peers are not valid.</string>
     <string name="torrent_peers_details_progress">Progress</string>
+    <string name="peer_stat_downloaded">Downloaded</string>
+    <string name="peer_stat_uploaded">Uploaded</string>
+    <string name="peer_stat_relevance">Relevance</string>
     <string name="torrent_peers_details_download_speed">Download Speed</string>
     <string name="torrent_peers_details_upload_speed">Upload Speed</string>
     <string name="torrent_peers_details_country">Country</string>

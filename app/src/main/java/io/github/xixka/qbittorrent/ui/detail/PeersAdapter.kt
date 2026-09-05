@@ -61,8 +61,6 @@ class PeersAdapter(
                 binding.peerFlag.setImageDrawable(null)
             }
 
-            binding.peerConnection.text = peer.connectionStatus
-
             binding.peerProgress.text = String.format(
                 Locale.ROOT,
                 "%.1f%%",
@@ -70,6 +68,18 @@ class PeersAdapter(
             )
             binding.peerDownloadSpeed.text = Format.speed(peer.downSpeed)
             binding.peerUploadSpeed.text = Format.speed(peer.upSpeed)
+            binding.peerConnection.text = peer.connectionStatus
+
+            // LibreTorrent list parity: cumulative traffic exchanged with
+            // this peer and the relevance (share of its data we still need),
+            // rendered as a percentage.
+            binding.peerDownloadedTotal.text = Format.size(peer.downloaded)
+            binding.peerUploadedTotal.text = Format.size(peer.uploaded)
+            binding.peerRelevance.text = String.format(
+                Locale.ROOT,
+                "%.0f%%",
+                (peer.relevance * 100).coerceIn(0.0, 100.0),
+            )
 
             // qBC flags banner: raw flags joined by spaces inside a rounded
             // secondaryContainer surface with a flag icon.

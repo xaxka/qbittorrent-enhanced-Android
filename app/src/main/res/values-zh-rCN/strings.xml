@@ -843,6 +843,9 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="torrent_peers_banned">已成功封禁用户。</string>
     <string name="torrent_peers_invalid">输入的用户不正确。</string>
     <string name="torrent_peers_details_progress">进度</string>
+    <string name="peer_stat_downloaded">已下载</string>
+    <string name="peer_stat_uploaded">已上传</string>
+    <string name="peer_stat_relevance">关联度</string>
     <string name="torrent_peers_details_download_speed">下载速度</string>
     <string name="torrent_peers_details_upload_speed">上传速度</string>
     <string name="torrent_peers_details_country">地区</string>
