@@ -164,7 +164,7 @@ class InfoFragment : Fragment() {
                 append("↓ ").append(Format.speed(torrent.dlSpeed))
                 setSpan(
                     ForegroundColorSpan(
-                        MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorPrimary)
+                        MaterialColors.getColor(binding.root, androidx.appcompat.R.attr.colorPrimary)
                     ),
                     start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
