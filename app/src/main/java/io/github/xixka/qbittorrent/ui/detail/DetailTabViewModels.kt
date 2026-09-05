@@ -364,7 +364,7 @@ class DetailFilesViewModel(app: Application, hash: String) :
     private val _root = MutableStateFlow<TorrentFileNode.Folder?>(null)
     val root: StateFlow<TorrentFileNode.Folder?> = _root.asStateFlow()
 
-    private val _sortMode = MutableStateFlow(FilesSortMode.ORDER)
+    private val _sortMode = MutableStateFlow(FilesSortMode.NAME)
     val sortMode: StateFlow<FilesSortMode> = _sortMode.asStateFlow()
 
     fun setSortMode(mode: FilesSortMode) {

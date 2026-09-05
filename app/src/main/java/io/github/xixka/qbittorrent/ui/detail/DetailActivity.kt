@@ -136,10 +136,10 @@ class DetailActivity : AppCompatActivity() {
                 // reflect the active sort mode in the single-choice submenu
                 menu.findItem(
                     when (filesViewModel.sortMode.value) {
-                        FilesSortMode.NAME -> R.id.sort_files_name
+                        FilesSortMode.ORDER -> R.id.sort_files_order
                         FilesSortMode.SIZE -> R.id.sort_files_size
                         FilesSortMode.PROGRESS -> R.id.sort_files_progress
-                        else -> R.id.sort_files_order
+                        else -> R.id.sort_files_name
                     }
                 )?.isChecked = true
             }

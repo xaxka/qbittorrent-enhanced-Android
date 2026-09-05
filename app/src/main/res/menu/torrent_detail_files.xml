@@ -12,10 +12,10 @@
             <group android:checkableBehavior="single">
                 <item
                     android:id="@+id/sort_files_order"
-                    android:checked="true"
                     android:title="@string/files_sort_order" />
                 <item
                     android:id="@+id/sort_files_name"
+                    android:checked="true"
                     android:title="@string/files_sort_name" />
                 <item
                     android:id="@+id/sort_files_size"

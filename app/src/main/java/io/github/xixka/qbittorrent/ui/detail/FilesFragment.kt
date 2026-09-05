@@ -172,7 +172,8 @@ class FilesFragment : Fragment() {
         when (viewModel.sortMode.value) {
             FilesSortMode.ORDER -> folder.children
             FilesSortMode.NAME -> folder.children.sortedWith(
-                compareBy({ it !is TorrentFileNode.Folder }, { it.name.lowercase(Locale.ROOT) })
+                compareBy<TorrentFileNode> { it !is TorrentFileNode.Folder }
+                    .thenComparator { x, y -> naturalCompare(x.name, y.name) }
             )
             FilesSortMode.SIZE -> folder.children.sortedWith(
                 compareBy({ it !is TorrentFileNode.Folder }, { -it.size })
@@ -181,6 +182,51 @@ class FilesFragment : Fragment() {
                 compareBy({ it !is TorrentFileNode.Folder }, { it.progress })
             )
         }
+
+    /**
+     * Windows Explorer string comparison (StrCmpLogicalW parity): digit
+     * runs compare NUMERICALLY ("第2集" < "第10集", "file2" < "file10"),
+     * everything else case-insensitive; leading zeros break numeric ties
+     * by run length. This is the ordering people expect from media packs.
+     */
+    private fun naturalCompare(a: String, b: String): Int {
+        var ia = 0
+        var ib = 0
+        while (true) {
+            val doneA = ia >= a.length
+            val doneB = ib >= b.length
+            if (doneA || doneB) return when {
+                doneA && doneB -> 0
+                doneA -> -1
+                else -> 1
+            }
+            val digitA = a[ia].isDigit()
+            val digitB = b[ib].isDigit()
+            if (digitA && digitB) {
+                var endA = ia
+                while (endA < a.length && a[endA].isDigit()) endA++
+                var endB = ib
+                while (endB < b.length && b[endB].isDigit()) endB++
+                val numA = a.substring(ia, endA).trimStart('0')
+                val numB = b.substring(ib, endB).trimStart('0')
+                // shorter (after zero-strip) = smaller number
+                val cmp = when {
+                    numA.length != numB.length -> numA.length - numB.length
+                    else -> numA.compareTo(numB)
+                }
+                if (cmp != 0) return cmp
+                // numerically equal ("01" vs "1"): shorter run first
+                if (endA - ia != endB - ib) return (endA - ia) - (endB - ib)
+                ia = endA
+                ib = endB
+            } else {
+                val cmp = a[ia].lowercaseChar().compareTo(b[ib].lowercaseChar())
+                if (cmp != 0) return cmp
+                ia++
+                ib++
+            }
+        }
+    }
 
     private fun submitNodes() {
         val root = lastRoot ?: return
