@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Port of LibreTorrent home_drawer_content.xml (GPL-3.0):
-     stats rows + filter sections, same styles/margins as the original.
-     Filter chips are laid out in fixed 3-column grids (EqualColumnsChipGroup)
-     rendered as centered-label grid buttons (see Widget.App.Chip.Filter).
-     The content column is 0dp-padded so EVERY section — stat rows, section
-     titles, dividers and the chip grids — aligns on the same 16dp inset;
-     gaps are the M3 standard 8dp. The status set mirrors the engine's own
-     WebUI sidebar (views/filters.html); the date-added window filters were
-     dropped — qBittorrent offers no such sidebar filters, the "Date added"
-     sort covers that need. -->
+<!-- Faithful port of LibreTorrent home_drawer_content.xml (GPL-3.0):
+     same structure, margins (root padding 12dp + 16dp child margins),
+     TitleLarge section headers and stock M3 filter chips (checkmark on
+     selection, no restyle). Deliberate deviations, all functional:
+     - the chip groups sit in fixed 3-column grids (EqualColumnsChipGroup)
+       instead of LibreTorrent's free-flowing wrap; the chip style keeps
+       the stock look and only clamps to a single line so a long label
+       clips inside its 1/3-drawer cell instead of overflowing;
+     - stat rows are wrapped in full-width clickable rows: the port opens
+       the quick speed-limit sheet from the download/upload rows and the
+       statistics popup from the port/DHT rows (LibreTorrent's rows are
+       inert); at rest they render exactly like the original TextViews;
+     - the status set mirrors the engine's own WebUI sidebar
+       (views/filters.html) rather than LibreTorrent's, and a Categories
+       section (qBittorrent feature) joins Tags;
+     - LibreTorrent's "Date added" section was dropped — qBittorrent
+       offers no such sidebar filter, the "Date added" sort covers it. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -21,145 +28,95 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="4dp"
-        android:paddingBottom="12dp">
+        android:padding="12dp">
 
-        <!-- Stats: compact settings-style rows — icon + muted label on the
-             left, live value right-aligned, 8dp rhythm between rows. All
-             section headers (统计/筛选/…) use TitleMedium so the drawer reads
-             as one coherent panel instead of a mix of oversized and small
-             titles. The engine RSS figure was dropped from the port row:
-             it is engine-internal noise, not something a user can act on. -->
         <TextView
-            style="?attr/textAppearanceTitleMedium"
+            style="?attr/textAppearanceTitleLarge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="4dp"
+            android:layout_margin="16dp"
             android:text="@string/stats" />
 
+        <!-- LibreTorrent stat lines: one BodyLarge "icon + label: value"
+             TextView per row; the download/upload rows show "size • speed"
+             (the icon carries the direction, like the original's
+             "%1$s • %2$s/s" format). -->
         <LinearLayout
+            android:id="@+id/stat_row_port"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:orientation="vertical">
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
 
-            <LinearLayout
-                android:id="@+id/stat_row_port"
+            <TextView
+                android:id="@+id/session_listen_port_stat"
+                style="@style/App.Components.ListItem.Label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
+                android:layout_margin="16dp"
+                android:drawablePadding="16dp"
+                app:drawableStartCompat="@drawable/ic_lan_24px"
+                tools:text="Port: 6881" />
+        </LinearLayout>
 
-                <TextView
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:drawablePadding="16dp"
-                    android:text="@string/listen_port_stat"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:drawableStartCompat="@drawable/ic_lan_24px" />
+        <LinearLayout
+            android:id="@+id/stat_row_dht"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
 
-                <TextView
-                    android:id="@+id/session_listen_port_stat"
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="6881" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/stat_row_dht"
+            <TextView
+                android:id="@+id/session_dht_nodes_stat"
+                style="@style/App.Components.ListItem.Label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
+                android:layout_margin="16dp"
+                android:drawablePadding="16dp"
+                app:drawableStartCompat="@drawable/ic_hub_24px"
+                tools:text="DHT nodes: 100" />
+        </LinearLayout>
 
-                <TextView
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:drawablePadding="16dp"
-                    android:text="@string/drawer_stat_dht"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:drawableStartCompat="@drawable/ic_hub_24px" />
+        <LinearLayout
+            android:id="@+id/stat_row_download"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
 
-                <TextView
-                    android:id="@+id/session_dht_nodes_stat"
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="100" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/stat_row_download"
+            <TextView
+                android:id="@+id/session_download_stat"
+                style="@style/App.Components.ListItem.Label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
+                android:layout_margin="16dp"
+                android:contentDescription="@string/download_speed"
+                android:drawablePadding="16dp"
+                app:drawableStartCompat="@drawable/ic_download_24px"
+                tools:text="1.2 GiB • 1.5 MiB/s" />
+        </LinearLayout>
 
-                <TextView
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:drawablePadding="16dp"
-                    android:text="@string/drawer_stat_download"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:drawableStartCompat="@drawable/ic_download_24px" />
+        <LinearLayout
+            android:id="@+id/stat_row_upload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
 
-                <TextView
-                    android:id="@+id/session_download_stat"
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="1.2 GiB • 1.5 MiB/s" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/stat_row_upload"
+            <TextView
+                android:id="@+id/session_upload_stat"
+                style="@style/App.Components.ListItem.Label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp">
-
-                <TextView
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:drawablePadding="16dp"
-                    android:text="@string/drawer_stat_upload"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    app:drawableStartCompat="@drawable/ic_upload_24px" />
-
-                <TextView
-                    android:id="@+id/session_upload_stat"
-                    style="@style/App.Components.ListItem.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="300 MiB • 200 KiB/s" />
-            </LinearLayout>
+                android:layout_margin="16dp"
+                android:contentDescription="@string/upload_speed"
+                android:drawablePadding="16dp"
+                app:drawableStartCompat="@drawable/ic_upload_24px"
+                tools:text="300 MiB • 200 KiB/s" />
         </LinearLayout>
 
         <com.google.android.material.divider.MaterialDivider
@@ -168,11 +125,10 @@
             android:layout_margin="16dp" />
 
         <TextView
-            style="?attr/textAppearanceTitleMedium"
+            style="?attr/textAppearanceTitleLarge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="4dp"
+            android:layout_margin="16dp"
             android:text="@string/filters" />
 
         <RelativeLayout
@@ -500,7 +456,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/no_tags" />
+                android:text="@string/no_category" />
         </io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup>
 
         <com.google.android.material.divider.MaterialDivider

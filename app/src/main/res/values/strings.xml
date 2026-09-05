@@ -271,6 +271,7 @@ LAN devices open it without a login LAN devices open it without a login (tap to 
                             <string name="tags">Tags</string>
     <string name="add_tag">Add tag</string>
     <string name="no_tags">No tags</string>
+    <string name="no_category">No category</string>
     <string name="reset_filter">Reset filter</string>
     <string name="ascending_sort">Ascending sort</string>
     <string name="descending_sort">Descending sort</string>

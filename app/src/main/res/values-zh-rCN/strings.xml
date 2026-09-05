@@ -272,6 +272,7 @@
                             <string name="tags">标签</string>
     <string name="add_tag">添加标签</string>
     <string name="no_tags">无标签</string>
+    <string name="no_category">无分类</string>
     <string name="reset_filter">重置筛选</string>
     <string name="ascending_sort">升序</string>
     <string name="descending_sort">降序</string>

@@ -1259,12 +1259,18 @@ class MainActivity : AppCompatActivity() {
         // LibreTorrent parity: the stat rows are ALWAYS rebound — a null
         // transfer (connection dropped, engine restarting) zeroes them
         // instead of leaving the last poll's values frozen on screen.
+        //
+        // Line format matches LibreTorrent's drawer strings: the
+        // download/upload rows read "size • speed" (the icon carries the
+        // direction), the port/DHT rows read "label: value" — labels come
+        // from the already-translated row strings so no locale loses them.
         val t = state.transfer
         d.sessionDownloadStat.text =
             "${Format.size(t?.dlInfoData ?: 0L)} • ${Format.speed(t?.dlInfoSpeed ?: 0L)}"
         d.sessionUploadStat.text =
             "${Format.size(t?.upInfoData ?: 0L)} • ${Format.speed(t?.upInfoSpeed ?: 0L)}"
-        d.sessionDhtNodesStat.text = (t?.dhtNodes ?: 0L).toString()
+        d.sessionDhtNodesStat.text =
+            getString(R.string.drawer_stat_dht) + ": " + (t?.dhtNodes ?: 0L)
         // Listening port: the bundled engine's WebUI port, or the active
         // remote server's port — LibreTorrent drawer row.
         val listenPort = if (prefs.usingLocalEngine) {
@@ -1272,7 +1278,8 @@ class MainActivity : AppCompatActivity() {
         } else {
             prefs.activeServer()?.port ?: ServerConfig.DEFAULT_PORT
         }
-        d.sessionListenPortStat.text = listenPort.toString()
+        d.sessionListenPortStat.text =
+            getString(R.string.listen_port_stat) + ": " + listenPort
 
         updateDrawerChips(state.categories, state.tags)
     }
