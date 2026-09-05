@@ -51,9 +51,19 @@
          progress tracks everywhere, so the dot is turned off globally via
          the theme default (linearProgressIndicatorStyle) — the attribute
          is the defStyleAttr of every LinearProgressIndicator, including
-         the ones created without an explicit style. -->
+         the ones created without an explicit style.
+
+         One spec for EVERY linear progress bar in the app (list rows,
+         file rows, overview, peers, dialogs, loading strips):
+         4dp thickness + 2dp track corner = the pill shape; indicator /
+         track colors stay the M3 defaults (colorPrimary on
+         colorSurfaceVariant) unless code overrides them semantically
+         (torrent state color, file priority color — always paired with
+         the matching translucent track, see TorrentStateColors). -->
     <style name="Widget.App.LinearProgressIndicator" parent="Widget.Material3.LinearProgressIndicator">
         <item name="trackStopIndicatorSize">0dp</item>
+        <item name="trackThickness">4dp</item>
+        <item name="trackCornerRadius">2dp</item>
     </style>
 
     <!-- Drawer filter chips, laid out in fixed 3-column grids

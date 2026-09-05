@@ -196,6 +196,11 @@ interface QBApiService {
     suspend fun createCategory(
         @Field("category") category: String,
         @Field("savePath") savePath: String,
+        // Tri-state incomplete-torrent path (qBC parity): null = follow the
+        // global setting (field omitted — Retrofit skips null @Field values),
+        // true/false = explicit on/off. downloadPath only sent when enabled.
+        @Field("downloadPathEnabled") downloadPathEnabled: Boolean?,
+        @Field("downloadPath") downloadPath: String?,
     ): Response<ResponseBody>
 
     @FormUrlEncoded
@@ -203,6 +208,8 @@ interface QBApiService {
     suspend fun editCategory(
         @Field("category") category: String,
         @Field("savePath") savePath: String,
+        @Field("downloadPathEnabled") downloadPathEnabled: Boolean?,
+        @Field("downloadPath") downloadPath: String?,
     ): Response<ResponseBody>
 
     @FormUrlEncoded

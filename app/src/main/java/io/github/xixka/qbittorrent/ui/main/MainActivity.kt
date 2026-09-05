@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -24,11 +25,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import android.text.Editable
+import android.text.TextWatcher
+import androidx.appcompat.app.AlertDialog
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.divider.MaterialDividerItemDecoration
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textview.MaterialTextView
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.R
@@ -39,6 +45,7 @@ import io.github.xixka.qbittorrent.databinding.DialogAddLinkBinding
 import io.github.xixka.qbittorrent.databinding.SheetFabMenuBinding
 import io.github.xixka.qbittorrent.databinding.HomeDrawerContentBinding
 import io.github.xixka.qbittorrent.ui.createtorrent.CreateTorrentActivity
+import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.ServerState
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
@@ -769,17 +776,33 @@ class MainActivity : AppCompatActivity() {
         // Quick speed limits: the speed-display rows under the transfer
         // stats open the limits dialog (requirement: speed limits live at
         // the speed display, no extra rows, no menu entry).
-        d.sessionDownloadStat.setOnClickListener { showSpeedLimitDialog() }
-        d.sessionUploadStat.setOnClickListener { showSpeedLimitDialog() }
+        d.statRowDownload.setOnClickListener { showSpeedLimitDialog() }
+        d.statRowUpload.setOnClickListener { showSpeedLimitDialog() }
         // LibreTorrent drawer stats rows: tapping the download/upload rows
         // opens the quick speed-limit sheet; tapping the listening-port and
         // DHT rows pops up the qBitController-style statistics dialog (the
         // ONLY statistics entry — there is no duplicate one in Settings).
-        d.sessionListenPortStat.setOnClickListener { showStatisticsDialog() }
-        d.sessionDhtNodesStat.setOnClickListener { showStatisticsDialog() }
+        // Listeners sit on the full-width row containers so the whole row
+        // stays the touch target, not just the right-aligned value.
+        d.statRowPort.setOnClickListener { showStatisticsDialog() }
+        d.statRowDht.setOnClickListener { showStatisticsDialog() }
     }
 
-    // ---------------- categories (qBC parity: name + save path) ----------------
+    // ---------------- categories (qBC parity: name + save path +
+    // incomplete-torrent path tri-state) ----------------
+
+    /** The user's category form input (create/edit dialog output). */
+    private data class CategoryInput(
+        val name: String,
+        val savePath: String,
+        /** null = follow the global setting, true/false = explicit on/off. */
+        val downloadPathEnabled: Boolean?,
+        val downloadPath: String,
+    ) {
+        /** downloadPath is only sent to the engine while the mode is "on". */
+        val downloadPathField: String?
+            get() = downloadPath.takeIf { downloadPathEnabled == true }
+    }
 
     /**
      * Assign or clear a category on the selected torrents, qBittorrent
@@ -800,7 +823,7 @@ class MainActivity : AppCompatActivity() {
                 val picked = options[which]
                 when {
                     picked == getString(R.string.category_new) ->
-                        promptCategoryName { name, path -> createAndApplyCategory(hashes, name, path) }
+                        promptCategory { input -> createAndApplyCategory(hashes, input) }
 
                     picked == getString(R.string.category_remove) ->
                         applyCategory(hashes, "")
@@ -814,18 +837,24 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * "New category" from the torrent context menu: the WebUI first REGISTERS
-     * the category through the dynamic categories API (name + save path) and
-     * only then assigns it. Previously this path threw the typed save path
-     * away and relied on setCategory's implicit auto-create, so a category
-     * made here never got its own path — the dynamic-API creation the
-     * round-18 commit message promised was effectively missing.
+     * the category through the dynamic categories API (name + save path +
+     * incomplete-path settings) and only then assigns it. Previously this
+     * path threw the typed save path away and relied on setCategory's
+     * implicit auto-create, so a category made here never got its own path —
+     * the dynamic-API creation the round-18 commit message promised was
+     * effectively missing.
      */
-    private fun createAndApplyCategory(hashes: List<String>, name: String, path: String) {
+    private fun createAndApplyCategory(hashes: List<String>, input: CategoryInput) {
         lifecycleScope.launch {
             runCatching {
-                ServiceLocator.repository(this@MainActivity).createCategory(name, path)
+                ServiceLocator.repository(this@MainActivity).createCategory(
+                    input.name,
+                    input.savePath,
+                    input.downloadPathEnabled,
+                    input.downloadPathField,
+                )
             }
-            applyCategory(hashes, name)
+            applyCategory(hashes, input.name)
         }
     }
 
@@ -843,27 +872,111 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** qBC-style new category dialog: name + save path. */
-    private fun promptCategoryName(onName: (String, String) -> Unit) {
+    /**
+     * Create/edit category dialog, qBC CreateEditCategoryDialog parity:
+     * name + save path + the incomplete-torrent path tri-state (dropdown
+     * "follow the global setting / on / off") + the incomplete path field,
+     * which is only editable while the mode is "on". OK validates first —
+     * an empty name shows the inline error and KEEPS the dialog open
+     * (qBC behavior) instead of silently dismissing.
+     */
+    private fun promptCategory(
+        titleRes: Int = R.string.add_category,
+        initial: QBCategory? = null,
+        onConfirm: (CategoryInput) -> Unit,
+    ) {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_category, null)
+        val nameLayout = view.findViewById<TextInputLayout>(R.id.category_name_layout)
         val nameInput = view.findViewById<TextInputEditText>(R.id.category_name)
         val pathInput = view.findViewById<TextInputEditText>(R.id.category_save_path)
-        lifecycleScope.launch {
-            runCatching {
-                val def = ServiceLocator.repository(this@MainActivity).defaultSavePath()
-                pathInput?.hint = def
+        val modeInput =
+            view.findViewById<MaterialAutoCompleteTextView>(R.id.category_download_path_mode)
+        val dlPathLayout =
+            view.findViewById<TextInputLayout>(R.id.category_download_path_layout)
+        val dlPathInput = view.findViewById<TextInputEditText>(R.id.category_download_path)
+
+        if (initial == null) {
+            // New category: hint the server's default save location so the
+            // user knows what "leave blank" resolves to.
+            lifecycleScope.launch {
+                runCatching {
+                    val def = ServiceLocator.repository(this@MainActivity).defaultSavePath()
+                    pathInput?.hint = def
+                }
             }
+        } else {
+            nameInput?.setText(initial.name)
+            pathInput?.setText(initial.savePath)
+            dlPathInput?.setText(initial.downloadPath)
         }
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.add_category)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val name = nameInput?.text?.toString()?.trim().orEmpty()
-                val path = pathInput?.text?.toString()?.trim().orEmpty()
-                if (name.isNotEmpty()) onName(name, path)
+
+        // Tri-state dropdown: 0 = follow global setting, 1 = on, 2 = off
+        val modes = listOf(
+            getString(R.string.category_download_path_default),
+            getString(R.string.category_download_path_enabled),
+            getString(R.string.category_download_path_disabled),
+        )
+        var mode = when (initial?.downloadPathEnabled) {
+            true -> 1
+            false -> 2
+            else -> 0
+        }
+        fun syncModeUi() {
+            modeInput?.setText(modes[mode], false)
+            // The incomplete-path field only makes sense (and only edits)
+            // while the mode is explicitly "on".
+            dlPathLayout?.isEnabled = mode == 1
+        }
+        modeInput?.setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_list_item_1, modes)
+        )
+        modeInput?.setOnItemClickListener { _, _, position ->
+            mode = position
+            syncModeUi()
+        }
+        syncModeUi()
+
+        // Typing after an error clears it immediately.
+        nameInput?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                nameLayout?.error = null
             }
+        })
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(titleRes)
+            .setView(view)
+            // The click handler is replaced after show() so a blank name
+            // can keep the dialog open (default buttons auto-dismiss).
+            .setPositiveButton(android.R.string.ok, null)
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
+            val input = CategoryInput(
+                name = nameInput?.text?.toString()?.trim().orEmpty(),
+                savePath = pathInput?.text?.toString()?.trim().orEmpty(),
+                downloadPathEnabled = when (mode) {
+                    1 -> true
+                    2 -> false
+                    else -> null
+                },
+                downloadPath = if (mode == 1) {
+                    dlPathInput?.text?.toString()?.trim().orEmpty()
+                } else {
+                    ""
+                },
+            )
+            if (input.name.isEmpty()) {
+                nameLayout?.error = getString(R.string.category_name_empty_error)
+            } else {
+                nameLayout?.error = null
+                dialog.dismiss()
+                onConfirm(input)
+            }
+        }
     }
 
     /** Long-press a category chip to rename or delete it. */
@@ -882,42 +995,49 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showRenameCategoryDialog(name: String) {
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_category, null)
-        val nameInput = view.findViewById<TextInputEditText>(R.id.category_name)
-        val pathInput = view.findViewById<TextInputEditText>(R.id.category_save_path)
-        nameInput?.setText(name)
-        // Prefill the current save path from the live categories API.
         lifecycleScope.launch {
-            runCatching { repo().categories() }.getOrNull()?.get(name)?.let { meta ->
-                pathInput?.setText(meta.savePath)
-            }
-        }
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.category_rename)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newName = nameInput?.text?.toString()?.trim().orEmpty()
-                val newPath = pathInput?.text?.toString()?.trim().orEmpty()
-                if (newName.isNotEmpty()) {
-                    lifecycleScope.launch {
-                        // Renaming = create the new category, move the torrents,
-                        // then drop the old one (the WebUI does the same dance
-                        // because the API has no direct rename).
-                        runCatching {
-                            val repo = ServiceLocator.repository(this@MainActivity)
+            // Prefill every field from the live categories API — the
+            // incomplete-path tri-state included.
+            val existing = runCatching { repo().categories() }
+                .getOrNull()?.get(name) ?: QBCategory(name = name)
+            promptCategory(
+                titleRes = R.string.category_rename,
+                initial = existing,
+            ) { input ->
+                lifecycleScope.launch {
+                    runCatching {
+                        val repo = ServiceLocator.repository(this@MainActivity)
+                        if (input.name == name) {
+                            // Pure path edit — the API has a dedicated
+                            // editCategory endpoint (qBC EditCategory).
+                            repo.editCategory(
+                                name,
+                                input.savePath,
+                                input.downloadPathEnabled,
+                                input.downloadPathField,
+                            )
+                        } else {
+                            // Renaming = create the new category, move the
+                            // torrents, then drop the old one (the WebUI does
+                            // the same dance because the API has no direct
+                            // rename).
                             val hashes = viewModel.state.value.torrents
                                 .filter { it.category == name }
                                 .map { it.hash }
-                            repo.createCategory(newName, newPath)
-                            if (hashes.isNotEmpty()) repo.setCategory(hashes, newName)
-                            if (newName != name) repo.removeCategory(name)
+                            repo.createCategory(
+                                input.name,
+                                input.savePath,
+                                input.downloadPathEnabled,
+                                input.downloadPathField,
+                            )
+                            if (hashes.isNotEmpty()) repo.setCategory(hashes, input.name)
+                            repo.removeCategory(name)
                         }
-                        viewModel.refresh()
                     }
+                    viewModel.refresh()
                 }
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
     }
 
     private fun confirmDeleteCategory(name: String) {
@@ -941,10 +1061,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddCategoryDialog() {
-        promptCategoryName { name, path ->
+        promptCategory { input ->
             lifecycleScope.launch {
                 runCatching {
-                    ServiceLocator.repository(this@MainActivity).createCategory(name, path)
+                    ServiceLocator.repository(this@MainActivity).createCategory(
+                        input.name,
+                        input.savePath,
+                        input.downloadPathEnabled,
+                        input.downloadPathField,
+                    )
                 }
                 viewModel.refresh()
             }
@@ -1139,22 +1264,15 @@ class MainActivity : AppCompatActivity() {
             "${Format.size(t?.dlInfoData ?: 0L)} • ${Format.speed(t?.dlInfoSpeed ?: 0L)}"
         d.sessionUploadStat.text =
             "${Format.size(t?.upInfoData ?: 0L)} • ${Format.speed(t?.upInfoSpeed ?: 0L)}"
-        d.sessionDhtNodesStat.text =
-            getString(R.string.dht_nodes_stat, (t?.dhtNodes ?: 0L).toString())
+        d.sessionDhtNodesStat.text = (t?.dhtNodes ?: 0L).toString()
         // Listening port: the bundled engine's WebUI port, or the active
-        // remote server's port — LibreTorrent drawer row. The bundled
-        // engine's resident memory (VmRSS) rides along in the same row.
+        // remote server's port — LibreTorrent drawer row.
         val listenPort = if (prefs.usingLocalEngine) {
             prefs.enginePort
         } else {
             prefs.activeServer()?.port ?: ServerConfig.DEFAULT_PORT
         }
-        d.sessionListenPortStat.text = buildString {
-            append(getString(R.string.listen_port_stat)).append(": ").append(listenPort)
-            state.engineRss?.let { rss ->
-                append("  •  ").append(getString(R.string.mem_usage, Format.size(rss)))
-            }
-        }
+        d.sessionListenPortStat.text = listenPort.toString()
 
         updateDrawerChips(state.categories, state.tags)
     }

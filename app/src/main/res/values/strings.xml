@@ -343,7 +343,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Updating…</string>
     <string name="tracker_not_working">Not working</string>
     <string name="share">Share</string>
-    <string name="dht_nodes_stat">DHT nodes: %1$s</string>
     <string name="total_torrents_stat">Torrents: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -448,7 +447,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Trackers to add (one per line)</string>
     <string name="listen_port_stat">Port</string>
     <string name="qbt_conn_listen">Listening port</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Port used for incoming connections</string>
     <string name="qbt_upnp">Use UPnP / NAT-PMP port forwarding</string>
     <string name="qbt_conn_limits">Connection limits</string>
@@ -1109,4 +1107,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">No categories yet</string>
     <string name="category_torrents_fmt">%1$d torrents</string>
     <string name="category_exists_fmt">Category “%1$s” already exists</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">DHT nodes</string>
+    <string name="drawer_stat_download">Download</string>
+    <string name="drawer_stat_upload">Upload</string>
+    <string name="category_download_path_mode">Incomplete torrents path</string>
+    <string name="category_download_path_default">Use global setting</string>
+    <string name="category_download_path_enabled">Enabled</string>
+    <string name="category_download_path_disabled">Disabled</string>
+    <string name="category_download_path">Incomplete torrents save path</string>
+    <string name="category_download_path_helper">Used while the torrent is still downloading; leave blank to follow the save path.</string>
+    <string name="category_name_empty_error">Name cannot be empty</string>
 </resources>

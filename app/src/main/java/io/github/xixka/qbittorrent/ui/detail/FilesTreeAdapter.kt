@@ -13,6 +13,7 @@ import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ItemQbcFileBinding
 import io.github.xixka.qbittorrent.model.TorrentFileNode
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.TorrentStateColors
 import java.util.Locale
 
 /**
@@ -64,7 +65,8 @@ class FilesTreeAdapter(
                 binding.typeIcon.setImageResource(R.drawable.ic_file_24px)
             }
 
-            // priority-colored progress bar (qBC filePriority colors)
+            // priority-colored progress bar (qBC filePriority colors),
+            // track = same color at 38% alpha (shared TorrentStateColors spec)
             val (priorityColor, priorityText) = when (node.priority) {
                 0 -> R.color.colorFilePrioritySkipped to
                     context.getString(R.string.torrent_files_priority_do_not_download)
@@ -80,7 +82,7 @@ class FilesTreeAdapter(
             val color = ContextCompat.getColor(context, priorityColor)
             binding.fileProgress.apply {
                 setIndicatorColor(color)
-                trackColor = (color and 0x00FFFFFF) or 0x61000000
+                trackColor = TorrentStateColors.translucentTrack(color)
                 setProgress((node.progress * 100).toInt().coerceIn(0, 100))
             }
 

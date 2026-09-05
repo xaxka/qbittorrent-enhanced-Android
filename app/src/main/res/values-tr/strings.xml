@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Güncelleniyor…</string>
     <string name="tracker_not_working">Çalışmıyor</string>
     <string name="share">Paylaş</string>
-    <string name="dht_nodes_stat">DHT düğümleri: %1$s</string>
     <string name="total_torrents_stat">Torrentler: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Eklenecek trackerlar (satır başına bir tane)</string>
     <string name="listen_port_stat">Port</string>
     <string name="qbt_conn_listen">Dinleme bağlantı noktası</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Gelen bağlantılar için kullanılan port</string>
     <string name="qbt_upnp">UPnP / NAT-PMP port yönlendirmeyi kullan</string>
     <string name="qbt_conn_limits">Bağlantı sınırları</string>
@@ -1109,4 +1107,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Henüz kategori yok</string>
     <string name="category_torrents_fmt">%1$d torrent</string>
     <string name="category_exists_fmt">“%1$s” kategorisi zaten var</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">DHT düğümleri</string>
+    <string name="drawer_stat_download">İndirme</string>
+    <string name="drawer_stat_upload">Gönderme</string>
+    <string name="category_download_path_mode">Eksik torrent yolu</string>
+    <string name="category_download_path_default">Genel ayarı kullan</string>
+    <string name="category_download_path_enabled">Etkin</string>
+    <string name="category_download_path_disabled">Devre dışı</string>
+    <string name="category_download_path">Eksik torrent kayıt yolu</string>
+    <string name="category_download_path_helper">İndirme sürerken kullanılır; kayıt yolunu takip etmek için boş bırakın.</string>
+    <string name="category_name_empty_error">Ad boş olamaz</string>
 </resources>

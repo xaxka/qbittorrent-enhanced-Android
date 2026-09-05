@@ -24,54 +24,143 @@
         android:paddingTop="4dp"
         android:paddingBottom="12dp">
 
+        <!-- Stats: compact settings-style rows — icon + muted label on the
+             left, live value right-aligned, 8dp rhythm between rows. All
+             section headers (统计/筛选/…) use TitleMedium so the drawer reads
+             as one coherent panel instead of a mix of oversized and small
+             titles. The engine RSS figure was dropped from the port row:
+             it is engine-internal noise, not something a user can act on. -->
         <TextView
-            style="?attr/textAppearanceTitleLarge"
+            style="?attr/textAppearanceTitleMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
             android:text="@string/stats" />
 
-        <TextView
-            android:id="@+id/session_listen_port_stat"
-            style="@style/App.Components.ListItem.Label"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:drawablePadding="16dp"
-            app:drawableStartCompat="@drawable/ic_lan_24px"
-            tools:text="Listening port: 6881" />
+            android:layout_marginHorizontal="16dp"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/session_dht_nodes_stat"
-            style="@style/App.Components.ListItem.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:drawablePadding="16dp"
-            app:drawableStartCompat="@drawable/ic_hub_24px"
-            tools:text="DHT nodes: 100" />
+            <LinearLayout
+                android:id="@+id/stat_row_port"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp">
 
-        <TextView
-            android:id="@+id/session_download_stat"
-            style="@style/App.Components.ListItem.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:contentDescription="@string/download_speed"
-            android:drawablePadding="16dp"
-            app:drawableStartCompat="@drawable/ic_download_24px"
-            tools:text="1 Mb/s • 1 Mb/s" />
+                <TextView
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawablePadding="16dp"
+                    android:text="@string/listen_port_stat"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:drawableStartCompat="@drawable/ic_lan_24px" />
 
-        <TextView
-            android:id="@+id/session_upload_stat"
-            style="@style/App.Components.ListItem.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:contentDescription="@string/upload_speed"
-            android:drawablePadding="16dp"
-            app:drawableStartCompat="@drawable/ic_upload_24px"
-            tools:text="1 Mb/s • 1 Mb/s" />
+                <TextView
+                    android:id="@+id/session_listen_port_stat"
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="6881" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/stat_row_dht"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawablePadding="16dp"
+                    android:text="@string/drawer_stat_dht"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:drawableStartCompat="@drawable/ic_hub_24px" />
+
+                <TextView
+                    android:id="@+id/session_dht_nodes_stat"
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="100" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/stat_row_download"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawablePadding="16dp"
+                    android:text="@string/drawer_stat_download"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:drawableStartCompat="@drawable/ic_download_24px" />
+
+                <TextView
+                    android:id="@+id/session_download_stat"
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="1.2 GiB • 1.5 MiB/s" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/stat_row_upload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp">
+
+                <TextView
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawablePadding="16dp"
+                    android:text="@string/drawer_stat_upload"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:drawableStartCompat="@drawable/ic_upload_24px" />
+
+                <TextView
+                    android:id="@+id/session_upload_stat"
+                    style="@style/App.Components.ListItem.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="300 MiB • 200 KiB/s" />
+            </LinearLayout>
+        </LinearLayout>
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
@@ -79,10 +168,11 @@
             android:layout_margin="16dp" />
 
         <TextView
-            style="?attr/textAppearanceTitleLarge"
+            style="?attr/textAppearanceTitleMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="4dp"
             android:text="@string/filters" />
 
         <RelativeLayout

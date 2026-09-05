@@ -249,7 +249,28 @@ data class TransferInfo(
 data class QBCategory(
     @SerializedName("name") val name: String = "",
     @SerializedName("savePath") val savePath: String = "",
-)
+    /**
+     * Per-category incomplete-torrent path ("download_path"). The engine
+     * encodes the tri-state as: string = a concrete path (enabled),
+     * boolean false = explicitly disabled, key absent/null = follow the
+     * global setting — the same tri-state qBitController's
+     * Category.DownloadPath models. [Any] because Gson maps the JSON
+     * string to String and false to Boolean.
+     */
+    @SerializedName("download_path") val rawDownloadPath: Any? = null,
+) {
+    /** null = follow global setting, true = use [downloadPath], false = off. */
+    val downloadPathEnabled: Boolean?
+        get() = when (rawDownloadPath) {
+            is String -> true
+            is Boolean -> false
+            else -> null
+        }
+
+    /** The incomplete-torrent path; empty unless [downloadPathEnabled] is true. */
+    val downloadPath: String
+        get() = (rawDownloadPath as? String).orEmpty()
+}
 
 
 // ---------------------------------------------------------------------------

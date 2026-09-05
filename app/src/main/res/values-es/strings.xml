@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Actualizando…</string>
     <string name="tracker_not_working">No funciona</string>
     <string name="share">Compartir</string>
-    <string name="dht_nodes_stat">Nodos DHT: %1$s</string>
     <string name="total_torrents_stat">Torrents: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Trackers a añadir (uno por línea)</string>
     <string name="listen_port_stat">Puerto</string>
     <string name="qbt_conn_listen">Puerto de escucha</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Puerto usado para conexiones entrantes</string>
     <string name="qbt_upnp">Usar redirección de puertos UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Límites de conexión</string>
@@ -1113,4 +1111,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Aún no hay categorías</string>
     <string name="category_torrents_fmt">%1$d torrents</string>
     <string name="category_exists_fmt">La categoría «%1$s» ya existe</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">Nodos DHT</string>
+    <string name="drawer_stat_download">Descarga</string>
+    <string name="drawer_stat_upload">Subida</string>
+    <string name="category_download_path_mode">Ruta de torrents incompletos</string>
+    <string name="category_download_path_default">Usar ajuste global</string>
+    <string name="category_download_path_enabled">Activado</string>
+    <string name="category_download_path_disabled">Desactivado</string>
+    <string name="category_download_path">Ruta de guardado de torrents incompletos</string>
+    <string name="category_download_path_helper">Se usa mientras el torrent aún se descarga; déjalo vacío para usar la ruta de guardado.</string>
+    <string name="category_name_empty_error">El nombre no puede estar vacío</string>
 </resources>

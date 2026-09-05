@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">업데이트 중…</string>
     <string name="tracker_not_working">작동 안 함</string>
     <string name="share">공유</string>
-    <string name="dht_nodes_stat">DHT 노드: %1$s</string>
     <string name="total_torrents_stat">토렌트: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">추가할 Tracker (한 줄에 하나)</string>
     <string name="listen_port_stat">포트</string>
     <string name="qbt_conn_listen">수신 포트</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">들어오는 연결에 사용할 포트</string>
     <string name="qbt_upnp">UPnP / NAT-PMP 포트 포워딩 사용</string>
     <string name="qbt_conn_limits">연결 제한</string>
@@ -1109,4 +1107,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">아직 카테고리가 없습니다</string>
     <string name="category_torrents_fmt">토런트 %1$d개</string>
     <string name="category_exists_fmt">카테고리 “%1$s”이(가) 이미 있습니다</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">DHT 노드</string>
+    <string name="drawer_stat_download">다운로드</string>
+    <string name="drawer_stat_upload">업로드</string>
+    <string name="category_download_path_mode">미완료 토렌트 경로</string>
+    <string name="category_download_path_default">전역 설정 사용</string>
+    <string name="category_download_path_enabled">활성화</string>
+    <string name="category_download_path_disabled">비활성화</string>
+    <string name="category_download_path">미완료 토렌트 저장 경로</string>
+    <string name="category_download_path_helper">토렌트 다운로드 중에 사용됩니다. 비워 두면 저장 경로를 따릅니다.</string>
+    <string name="category_name_empty_error">이름은 비워 둘 수 없습니다</string>
 </resources>

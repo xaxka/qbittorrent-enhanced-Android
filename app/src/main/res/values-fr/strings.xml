@@ -341,7 +341,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Mise à jour…</string>
     <string name="tracker_not_working">Ne fonctionne pas</string>
     <string name="share">Partager</string>
-    <string name="dht_nodes_stat">Nœuds DHT : %1$s</string>
     <string name="total_torrents_stat">Torrents : %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -446,7 +445,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Trackers à ajouter (un par ligne)</string>
     <string name="listen_port_stat">Port</string>
     <string name="qbt_conn_listen">Port d\'écoute</string>
-    <string name="mem_usage">RAM : %1$s</string>
     <string name="qbt_listen_port">Port utilisé pour les connexions entrantes</string>
     <string name="qbt_upnp">Utiliser la redirection UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Limites de connexion</string>
@@ -1112,4 +1110,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Aucune catégorie pour le moment</string>
     <string name="category_torrents_fmt">%1$d torrents</string>
     <string name="category_exists_fmt">La catégorie « %1$s » existe déjà</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">Nœuds DHT</string>
+    <string name="drawer_stat_download">Téléchargement</string>
+    <string name="drawer_stat_upload">Envoi</string>
+    <string name="category_download_path_mode">Chemin des torrents incomplets</string>
+    <string name="category_download_path_default">Utiliser le paramètre global</string>
+    <string name="category_download_path_enabled">Activé</string>
+    <string name="category_download_path_disabled">Désactivé</string>
+    <string name="category_download_path">Chemin d\'enregistrement des torrents incomplets</string>
+    <string name="category_download_path_helper">Utilisé tant que le téléchargement est en cours ; laisser vide pour suivre le chemin de sauvegarde.</string>
+    <string name="category_name_empty_error">Le nom ne peut pas être vide</string>
 </resources>

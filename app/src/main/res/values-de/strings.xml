@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Aktualisiert…</string>
     <string name="tracker_not_working">Funktioniert nicht</string>
     <string name="share">Teilen</string>
-    <string name="dht_nodes_stat">DHT-Knoten: %1$s</string>
     <string name="total_torrents_stat">Torrents: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Hinzuzufügende Tracker (einer pro Zeile)</string>
     <string name="listen_port_stat">Port</string>
     <string name="qbt_conn_listen">Empfangsport</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Port für eingehende Verbindungen</string>
     <string name="qbt_upnp">UPnP / NAT-PMP-Portweiterleitung verwenden</string>
     <string name="qbt_conn_limits">Verbindungsbegrenzungen</string>
@@ -1109,4 +1107,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Noch keine Kategorien</string>
     <string name="category_torrents_fmt">%1$d Torrents</string>
     <string name="category_exists_fmt">Kategorie „%1$s“ existiert bereits</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">DHT-Knoten</string>
+    <string name="drawer_stat_download">Download</string>
+    <string name="drawer_stat_upload">Upload</string>
+    <string name="category_download_path_mode">Pfad für unvollständige Torrents</string>
+    <string name="category_download_path_default">Globale Einstellung verwenden</string>
+    <string name="category_download_path_enabled">Aktiviert</string>
+    <string name="category_download_path_disabled">Deaktiviert</string>
+    <string name="category_download_path">Speicherpfad für unvollständige Torrents</string>
+    <string name="category_download_path_helper">Wird verwendet, solange der Torrent noch lädt; leer lassen für den Speicherpfad.</string>
+    <string name="category_name_empty_error">Name darf nicht leer sein</string>
 </resources>

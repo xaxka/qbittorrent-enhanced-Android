@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Обновляется…</string>
     <string name="tracker_not_working">Не работает</string>
     <string name="share">Поделиться</string>
-    <string name="dht_nodes_stat">Узлы DHT: %1$s</string>
     <string name="total_torrents_stat">Торренты: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Добавляемые трекеры (по одному в строке)</string>
     <string name="listen_port_stat">Порт</string>
     <string name="qbt_conn_listen">Порт приёма</string>
-    <string name="mem_usage">ОЗУ: %1$s</string>
     <string name="qbt_listen_port">Порт для входящих соединений</string>
     <string name="qbt_upnp">Использовать UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Ограничения соединений</string>
@@ -1117,4 +1115,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Категорий пока нет</string>
     <string name="category_torrents_fmt">Торрентов: %1$d</string>
     <string name="category_exists_fmt">Категория «%1$s» уже существует</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">Узлы DHT</string>
+    <string name="drawer_stat_download">Загрузка</string>
+    <string name="drawer_stat_upload">Отдача</string>
+    <string name="category_download_path_mode">Путь незавершённых торрентов</string>
+    <string name="category_download_path_default">Использовать глобальную настройку</string>
+    <string name="category_download_path_enabled">Включено</string>
+    <string name="category_download_path_disabled">Выключено</string>
+    <string name="category_download_path">Путь сохранения незавершённых торрентов</string>
+    <string name="category_download_path_helper">Используется, пока торрент скачивается; оставьте пустым для пути сохранения.</string>
+    <string name="category_name_empty_error">Имя не может быть пустым</string>
 </resources>

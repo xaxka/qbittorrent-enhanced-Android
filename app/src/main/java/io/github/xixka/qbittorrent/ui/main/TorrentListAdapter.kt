@@ -10,6 +10,7 @@ import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ItemTorrentListBinding
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.TorrentStateColors
 import io.github.xixka.qbittorrent.util.TorrentStates
 
 /**
@@ -57,7 +58,14 @@ class TorrentListAdapter(
 
         fun bind(t: TorrentInfo) {
             binding.name.text = t.name
-            binding.progress.progress = (t.progress * 100).toInt()
+            // Same state-color mapping as the detail overview bar
+            // (qBC TorrentStateColor parity) so the two agree everywhere.
+            val (indicator, track) = TorrentStateColors.resolve(binding.root, t.state)
+            binding.progress.apply {
+                setIndicatorColor(indicator)
+                trackColor = track
+                progress = (t.progress * 100).toInt()
+            }
             binding.status.text = binding.root.context.getString(TorrentStates.labelRes(t.state))
 
             binding.downloadUploadSpeed.text = buildString {

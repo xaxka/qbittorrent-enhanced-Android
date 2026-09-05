@@ -1,34 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- New-category dialog (qBC parity): name + save path. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Create/edit category dialog, qBC CreateEditCategoryDialog parity:
+     name, save path, incomplete-torrent path tri-state (dropdown: follow
+     the global setting / on / off) and the incomplete path itself (only
+     editable while the mode is "on"). Wrapped in a ScrollView so the four
+     fields never clip on small screens with the keyboard open. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:layout_height="wrap_content">
 
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/category_name">
+        android:orientation="vertical"
+        android:padding="8dp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/category_name"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/category_name_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:hint="@string/category_name"
+            app:errorEnabled="true">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/category_save_path"
-        app:helperText="@string/category_save_path_helper">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/category_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/category_save_path"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text" />
-    </com.google.android.material.textfield.TextInputLayout>
-</LinearLayout>
+            android:layout_marginTop="8dp"
+            android:hint="@string/category_save_path"
+            app:helperText="@string/category_save_path_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/category_save_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/category_download_path_mode">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/category_download_path_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/category_download_path_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/category_download_path"
+            app:helperText="@string/category_download_path_helper">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/category_download_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+</ScrollView>

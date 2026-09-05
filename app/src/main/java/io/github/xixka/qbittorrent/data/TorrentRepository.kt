@@ -209,11 +209,23 @@ class TorrentRepository(private val client: QBApiClient) {
     suspend fun setCategory(hashes: List<String>, category: String) =
         client.withAuth { it.setCategory(hashes.joinToString("|"), category) }
 
-    suspend fun createCategory(name: String, savePath: String) =
-        client.withAuth { it.createCategory(name, savePath) }
+    suspend fun createCategory(
+        name: String,
+        savePath: String,
+        downloadPathEnabled: Boolean? = null,
+        downloadPath: String? = null,
+    ) = client.withAuth {
+        it.createCategory(name, savePath, downloadPathEnabled, downloadPath)
+    }
 
-    suspend fun editCategory(name: String, savePath: String) =
-        client.withAuth { it.editCategory(name, savePath) }
+    suspend fun editCategory(
+        name: String,
+        savePath: String,
+        downloadPathEnabled: Boolean? = null,
+        downloadPath: String? = null,
+    ) = client.withAuth {
+        it.editCategory(name, savePath, downloadPathEnabled, downloadPath)
+    }
 
     suspend fun removeCategory(name: String) =
         client.withAuth { it.removeCategories(name) }

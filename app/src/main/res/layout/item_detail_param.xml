@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One label/value parameter row of the detail overview card (LibreTorrent
      TorrentDetailsInfoFragment parameter-row pattern, qBitController overview
-     field parity). -->
+     field parity). No autoLink: Android's phone/link detectors misfire on
+     dates, hashes and port numbers (tapping a row value used to open the
+     dialer); textIsSelectable keeps copy-to-clipboard. Both columns carry
+     weights so a long value (hash, save path, comment) wraps instead of
+     crushing the label column to zero width. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:baselineAligned="false"
     android:orientation="horizontal"
     android:paddingVertical="4dp">
 
@@ -13,16 +18,16 @@
         style="?attr/textAppearanceBodyMedium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="0.38"
         android:textColor="?attr/colorOnSurfaceVariant" />
 
     <TextView
         android:id="@+id/param_value"
         style="?attr/textAppearanceBodyMedium"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:autoLink="web|email|phone"
+        android:layout_marginStart="12dp"
+        android:layout_weight="0.62"
         android:gravity="end"
         android:textIsSelectable="true" />
 </LinearLayout>

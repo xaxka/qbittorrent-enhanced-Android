@@ -17,6 +17,7 @@ import io.github.xixka.qbittorrent.databinding.SheetPieceMapBinding
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TorrentProperties
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.TorrentStateColors
 import io.github.xixka.qbittorrent.util.TorrentStates
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -144,7 +145,7 @@ class InfoFragment : Fragment() {
 
         binding.progressIndicator.apply {
             setProgress((torrent.progress * 100).toInt().coerceIn(0, 100))
-            val (color, track) = stateColor(torrent.state)
+            val (color, track) = TorrentStateColors.resolve(root, torrent.state)
             setIndicatorColor(color)
             trackColor = track
         }
@@ -262,49 +263,6 @@ class InfoFragment : Fragment() {
                 String.format(Locale.ROOT, "%.2f", torrent.popularity)
         }
         renderRows(binding.transferRows, transferRows)
-    }
-
-    /**
-     * qBC TorrentStateColor parity, mapped onto M3 theme roles:
-     * downloading family (incl. checking/moving) = primary, uploading =
-     * tertiary, paused families = outline, error family = error.
-     */
-    private fun stateColor(state: String): Pair<Int, Int> {
-        val theme = binding.root.context.theme
-        fun attr(resId: Int): Int {
-            val typedValue = android.util.TypedValue()
-            theme.resolveAttribute(resId, typedValue, true)
-            return typedValue.data
-        }
-
-        fun track(base: Int) = (base and 0x00FFFFFF) or 0x61000000
-
-        return when (state.lowercase()) {
-            // uploading family -> tertiary
-            "uploading", "forcedup", "stalledup" -> {
-                val c = attr(com.google.android.material.R.attr.colorTertiary)
-                c to track(c)
-            }
-
-            // paused / stopped family -> outline
-            "stoppedup", "pausedup", "stoppeddl", "pauseddl" -> {
-                val c = attr(com.google.android.material.R.attr.colorOutline)
-                c to track(c)
-            }
-
-            // broken family -> error
-            "error", "missingfiles" -> {
-                val c = attr(android.R.attr.colorError)
-                c to track(c)
-            }
-
-            // everything downloading-ish (incl. stalled, queued, meta,
-            // checking, moving) -> primary
-            else -> {
-                val c = attr(android.R.attr.colorPrimary)
-                c to track(c)
-            }
-        }
     }
 
     /** Display-only category + tags chips (qBC Progress card). */

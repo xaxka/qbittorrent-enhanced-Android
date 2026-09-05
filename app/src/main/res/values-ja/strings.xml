@@ -341,7 +341,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">更新中…</string>
     <string name="tracker_not_working">動作していません</string>
     <string name="share">共有</string>
-    <string name="dht_nodes_stat">DHT ノード：%1$s</string>
     <string name="total_torrents_stat">トレント：%1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -446,7 +445,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">追加する Tracker (1 行に 1 つ)</string>
     <string name="listen_port_stat">ポート</string>
     <string name="qbt_conn_listen">リスニングポート</string>
-    <string name="mem_usage">メモリ: %1$s</string>
     <string name="qbt_listen_port">受信接続に使うポート</string>
     <string name="qbt_upnp">UPnP / NAT-PMP ポート転送を使用</string>
     <string name="qbt_conn_limits">接続の制限</string>
@@ -1108,4 +1106,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">カテゴリはまだありません</string>
     <string name="category_torrents_fmt">%1$d 件のトレント</string>
     <string name="category_exists_fmt">カテゴリ「%1$s」は既に存在します</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">DHT ノード</string>
+    <string name="drawer_stat_download">ダウンロード</string>
+    <string name="drawer_stat_upload">アップロード</string>
+    <string name="category_download_path_mode">未完了トレントのパス</string>
+    <string name="category_download_path_default">グローバル設定に従う</string>
+    <string name="category_download_path_enabled">有効</string>
+    <string name="category_download_path_disabled">無効</string>
+    <string name="category_download_path">未完了トレントの保存先</string>
+    <string name="category_download_path_helper">トレントのダウンロード中に使用。空のままにすると保存先に従います。</string>
+    <string name="category_name_empty_error">名前は空にできません</string>
 </resources>

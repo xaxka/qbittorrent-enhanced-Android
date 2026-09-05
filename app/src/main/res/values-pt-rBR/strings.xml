@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Atualizando…</string>
     <string name="tracker_not_working">Não funciona</string>
     <string name="share">Compartilhar</string>
-    <string name="dht_nodes_stat">Nós DHT: %1$s</string>
     <string name="total_torrents_stat">Torrents: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Trackers a adicionar (um por linha)</string>
     <string name="listen_port_stat">Porta</string>
     <string name="qbt_conn_listen">Porta de escuta</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Porta usada para conexões de entrada</string>
     <string name="qbt_upnp">Usar redirecionamento de porta UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Limites de conexão</string>
@@ -1113,4 +1111,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Nenhuma categoria ainda</string>
     <string name="category_torrents_fmt">%1$d torrents</string>
     <string name="category_exists_fmt">A categoria “%1$s” já existe</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">Nós DHT</string>
+    <string name="drawer_stat_download">Download</string>
+    <string name="drawer_stat_upload">Upload</string>
+    <string name="category_download_path_mode">Caminho de torrents incompletos</string>
+    <string name="category_download_path_default">Usar configuração global</string>
+    <string name="category_download_path_enabled">Ativado</string>
+    <string name="category_download_path_disabled">Desativado</string>
+    <string name="category_download_path">Caminho para torrents incompletos</string>
+    <string name="category_download_path_helper">Usado enquanto o torrent ainda está baixando; deixe vazio para seguir o caminho de salvamento.</string>
+    <string name="category_name_empty_error">O nome não pode ficar vazio</string>
 </resources>

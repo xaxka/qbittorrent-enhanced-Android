@@ -341,7 +341,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">Đang cập nhật…</string>
     <string name="tracker_not_working">Không hoạt động</string>
     <string name="share">Chia sẻ</string>
-    <string name="dht_nodes_stat">Nút DHT: %1$s</string>
     <string name="total_torrents_stat">Torrent: %1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -446,7 +445,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Tracker cần thêm (mỗi dòng một tracker)</string>
     <string name="listen_port_stat">Cổng</string>
     <string name="qbt_conn_listen">Cổng lắng nghe</string>
-    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Cổng dùng cho kết nối đến</string>
     <string name="qbt_upnp">Dùng chuyển tiếp cổng UPnP / NAT-PMP</string>
     <string name="qbt_conn_limits">Giới hạn kết nối</string>
@@ -1108,4 +1106,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">Chưa có danh mục nào</string>
     <string name="category_torrents_fmt">%1$d torrent</string>
     <string name="category_exists_fmt">Danh mục “%1$s” đã tồn tại</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">Nút DHT</string>
+    <string name="drawer_stat_download">Tải xuống</string>
+    <string name="drawer_stat_upload">Tải lên</string>
+    <string name="category_download_path_mode">Đường dẫn torrent chưa hoàn tất</string>
+    <string name="category_download_path_default">Dùng cài đặt chung</string>
+    <string name="category_download_path_enabled">Bật</string>
+    <string name="category_download_path_disabled">Tắt</string>
+    <string name="category_download_path">Đường dẫn lưu torrent chưa hoàn tất</string>
+    <string name="category_download_path_helper">Được dùng khi torrent vẫn đang tải; để trống để theo đường dẫn lưu.</string>
+    <string name="category_name_empty_error">Tên không được để trống</string>
 </resources>

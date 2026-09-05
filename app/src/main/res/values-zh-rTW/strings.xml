@@ -342,7 +342,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="tracker_updating">更新中…</string>
     <string name="tracker_not_working">失效</string>
     <string name="share">分享</string>
-    <string name="dht_nodes_stat">DHT 節點：%1$s</string>
     <string name="total_torrents_stat">種子：%1$d</string>
 
     <!-- update check (GitHub Releases) -->
@@ -447,7 +446,6 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">新增的 Tracker（每行一個）</string>
     <string name="listen_port_stat">連接埠</string>
     <string name="qbt_conn_listen">監聽連接埠</string>
-    <string name="mem_usage">記憶體：%1$s</string>
     <string name="qbt_listen_port">用於傳入連線的連接埠</string>
     <string name="qbt_upnp">使用 UPnP / NAT-PMP 連接埠轉發</string>
     <string name="qbt_conn_limits">連線限制</string>
@@ -1109,4 +1107,16 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="categories_empty">還沒有分類</string>
     <string name="category_torrents_fmt">%1$d 個種子</string>
     <string name="category_exists_fmt">分類「%1$s」已存在</string>
+
+    <!-- round 20: category dialog (qBC parity) + drawer stat labels -->
+    <string name="drawer_stat_dht">DHT 節點</string>
+    <string name="drawer_stat_download">下載</string>
+    <string name="drawer_stat_upload">上傳</string>
+    <string name="category_download_path_mode">未完成種子路徑</string>
+    <string name="category_download_path_default">跟隨全域設定</string>
+    <string name="category_download_path_enabled">啟用</string>
+    <string name="category_download_path_disabled">停用</string>
+    <string name="category_download_path">未完成種子儲存路徑</string>
+    <string name="category_download_path_helper">種子未下載完成時使用；留白則跟隨儲存路徑。</string>
+    <string name="category_name_empty_error">名稱不能為空</string>
 </resources>
