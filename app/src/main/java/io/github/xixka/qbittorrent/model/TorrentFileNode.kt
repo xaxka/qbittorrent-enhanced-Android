@@ -32,7 +32,7 @@ sealed class TorrentFileNode(
         override val level: Int,
         override val path: String,
     ) : TorrentFileNode(name, separator, level, path) {
-        override val priority: Int get() = file.priority
+        override val priority: Int get() = file.normalizedPriority
         override val size: Long get() = file.size
 
         override val downloadedSize: Long

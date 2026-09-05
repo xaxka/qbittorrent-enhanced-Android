@@ -49,16 +49,30 @@ data class TorrentInfo(
     @SerializedName("seeding_time_limit") val seedingTimeLimit: Long = -2L,
     @SerializedName("inactive_seeding_time_limit") val inactiveSeedingTimeLimit: Long = -2L,
     @SerializedName("share_limit_action") val shareLimitAction: String = "Default",
-    /** The engine answers null while metadata is not fetched yet. */
-    @SerializedName("private") val isPrivate: Boolean? = false,
+    /** The engine answers null while metadata is not fetched yet (qBC: row hidden). */
+    @SerializedName("private") val isPrivate: Boolean? = null,
     /** Last chunk up/down (epoch seconds, 0 = never since start). */
     @SerializedName("last_activity") val lastActivity: Long = 0L,
     /** Swarm availability (-1/absent while metadata is missing). */
     @SerializedName("availability") val availability: Double = -1.0,
+    /** BitTorrent infohash v1/v2 (qB >= 5.x reports both on /torrents/info). */
+    @SerializedName("infohash_v1") val infohashV1: String? = null,
+    @SerializedName("infohash_v2") val infohashV2: String? = null,
+    /** Swarm popularity 0..1 (qB >= 5.0; null on older engines — row hidden). */
+    @SerializedName("popularity") val popularity: Double? = null,
 ) {
     val isPaused: Boolean
         get() = state.equals("pausedDL", ignoreCase = true) || state.equals("pausedUP", ignoreCase = true) ||
                 state.equals("stoppedDL", ignoreCase = true) || state.equals("stoppedUP", ignoreCase = true)
+
+    /**
+     * qBC menu logic: a torrent that is stopped-or-broken offers "Resume" —
+     * paused, stopped, error and missing-files states all count (an error
+     * torrent can only be resumed, pausing it is a no-op in the engine).
+     */
+    val isStoppedOrBroken: Boolean
+        get() = isPaused || state.startsWith("error", ignoreCase = true) ||
+                state.startsWith("missing", ignoreCase = true)
 
     val isActive: Boolean
         get() = dlSpeed > 0 || upSpeed > 0 ||
@@ -93,7 +107,7 @@ data class TorrentProperties(
     @SerializedName("nb_connections_limit") val connectionsLimit: Long = -1L,
     @SerializedName("peers") val peers: Long = 0L,
     @SerializedName("peers_total") val peersTotal: Long = 0L,
-    @SerializedName("piece_have") val piecesHave: Long = 0L,
+    @SerializedName("pieces_have") val piecesHave: Long = 0L,
     @SerializedName("pieces_num") val piecesNum: Long = 0L,
     @SerializedName("piece_size") val pieceSize: Long = 0L,
     @SerializedName("reannounce") val reannounce: Long = 0L,
@@ -132,6 +146,14 @@ data class TorrentFile(
     /** progress is 0..1 on qBittorrent < 5.1 and 0..100 on newer releases */
     val progressFraction: Double
         get() = if (progress > 1.0) progress / 100.0 else progress
+
+    /**
+     * qBC TorrentFile parity: priority 4 is the legacy "normal" value some
+     * engine versions still report — normalize it to 1 so the row does not
+     * render as "Mixed".
+     */
+    val normalizedPriority: Int
+        get() = if (priority == 4) 1 else priority
 
     val isSkipped: Boolean get() = priority == 0
 }
@@ -194,6 +216,8 @@ data class Peer(
     @SerializedName("files") val files: String = "",
     @SerializedName("country") val country: String = "",
     @SerializedName("country_code") val countryCode: String = "",
+    /** qBC peer-details dialog parity: client fingerprint of the peer id. */
+    @SerializedName("peer_id_client") val peerIdClient: String = "",
 ) {
     /** progress is 0..1 (older) or 0..100 (newer qBittorrent) */
     val progressFraction: Double

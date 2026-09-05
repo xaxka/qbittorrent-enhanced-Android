@@ -58,6 +58,17 @@
                 tools:text="qBittorrent 5.2.0" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/peer_connection"
+            style="?attr/textAppearanceBodySmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            tools:text="Connection: µTP"
+            tools:visibility="visible" />
+
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

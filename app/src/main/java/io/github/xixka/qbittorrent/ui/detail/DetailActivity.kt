@@ -110,11 +110,6 @@ class DetailActivity : AppCompatActivity() {
                 launch {
                     overviewViewModel.eventFlow.collect { event ->
                         showEvent(event)
-                        if (event is DetailEvent.Message &&
-                            event.res == R.string.torrent_error_not_found
-                        ) {
-                            finish()
-                        }
                     }
                 }
                 launch { filesViewModel.eventFlow.collect(::showEvent) }
@@ -124,6 +119,11 @@ class DetailActivity : AppCompatActivity() {
             }
         }
     }
+
+    /** The pager, exposed so each tab fragment can watch page swipes and
+     *  finish its action-mode selection when the user swipes away (qBC). */
+    val detailViewPager: androidx.viewpager2.widget.ViewPager2
+        get() = binding.viewPager
 
     /** qBC TorrentScreen action bar: overview set + current tab extras. */
     private fun rebuildMenu() {
@@ -136,21 +136,60 @@ class DetailActivity : AppCompatActivity() {
             TAB_WEBSEEDS -> menuInflater.inflate(R.menu.torrent_detail_web_seeds, menu)
         }
         overviewViewModel.torrent.value?.let { updateMenuState(it) }
+            ?: updateMenuState(null)
     }
 
-    private fun updateMenuState(torrent: io.github.xixka.qbittorrent.model.TorrentInfo) {
+    /**
+     * qBC TorrentOverviewFragment menu matrix: until the torrent arrives
+     * the data-dependent actions are hidden or disabled (a null torrent
+     * previously rendered a full menu whose actions fired against empty
+     * data); once loaded, pause/resume follows the qBC stopped-or-broken
+     * logic and copy/reannounce follow the engine's actual state.
+     */
+    private fun updateMenuState(torrent: io.github.xixka.qbittorrent.model.TorrentInfo?) {
         val menu = binding.appBar.menu
-        val paused = torrent.isPaused
+        val loaded = torrent != null
+        val stopped = torrent?.isStoppedOrBroken ?: false
         menu.findItem(R.id.pause_resume_torrent_menu)?.apply {
+            isVisible = loaded
             setIcon(
-                if (paused) R.drawable.ic_play_arrow_24px
+                if (stopped) R.drawable.ic_play_arrow_24px
                 else R.drawable.ic_pause_24px
             )
-            setTitle(if (paused) R.string.resume_torrent else R.string.pause_torrent)
+            setTitle(if (stopped) R.string.resume_torrent else R.string.pause_torrent)
         }
-        menu.findItem(R.id.force_start_menu)?.isChecked = torrent.forceStart
-        menu.findItem(R.id.super_seeding_menu)?.isChecked =
-            overviewViewModel.properties.value?.superSeeding ?: torrent.superSeeding
+        menu.findItem(R.id.torrent_options_menu)?.isEnabled = loaded
+        menu.findItem(R.id.tags_menu)?.isEnabled = loaded
+        menu.findItem(R.id.force_start_menu)?.apply {
+            isEnabled = loaded
+            isChecked = torrent?.forceStart == true
+        }
+        menu.findItem(R.id.super_seeding_menu)?.apply {
+            isEnabled = loaded
+            isChecked =
+                overviewViewModel.properties.value?.superSeeding ?: (torrent?.superSeeding ?: false)
+        }
+        val copyMenu = menu.findItem(R.id.copy_menu)
+        copyMenu?.isEnabled = loaded
+        menu.findItem(R.id.copy_name_menu)?.isEnabled = loaded
+        menu.findItem(R.id.copy_hash_v1_menu)?.isEnabled = !hashV1().isNullOrBlank()
+        menu.findItem(R.id.copy_hash_v2_menu)?.isEnabled = !hashV2().isNullOrBlank()
+        // qBC: reannounce is a no-op on stopped/queued/error/checking torrents
+        menu.findItem(R.id.force_announce_torrent_menu)?.isEnabled =
+            torrent != null && torrent.state.lowercase() !in REANNOUNCE_DEAD_STATES
+    }
+
+    private fun hashV1(): String? {
+        val t = overviewViewModel.torrent.value ?: return null
+        return t.infohashV1?.ifBlank { null }
+            ?: overviewViewModel.properties.value?.infohashV1?.ifBlank { null }
+            ?: t.hash.ifBlank { null }
+    }
+
+    private fun hashV2(): String? {
+        val t = overviewViewModel.torrent.value ?: return null
+        return t.infohashV2?.ifBlank { null }
+            ?: overviewViewModel.properties.value?.infohashV2?.ifBlank { null }
     }
 
     private fun showEvent(event: DetailEvent) {
@@ -168,9 +207,15 @@ class DetailActivity : AppCompatActivity() {
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
         R.id.pause_resume_torrent_menu -> {
             val torrent = overviewViewModel.torrent.value
-            if (torrent?.isPaused == true) overviewViewModel.resume()
-            else overviewViewModel.pause()
-            true
+            if (torrent == null) {
+                false
+            } else {
+                // qBC: stopped-or-broken torrents (incl. error / missing files)
+                // offer RESUME — the engine ignores pause on those states.
+                if (torrent.isStoppedOrBroken) overviewViewModel.resume()
+                else overviewViewModel.pause()
+                true
+            }
         }
 
         R.id.delete_torrent_menu -> {
@@ -228,12 +273,12 @@ class DetailActivity : AppCompatActivity() {
         }
 
         R.id.copy_hash_v1_menu -> {
-            copyToClipboard(overviewViewModel.properties.value?.infohashV1.orEmpty())
+            hashV1()?.let { copyToClipboard(it) }
             true
         }
 
         R.id.copy_hash_v2_menu -> {
-            copyToClipboard(overviewViewModel.properties.value?.infohashV2.orEmpty())
+            hashV2()?.let { copyToClipboard(it) }
             true
         }
 
@@ -504,14 +549,17 @@ class DetailActivity : AppCompatActivity() {
     private fun showAddTrackersDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
+        // qBC AddTrackersDialog: multi-line, ONE tracker URL per line
         input?.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE or
                 android.text.InputType.TYPE_TEXT_VARIATION_URI
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.torrent_trackers_action_add)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val url = input?.text?.toString()?.trim().orEmpty()
-                if (url.isNotEmpty()) trackersViewModel.addTrackers(url)
+                val raw = input?.text?.toString().orEmpty()
+                val urls = raw.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
+                if (urls.isNotEmpty()) trackersViewModel.addTrackers(urls.joinToString("\n"))
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -521,7 +569,9 @@ class DetailActivity : AppCompatActivity() {
     private fun showAddPeersDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
+        // qBC AddPeersDialog: multi-line, one host:port per line
         input?.inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE or
                 android.text.InputType.TYPE_TEXT_VARIATION_URI
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.torrent_peers_action_add)
@@ -609,11 +659,19 @@ class DetailActivity : AppCompatActivity() {
             R.string.tab_peers,
             R.string.tab_web_seeds,
         )
-        private const val TAB_TRACKERS = 2
-        private const val TAB_PEERS = 3
-        private const val TAB_WEBSEEDS = 4
+        const val TAB_FILES = 1
+        const val TAB_TRACKERS = 2
+        const val TAB_PEERS = 3
+        const val TAB_WEBSEEDS = 4
         private const val EXTRA_HASH = "hash"
         private const val EXTRA_NAME = "name"
+
+        /** qBC reannounce gate: engine-side no-op states. */
+        private val REANNOUNCE_DEAD_STATES = setOf(
+            "pausedup", "pauseddl", "stoppedup", "stoppeddl",
+            "queuedup", "queueddl", "error", "missingfiles",
+            "checkingup", "checkingdl", "checkingresumeData",
+        )
 
         fun start(context: Context, hash: String, name: String) {
             context.startActivity(

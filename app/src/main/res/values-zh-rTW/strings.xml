@@ -117,6 +117,10 @@
     <string name="tracker_status_not_working">失效</string>
     <string name="tracker_status_unreachable">無法連線</string>
     <string name="tracker_status_banned">已封鎖</string>
+
+    <string name="torrent_trackers_message">訊息：%1$s</string>
+
+    <string name="torrent_peers_flags">旗標：%1$s</string>
     <string name="tracker_stats">種：%1$d  端：%2$d</string>
     <string name="add_tracker_title">新增 tracker</string>
     <string name="add_tracker_hint">Tracker URL</string>
@@ -162,6 +166,8 @@
     <string name="detail_seeded_for">做種時長</string>
     <string name="detail_completed_on">完成時間</string>
     <string name="detail_availability">可用性</string>
+
+    <string name="detail_popularity">流行度</string>
     <string name="detail_last_activity">最後活動</string>
     <string name="detail_last_seen_complete">最後完整可見</string>
     <string name="detail_info_hash_v2">雜湊 v2</string>
@@ -439,8 +445,9 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_bt_trackers">Tracker</string>
     <string name="qbt_add_trackers_enabled">自動為新種子新增 Tracker</string>
     <string name="qbt_add_trackers">新增的 Tracker（每行一個）</string>
+    <string name="listen_port_stat">連接埠</string>
     <string name="qbt_conn_listen">監聽連接埠</string>
-    <string name="mem_usage">記憶體佔用：%1$s</string>
+    <string name="mem_usage">記憶體：%1$s</string>
     <string name="qbt_listen_port">用於傳入連線的連接埠</string>
     <string name="qbt_upnp">使用 UPnP / NAT-PMP 連接埠轉發</string>
     <string name="qbt_conn_limits">連線限制</string>
@@ -810,6 +817,8 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="torrent_peers_details_country">地區</string>
     <string name="torrent_peers_details_connection">連接</string>
     <string name="torrent_peers_details_client">客戶端</string>
+
+    <string name="torrent_peers_details_peer_id_client">Peer ID 用戶端</string>
     <string name="torrent_peers_details_downloaded">已下載</string>
     <string name="torrent_peers_details_uploaded">已上傳</string>
     <string name="torrent_peers_details_relevance">檔案關聯</string>

@@ -40,6 +40,9 @@ class FilesFragment : Fragment() {
     private lateinit var adapter: FilesTreeAdapter
     private var lastRoot: TorrentFileNode.Folder? = null
 
+    /** qBC: finishes the selection when the user swipes to another tab. */
+    private var unregisterPageSwipe: (() -> Unit)? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -63,8 +66,13 @@ class FilesFragment : Fragment() {
         binding.fileList.adapter = adapter
         binding.fileList.setEmptyView(binding.emptyViewFileList)
         binding.fileList.setLoadingView(null)
+        binding.loadingIndicator.setVisibilityAfterHide(View.INVISIBLE)
 
         binding.filesRefresh.setOnRefreshListener { viewModel.refresh() }
+
+        unregisterPageSwipe = finishSelectionOnPageSwipe(DetailActivity.TAB_FILES) {
+            actionMode?.finish()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -79,6 +87,19 @@ class FilesFragment : Fragment() {
                             }
                         }
                         submitNodes()
+                    }
+                }
+                // qBC: indeterminate bar during the first (natural) load;
+                // the "no files" placeholder only shows AFTER data exists
+                launch {
+                    viewModel.isNaturalLoading.collect { loading ->
+                        if (loading == true) {
+                            binding.loadingIndicator.show()
+                            binding.fileList.setLoading(true)
+                        } else {
+                            binding.loadingIndicator.hide()
+                            binding.fileList.setLoading(false)
+                        }
                     }
                 }
                 launch {
@@ -144,6 +165,8 @@ class FilesFragment : Fragment() {
     }
 
     private fun onSelectionChanged() {
+        // qBC: the auto-refresh loop pauses while a selection is active
+        viewModel.setSelectionActive(selectedPaths.isNotEmpty())
         if (selectedPaths.isNotEmpty()) {
             if (actionMode == null) {
                 actionMode = (requireActivity() as AppCompatActivity)
@@ -164,7 +187,14 @@ class FilesFragment : Fragment() {
             return true
         }
 
-        override fun onPrepareActionMode(mode: androidx.appcompat.view.ActionMode, menu: Menu) = false
+        override fun onPrepareActionMode(
+            mode: androidx.appcompat.view.ActionMode,
+            menu: Menu,
+        ): Boolean {
+            // qBC: rename needs exactly one selected node
+            menu.findItem(R.id.rename_file_menu)?.isEnabled = selectedPaths.size == 1
+            return false
+        }
 
         override fun onActionItemClicked(
             mode: androidx.appcompat.view.ActionMode,
@@ -254,6 +284,8 @@ class FilesFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        unregisterPageSwipe?.invoke()
+        unregisterPageSwipe = null
         _binding = null
         super.onDestroyView()
     }

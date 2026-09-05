@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
+import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ItemQbcTrackerBinding
 import io.github.xixka.qbittorrent.model.Tracker
 
@@ -31,16 +32,22 @@ class TrackersAdapter(
             onLongClick: (Tracker) -> Unit,
         ) {
             binding.url.text = tracker.url
-            binding.statPeers.text = tracker.numPeers.toString()
-            binding.statSeeds.text = tracker.numSeeds.toString()
-            binding.statLeeches.text = tracker.numLeeches.toString()
+            // qBC NullableIntSerializer parity: -1 = "not announced yet",
+            // rendered as an em dash (the engine used to print literal -1)
+            binding.statPeers.text =
+                tracker.numPeers.takeIf { it >= 0 }?.toString() ?: "—"
+            binding.statSeeds.text =
+                tracker.numSeeds.takeIf { it >= 0 }?.toString() ?: "—"
+            binding.statLeeches.text =
+                tracker.numLeeches.takeIf { it >= 0 }?.toString() ?: "—"
             binding.statDownloaded.text =
-                if (tracker.numDownloaded >= 0) tracker.numDownloaded.toString() else "—"
+                tracker.numDownloaded.takeIf { it >= 0 }?.toString() ?: "—"
 
             val msg = tracker.msg
             binding.message.visibility =
                 if (msg.isNullOrBlank()) android.view.View.GONE else android.view.View.VISIBLE
-            binding.message.text = msg
+            binding.message.text =
+                binding.root.context.getString(R.string.torrent_trackers_message, msg)
 
             if (isSelectable) {
                 binding.card.setOnClickListener { onClick(tracker) }

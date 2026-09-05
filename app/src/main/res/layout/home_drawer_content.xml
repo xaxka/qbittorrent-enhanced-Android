@@ -2,10 +2,13 @@
 <!-- Port of LibreTorrent home_drawer_content.xml (GPL-3.0):
      stats rows + filter sections, same styles/margins as the original.
      Filter chips are laid out in fixed 3-column grids (EqualColumnsChipGroup)
-     with a 6dp vertical gap (25% below the M3 8dp default). The status set
-     mirrors the engine's own WebUI sidebar (views/filters.html); the
-     date-added window filters were dropped — qBittorrent offers no such
-     sidebar filters, the "Date added" sort covers that need. -->
+     rendered as centered-label grid buttons (see Widget.App.Chip.Filter).
+     The content column is 0dp-padded so EVERY section — stat rows, section
+     titles, dividers and the chip grids — aligns on the same 16dp inset;
+     gaps are the M3 standard 8dp. The status set mirrors the engine's own
+     WebUI sidebar (views/filters.html); the date-added window filters were
+     dropped — qBittorrent offers no such sidebar filters, the "Date added"
+     sort covers that need. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -18,7 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingTop="4dp"
+        android:paddingBottom="12dp">
 
         <TextView
             style="?attr/textAppearanceTitleLarge"
@@ -108,9 +112,9 @@
             android:id="@+id/drawer_status_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="4dp"
-            app:chipSpacingHorizontal="6dp"
-            app:chipSpacingVertical="6dp"
+            android:layout_marginHorizontal="16dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
@@ -259,9 +263,9 @@
             android:id="@+id/drawer_sorting_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="4dp"
-            app:chipSpacingHorizontal="6dp"
-            app:chipSpacingVertical="6dp"
+            android:layout_marginHorizontal="16dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp"
             app:singleSelection="true"
             tools:checkedChip="@id/drawer_sorting_date_added">
 
@@ -395,9 +399,9 @@
             android:id="@+id/drawer_categories_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="4dp"
-            app:chipSpacingHorizontal="6dp"
-            app:chipSpacingVertical="6dp"
+            android:layout_marginHorizontal="16dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
@@ -450,9 +454,9 @@
             android:id="@+id/drawer_tags_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="4dp"
-            app:chipSpacingHorizontal="6dp"
-            app:chipSpacingVertical="6dp"
+            android:layout_marginHorizontal="16dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip

@@ -117,6 +117,10 @@
     <string name="tracker_status_not_working">動作していません</string>
     <string name="tracker_status_unreachable">到達できません</string>
     <string name="tracker_status_banned">禁止済み</string>
+
+    <string name="torrent_trackers_message">メッセージ: %1$s</string>
+
+    <string name="torrent_peers_flags">フラグ: %1$s</string>
     <string name="tracker_stats">S: %1$d  L: %2$d</string>
     <string name="add_tracker_title">トラッカーを追加</string>
     <string name="add_tracker_hint">トラッカー URL</string>
@@ -162,6 +166,8 @@
     <string name="detail_seeded_for">シード時間</string>
     <string name="detail_completed_on">完了日時</string>
     <string name="detail_availability">可用性</string>
+
+    <string name="detail_popularity">人気度</string>
     <string name="detail_last_activity">最終アクティビティ</string>
     <string name="detail_last_seen_complete">最後に完全だった時刻</string>
     <string name="detail_info_hash_v2">情報ハッシュ v2</string>
@@ -438,8 +444,9 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_bt_trackers">Tracker</string>
     <string name="qbt_add_trackers_enabled">新しい Torrent に Tracker を自動追加</string>
     <string name="qbt_add_trackers">追加する Tracker (1 行に 1 つ)</string>
+    <string name="listen_port_stat">ポート</string>
     <string name="qbt_conn_listen">リスニングポート</string>
-    <string name="mem_usage">メモリ使用量: %1$s</string>
+    <string name="mem_usage">メモリ: %1$s</string>
     <string name="qbt_listen_port">受信接続に使うポート</string>
     <string name="qbt_upnp">UPnP / NAT-PMP ポート転送を使用</string>
     <string name="qbt_conn_limits">接続の制限</string>
@@ -809,6 +816,8 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="torrent_peers_details_country">Country</string>
     <string name="torrent_peers_details_connection">Connection</string>
     <string name="torrent_peers_details_client">Client</string>
+
+    <string name="torrent_peers_details_peer_id_client">Peer ID クライアント</string>
     <string name="torrent_peers_details_downloaded">ダウンロード済み</string>
     <string name="torrent_peers_details_uploaded">Uploaded</string>
     <string name="torrent_peers_details_relevance">Relevance</string>

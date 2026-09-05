@@ -800,7 +800,7 @@ class MainActivity : AppCompatActivity() {
                 val picked = options[which]
                 when {
                     picked == getString(R.string.category_new) ->
-                        promptCategoryName { name, _ -> applyCategory(hashes, name) }
+                        promptCategoryName { name, path -> createAndApplyCategory(hashes, name, path) }
 
                     picked == getString(R.string.category_remove) ->
                         applyCategory(hashes, "")
@@ -810,6 +810,23 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    /**
+     * "New category" from the torrent context menu: the WebUI first REGISTERS
+     * the category through the dynamic categories API (name + save path) and
+     * only then assigns it. Previously this path threw the typed save path
+     * away and relied on setCategory's implicit auto-create, so a category
+     * made here never got its own path — the dynamic-API creation the
+     * round-18 commit message promised was effectively missing.
+     */
+    private fun createAndApplyCategory(hashes: List<String>, name: String, path: String) {
+        lifecycleScope.launch {
+            runCatching {
+                ServiceLocator.repository(this@MainActivity).createCategory(name, path)
+            }
+            applyCategory(hashes, name)
+        }
     }
 
     private fun applyCategory(hashes: List<String>, category: String) {
@@ -1133,7 +1150,7 @@ class MainActivity : AppCompatActivity() {
             prefs.activeServer()?.port ?: ServerConfig.DEFAULT_PORT
         }
         d.sessionListenPortStat.text = buildString {
-            append(getString(R.string.qbt_conn_listen)).append(": ").append(listenPort)
+            append(getString(R.string.listen_port_stat)).append(": ").append(listenPort)
             state.engineRss?.let { rss ->
                 append("  •  ").append(getString(R.string.mem_usage, Format.size(rss)))
             }

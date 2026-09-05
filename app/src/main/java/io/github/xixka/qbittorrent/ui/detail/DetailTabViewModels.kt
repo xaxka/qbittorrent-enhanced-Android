@@ -32,6 +32,14 @@ sealed interface DetailEvent {
     data class Message(val res: Int) : DetailEvent
 }
 
+/** Typed combine() payload of the tab poll gate. */
+private data class PollGate(
+    val loading: Boolean?,
+    val active: Boolean,
+    val refreshing: Boolean,
+    val selecting: Boolean,
+)
+
 /**
  * One ViewModel per detail tab, qBC architecture parity:
  *  - data is loaded IMMEDIATELY in init (the pager pre-creates every tab,
@@ -48,6 +56,11 @@ abstract class DetailTabViewModel(app: Application, val hash: String) :
     private val prefs = ServiceLocator.prefs(app)
 
     private val _isScreenActive = MutableStateFlow(false)
+
+    /** True while the tab's list has an action-mode selection: qBC pauses
+     *  auto-refresh during selection so rows never repaint under the user's
+     *  finger. */
+    private val _isSelectionActive = MutableStateFlow(false)
 
     /** null = idle, true = first (blocking) load, false = background refresh. */
     private val _isNaturalLoading = MutableStateFlow<Boolean?>(null)
@@ -69,10 +82,15 @@ abstract class DetailTabViewModel(app: Application, val hash: String) :
             // waits one interval AFTER the last finished request — requests
             // never queue up. Watching isRefreshing too avoids a stall when
             // an in-flight pull-to-refresh makes load() a no-op.
-            combine(_isNaturalLoading, _isScreenActive, _isRefreshing) { loading, active, refreshing ->
-                Triple(loading, active, refreshing)
-            }.collectLatest { (loading, active, _) ->
-                if (active && loading == null) {
+            combine(
+                _isNaturalLoading,
+                _isScreenActive,
+                _isRefreshing,
+                _isSelectionActive,
+            ) { loading, active, refreshing, selecting ->
+                PollGate(loading, active, refreshing, selecting)
+            }.collectLatest { gate ->
+                if (gate.active && !gate.selecting && gate.loading == null) {
                     delay(prefs.pollIntervalSec * 1000L)
                     load(autoRefresh = true)
                 }
@@ -82,6 +100,11 @@ abstract class DetailTabViewModel(app: Application, val hash: String) :
 
     fun setScreenActive(active: Boolean) {
         _isScreenActive.value = active
+    }
+
+    /** Selection mode (files/trackers/peers): pauses the auto-refresh loop. */
+    fun setSelectionActive(active: Boolean) {
+        _isSelectionActive.value = active
     }
 
     /** Pull-to-refresh: always allowed, shows the spinner. */

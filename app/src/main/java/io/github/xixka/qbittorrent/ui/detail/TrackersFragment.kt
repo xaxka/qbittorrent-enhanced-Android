@@ -35,6 +35,9 @@ class TrackersFragment : Fragment() {
     private val selected = LinkedHashSet<String>()
     private var actionMode: androidx.appcompat.view.ActionMode? = null
 
+    /** qBC: finishes the selection when the user swipes to another tab. */
+    private var unregisterPageSwipe: (() -> Unit)? = null
+
     private lateinit var adapter: TrackersAdapter
 
     override fun onCreateView(
@@ -58,8 +61,13 @@ class TrackersFragment : Fragment() {
         binding.trackerList.adapter = adapter
         binding.trackerList.setEmptyView(binding.emptyViewTrackerList)
         binding.trackerList.setLoadingView(null)
+        binding.loadingIndicator.setVisibilityAfterHide(View.INVISIBLE)
 
         binding.trackersRefresh.setOnRefreshListener { viewModel.refresh() }
+
+        unregisterPageSwipe = finishSelectionOnPageSwipe(DetailActivity.TAB_TRACKERS) {
+            actionMode?.finish()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -69,6 +77,18 @@ class TrackersFragment : Fragment() {
                             selected.retainAll { url -> trackers.any { it.url == url } }
                             adapter.submitList(trackers)
                             if (selected.isEmpty()) actionMode?.finish()
+                        }
+                    }
+                }
+                // qBC: indeterminate bar during the first (natural) load
+                launch {
+                    viewModel.isNaturalLoading.collect { loading ->
+                        if (loading == true) {
+                            binding.loadingIndicator.show()
+                            binding.trackerList.setLoading(true)
+                        } else {
+                            binding.loadingIndicator.hide()
+                            binding.trackerList.setLoading(false)
                         }
                     }
                 }
@@ -96,6 +116,8 @@ class TrackersFragment : Fragment() {
     }
 
     private fun onSelectionChanged() {
+        // qBC: the auto-refresh loop pauses while a selection is active
+        viewModel.setSelectionActive(selected.isNotEmpty())
         if (selected.isEmpty()) {
             actionMode?.finish()
             return
@@ -116,7 +138,14 @@ class TrackersFragment : Fragment() {
             return true
         }
 
-        override fun onPrepareActionMode(mode: androidx.appcompat.view.ActionMode, menu: Menu) = false
+        override fun onPrepareActionMode(
+            mode: androidx.appcompat.view.ActionMode,
+            menu: Menu,
+        ): Boolean {
+            // qBC: the engine's editTracker maps exactly ONE url
+            menu.findItem(R.id.edit_tracker_url)?.isEnabled = selected.size == 1
+            return false
+        }
 
         override fun onActionItemClicked(
             mode: androidx.appcompat.view.ActionMode,
@@ -213,6 +242,8 @@ class TrackersFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        unregisterPageSwipe?.invoke()
+        unregisterPageSwipe = null
         _binding = null
         super.onDestroyView()
     }

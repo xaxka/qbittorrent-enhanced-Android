@@ -117,6 +117,10 @@
     <string name="tracker_status_not_working">작동 안 함</string>
     <string name="tracker_status_unreachable">접근 불가</string>
     <string name="tracker_status_banned">차단됨</string>
+
+    <string name="torrent_trackers_message">메시지: %1$s</string>
+
+    <string name="torrent_peers_flags">플래그: %1$s</string>
     <string name="tracker_stats">S: %1$d  L: %2$d</string>
     <string name="add_tracker_title">트래커 추가</string>
     <string name="add_tracker_hint">트래커 URL</string>
@@ -162,6 +166,8 @@
     <string name="detail_seeded_for">시딩 시간</string>
     <string name="detail_completed_on">완료 시각</string>
     <string name="detail_availability">가용성</string>
+
+    <string name="detail_popularity">인기도</string>
     <string name="detail_last_activity">마지막 활동</string>
     <string name="detail_last_seen_complete">마지막으로 완전했던 시점</string>
     <string name="detail_info_hash_v2">정보 해시 v2</string>
@@ -439,6 +445,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_bt_trackers">Tracker</string>
     <string name="qbt_add_trackers_enabled">새 토렌트에 Tracker 자동 추가</string>
     <string name="qbt_add_trackers">추가할 Tracker (한 줄에 하나)</string>
+    <string name="listen_port_stat">포트</string>
     <string name="qbt_conn_listen">수신 포트</string>
     <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">들어오는 연결에 사용할 포트</string>
@@ -810,6 +817,8 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="torrent_peers_details_country">국가</string>
     <string name="torrent_peers_details_connection">연결</string>
     <string name="torrent_peers_details_client">클라이언트</string>
+
+    <string name="torrent_peers_details_peer_id_client">피어 ID 클라이언트</string>
     <string name="torrent_peers_details_downloaded">다운로드함</string>
     <string name="torrent_peers_details_uploaded">업로드됨</string>
     <string name="torrent_peers_details_relevance">관련성</string>

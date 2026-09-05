@@ -9,6 +9,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/loading_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/overview_scroll"
         android:layout_width="match_parent"
@@ -17,6 +30,7 @@
         android:scrollbars="none">
 
         <LinearLayout
+            android:id="@+id/overview_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -33,6 +47,7 @@
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
                 android:paddingBottom="8dp"
+                android:textIsSelectable="true"
                 tools:text="Ubuntu 24.04 LTS desktop amd64" />
 
             <!-- Progress card: category/tags chips, progress line, state bar -->
@@ -70,6 +85,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:textIsSelectable="true"
                             tools:text="1.2 GiB / 4.4 GiB (27.5%) • 0.5" />
 
                         <TextView
@@ -77,6 +93,7 @@
                             style="?attr/textAppearanceBodyMedium"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:textIsSelectable="true"
                             tools:text="2h 14m" />
                     </LinearLayout>
 
@@ -99,6 +116,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:textIsSelectable="true"
                             tools:text="Downloading" />
 
                         <TextView
@@ -106,6 +124,7 @@
                             style="?attr/textAppearanceBodyMedium"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:textIsSelectable="true"
                             tools:text="↓ 12.5 MiB/s  ↑ 340 KiB/s" />
                     </LinearLayout>
                 </LinearLayout>
@@ -135,11 +154,22 @@
                         style="?attr/textAppearanceBodyMedium"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="4dp"
                         android:gravity="center"
                         android:text="@string/tab_pieces"
                         android:textColor="?attr/colorPrimary"
                         tools:text="Pieces" />
+
+                    <!-- qBC pieces header: live count + piece size above the bar -->
+                    <TextView
+                        android:id="@+id/pieces_summary"
+                        style="?attr/textAppearanceBodySmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:gravity="center"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="123 / 456 · 4 MiB" />
 
                     <io.github.xixka.qbittorrent.ui.detail.PieceBarView
                         android:id="@+id/piece_bar"
@@ -216,4 +246,5 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

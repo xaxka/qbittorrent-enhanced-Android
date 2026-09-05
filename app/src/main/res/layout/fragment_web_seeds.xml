@@ -11,6 +11,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/loading_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
         <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
             android:id="@+id/web_seed_list"
             android:layout_width="match_parent"

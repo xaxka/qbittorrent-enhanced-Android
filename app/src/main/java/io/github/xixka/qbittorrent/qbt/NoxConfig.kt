@@ -52,6 +52,36 @@ object NoxConfig {
     private const val KEY_WEBUI_PASSWORD = "WebUI\\Password_PBKDF2"
     private const val KEY_SAVE_PATH = "Session\\DefaultSavePath"
 
+    /*
+     * DHT bootstrap assist for networks with polluted DNS (documented in the
+     * README section "中国移动等网络 DHT 节点为 0 的原因与修复"):
+     *
+     * qBittorrent-Enhanced (unlike upstream qBittorrent) exposes the libtorrent
+     * `dht_bootstrap_nodes` setting through the config key
+     * `BitTorrent\Session\DHTBootstrapNodes`. Its built-in default is
+     * "dht.libtorrent.org:25401, dht.transmissionbt.com:6881,
+     * router.bittorrent.com:6881" — and on Chinese carrier networks (China
+     * Mobile in particular) the GFW poisons the plaintext DNS answers for
+     * dht.libtorrent.org and router.bittorrent.com (they resolve to
+     * facebook/twitter/ntt addresses), so 2 of the 3 default bootstrap
+     * contacts are dead and DHT never bootstraps -> "DHT nodes: 0".
+     *
+     * The fix below seeds a bootstrap list that mixes the one hostname that
+     * still resolves correctly in-country (dht.transmissionbt.com) with IP
+     * literals for all reference routers — literals bypass DNS entirely, so
+     * poisoned resolvers cannot break first contact. Once ANY contact
+     * answers, libtorrent learns real nodes from the swarm, persists them in
+     * its session state, and the bootstrap list stops mattering.
+     *
+     * The key is written as "append-if-absent": a value the user saved through
+     * the in-app qB settings editor (dht_bootstrap_nodes) or the WebUI is
+     * never overwritten, so power users keep full control.
+     */
+    private const val KEY_DHT_BOOTSTRAP = "Session\\DHTBootstrapNodes"
+    private const val DHT_BOOTSTRAP_CN_FRIENDLY =
+        "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
+            "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
+
     // qB's own "bypass authentication for clients in whitelisted subnets"
     // feature. The app keeps this switch OFF unconditionally: LAN clients
     // must log in with the WebUI credentials (user's explicit requirement —
@@ -119,8 +149,12 @@ object NoxConfig {
                 append("Session\\DHTEnabled=true\n")
                 append("Session\\LSDEnabled=true\n")
                 append("Session\\PeXEnabled=true\n")
-                append("Session\\Port=6881\n\n")
-                append("[Core]\nAutoExitEnabled=false\n\n")
+                append("Session\\Port=6881\n")
+                // China-carrier-friendly DHT bootstrap contacts (see the
+                // KEY_DHT_BOOTSTRAP comment above for the full rationale).
+                append("Session\\DHTBootstrapNodes=")
+                append(DHT_BOOTSTRAP_CN_FRIENDLY).append('\n')
+                append("\n[Core]\nAutoExitEnabled=false\n\n")
                 append("[LegalNotice]\nAccepted=true\n\n")
                 append("[Meta]\nMigrationVersion=8\n\n")
                 append("[Network]\n")
@@ -204,6 +238,16 @@ object NoxConfig {
             }
             result
         }.toMutableList()
+
+        // Append-if-absent keys: seeded only when the engine has no value of
+        // its own (fresh installs upgrading from an older app). A key the
+        // user set through the WebUI / in-app settings editor survives
+        // untouched, so app-managed replacement never fights user intent.
+        val ifAbsent = mapOf(KEY_DHT_BOOTSTRAP to DHT_BOOTSTRAP_CN_FRIENDLY)
+        for ((key, value) in ifAbsent) {
+            val present = lines.any { it == "$key=" || it.startsWith("$key=") }
+            if (!present) remaining[key] = value
+        }
 
         if (remaining.isNotEmpty()) {
             // append missing keys under their sections (create section if absent)

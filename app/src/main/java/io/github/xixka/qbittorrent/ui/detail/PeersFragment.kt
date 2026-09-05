@@ -42,6 +42,9 @@ class PeersFragment : Fragment() {
     private val selected = LinkedHashSet<String>()
     private var actionMode: androidx.appcompat.view.ActionMode? = null
 
+    /** qBC: finishes the selection when the user swipes to another tab. */
+    private var unregisterPageSwipe: (() -> Unit)? = null
+
     private lateinit var adapter: PeersAdapter
 
     override fun onCreateView(
@@ -65,8 +68,13 @@ class PeersFragment : Fragment() {
         binding.peerList.adapter = adapter
         binding.peerList.setEmptyView(binding.emptyViewPeerList)
         binding.peerList.setLoadingView(null)
+        binding.loadingIndicator.setVisibilityAfterHide(View.INVISIBLE)
 
         binding.peersRefresh.setOnRefreshListener { viewModel.refresh() }
+
+        unregisterPageSwipe = finishSelectionOnPageSwipe(DetailActivity.TAB_PEERS) {
+            actionMode?.finish()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -76,6 +84,18 @@ class PeersFragment : Fragment() {
                             selected.retainAll { endpoint -> peers.any { it.endpoint == endpoint } }
                             adapter.submitList(peers)
                             if (selected.isEmpty()) actionMode?.finish()
+                        }
+                    }
+                }
+                // qBC: indeterminate bar during the first (natural) load
+                launch {
+                    viewModel.isNaturalLoading.collect { loading ->
+                        if (loading == true) {
+                            binding.loadingIndicator.show()
+                            binding.peerList.setLoading(true)
+                        } else {
+                            binding.loadingIndicator.hide()
+                            binding.peerList.setLoading(false)
                         }
                     }
                 }
@@ -115,6 +135,8 @@ class PeersFragment : Fragment() {
     }
 
     private fun onSelectionChanged() {
+        // qBC: the auto-refresh loop pauses while a selection is active
+        viewModel.setSelectionActive(selected.isNotEmpty())
         if (selected.isEmpty()) {
             actionMode?.finish()
             return
@@ -178,7 +200,7 @@ class PeersFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(resources.getQuantityString(R.plurals.torrent_peers_ban_title, endpoints.size, endpoints.size))
             .setMessage(resources.getQuantityString(R.plurals.torrent_peers_ban_desc, endpoints.size, endpoints.size))
-            .setPositiveButton(R.string.delete) { _, _ ->
+            .setPositiveButton(android.R.string.ok) { _, _ ->
                 viewModel.banPeers(endpoints)
                 selected.clear()
                 actionMode?.finish()
@@ -205,6 +227,10 @@ class PeersFragment : Fragment() {
         )
         addRow(R.string.torrent_peers_details_connection, peer.connectionStatus.ifBlank { "—" })
         addRow(R.string.torrent_peers_details_client, peer.client.ifBlank { "—" })
+        // qBC peer-details dialog: client fingerprint decoded from the peer id
+        if (peer.peerIdClient.isNotBlank()) {
+            addRow(R.string.torrent_peers_details_peer_id_client, peer.peerIdClient)
+        }
         addRow(
             R.string.torrent_peers_details_progress,
             String.format(Locale.ROOT, "%.1f%%", peer.progressFraction * 100),
@@ -256,6 +282,8 @@ class PeersFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        unregisterPageSwipe?.invoke()
+        unregisterPageSwipe = null
         _binding = null
         super.onDestroyView()
     }

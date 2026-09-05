@@ -37,6 +37,9 @@ class WebSeedsFragment : Fragment() {
 
     private lateinit var adapter: WebSeedsAdapter
 
+    /** qBC: finishes the selection when the user swipes to another tab. */
+    private var unregisterPageSwipe: (() -> Unit)? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,8 +61,13 @@ class WebSeedsFragment : Fragment() {
         binding.webSeedList.adapter = adapter
         binding.webSeedList.setEmptyView(binding.emptyViewWebSeedList)
         binding.webSeedList.setLoadingView(null)
+        binding.loadingIndicator.setVisibilityAfterHide(View.INVISIBLE)
 
         binding.webSeedsRefresh.setOnRefreshListener { viewModel.refresh() }
+
+        unregisterPageSwipe = finishSelectionOnPageSwipe(DetailActivity.TAB_WEBSEEDS) {
+            actionMode?.finish()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -69,6 +77,18 @@ class WebSeedsFragment : Fragment() {
                             selected.retainAll { url -> webSeeds.any { it.url == url } }
                             adapter.submitList(webSeeds)
                             if (selected.isEmpty()) actionMode?.finish()
+                        }
+                    }
+                }
+                // qBC: indeterminate bar during the first (natural) load
+                launch {
+                    viewModel.isNaturalLoading.collect { loading ->
+                        if (loading == true) {
+                            binding.loadingIndicator.show()
+                            binding.webSeedList.setLoading(true)
+                        } else {
+                            binding.loadingIndicator.hide()
+                            binding.webSeedList.setLoading(false)
                         }
                     }
                 }
@@ -96,6 +116,8 @@ class WebSeedsFragment : Fragment() {
     }
 
     private fun onSelectionChanged() {
+        // qBC: the auto-refresh loop pauses while a selection is active
+        viewModel.setSelectionActive(selected.isNotEmpty())
         if (selected.isEmpty()) {
             actionMode?.finish()
             return
@@ -116,7 +138,14 @@ class WebSeedsFragment : Fragment() {
             return true
         }
 
-        override fun onPrepareActionMode(mode: androidx.appcompat.view.ActionMode, menu: Menu) = false
+        override fun onPrepareActionMode(
+            mode: androidx.appcompat.view.ActionMode,
+            menu: Menu,
+        ): Boolean {
+            // qBC: the engine's editWebSeed maps exactly ONE url
+            menu.findItem(R.id.edit_web_seed_url)?.isEnabled = selected.size == 1
+            return false
+        }
 
         override fun onActionItemClicked(
             mode: androidx.appcompat.view.ActionMode,
@@ -197,6 +226,8 @@ class WebSeedsFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        unregisterPageSwipe?.invoke()
+        unregisterPageSwipe = null
         _binding = null
         super.onDestroyView()
     }

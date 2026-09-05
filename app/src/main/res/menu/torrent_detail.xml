@@ -8,66 +8,77 @@
 
     <item
         android:id="@+id/pause_resume_torrent_menu"
+        android:orderInCategory="10"
         android:icon="@drawable/ic_pause_24px"
         android:title="@string/pause_torrent"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/delete_torrent_menu"
+        android:orderInCategory="11"
         android:icon="@drawable/ic_delete_24px"
         android:title="@string/delete"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/torrent_options_menu"
+        android:orderInCategory="20"
         android:icon="@drawable/ic_tune_24px"
         android:title="@string/torrent_action_options"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/category_menu"
+        android:orderInCategory="21"
         android:icon="@drawable/ic_label_24px"
         android:title="@string/torrent_action_category"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/tags_menu"
+        android:orderInCategory="22"
         android:icon="@drawable/ic_checklist_24px"
         android:title="@string/torrent_action_tags"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/rename_torrent_menu"
+        android:orderInCategory="23"
         android:icon="@drawable/ic_edit_24px"
         android:title="@string/rename_torrent"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/force_recheck_torrent_menu"
+        android:orderInCategory="24"
         android:icon="@drawable/ic_refresh_24px"
         android:title="@string/force_recheck_torrent"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/force_announce_torrent_menu"
+        android:orderInCategory="25"
         android:icon="@drawable/ic_wifi_tethering_24px"
         android:title="@string/force_announce_torrent"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/force_start_menu"
+        android:orderInCategory="26"
         android:checkable="true"
         android:title="@string/torrent_action_force_start"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/super_seeding_menu"
+        android:orderInCategory="27"
         android:checkable="true"
         android:title="@string/super_seeding"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/copy_menu"
+        android:orderInCategory="28"
         android:icon="@drawable/ic_content_copy_24px"
         android:title="@string/torrent_action_copy"
         app:showAsAction="never">
@@ -89,6 +100,7 @@
 
     <item
         android:id="@+id/export_torrent_menu"
+        android:orderInCategory="29"
         android:icon="@drawable/ic_download_24px"
         android:title="@string/torrent_action_export"
         app:showAsAction="never" />
