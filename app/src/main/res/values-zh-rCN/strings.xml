@@ -1076,6 +1076,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">编辑服务器</string>
     <string name="server_delete_confirm">删除此服务器配置？</string>
     <string name="server_profile_name">配置名称</string>
+    <string name="settings_server_server_info">服务器信息</string>
+    <string name="settings_server_credentials">凭据</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">无效的 URL</string>
+    <string name="settings_server_url_examples">例如：%1$s</string>
     <string name="server_profile_empty">尚未配置服务器——添加一个以远程连接</string>
     <string name="storage_access_title">允许存储访问</string>
     <string name="storage_access_message">下载将保存到 %1$s。请授予应用“所有文件访问”权限，以便引擎写入该目录。</string>

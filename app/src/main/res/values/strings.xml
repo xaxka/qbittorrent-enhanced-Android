@@ -1075,6 +1075,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">Edit server</string>
     <string name="server_delete_confirm">Delete this server profile?</string>
     <string name="server_profile_name">Profile name</string>
+    <string name="settings_server_server_info">Server info</string>
+    <string name="settings_server_credentials">Credentials</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">Invalid URL</string>
+    <string name="settings_server_url_examples">Examples:%1$s</string>
     <string name="server_profile_empty">No servers configured yet — add one to connect remotely</string>
     <string name="storage_access_title">Allow storage access</string>
     <string name="storage_access_message">Downloads are saved to %1$s. Grant the app access to all files so the engine can write there.</string>

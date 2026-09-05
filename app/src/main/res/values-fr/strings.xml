@@ -1077,6 +1077,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">Modifier le serveur</string>
     <string name="server_delete_confirm">Supprimer ce profil de serveur ?</string>
     <string name="server_profile_name">Nom du profil</string>
+    <string name="settings_server_server_info">Infos du serveur</string>
+    <string name="settings_server_credentials">Identifiants</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">URL invalide</string>
+    <string name="settings_server_url_examples">Exemples :%1$s</string>
     <string name="server_profile_empty">Aucun serveur configuré — ajoutez-en un</string>
     <string name="storage_access_title">Autoriser l’accès au stockage</string>
     <string name="storage_access_message">Les téléchargements sont enregistrés dans %1$s. Autorisez l’app à accéder à tous les fichiers pour que le moteur puisse y écrire.</string>

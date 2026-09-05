@@ -938,11 +938,13 @@ class MainActivity : AppCompatActivity() {
 
         if (initial == null) {
             // New category: hint the server's default save location so the
-            // user knows what "leave blank" resolves to.
+            // user knows what "leave blank" resolves to. It goes on the
+            // LAYOUT as placeholderText — a second android:hint on the
+            // EditText would overlap the floating label.
             lifecycleScope.launch {
                 runCatching {
                     val def = ServiceLocator.repository(this@MainActivity).defaultSavePath()
-                    pathInput?.hint = def
+                    dlPathLayout?.placeholderText = def
                 }
             }
         } else {

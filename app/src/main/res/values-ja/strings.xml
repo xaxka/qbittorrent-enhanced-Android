@@ -1073,6 +1073,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">サーバーを編集</string>
     <string name="server_delete_confirm">このサーバープロファイルを削除しますか？</string>
     <string name="server_profile_name">プロファイル名</string>
+    <string name="settings_server_server_info">サーバー情報</string>
+    <string name="settings_server_credentials">資格情報</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">URL が無効です</string>
+    <string name="settings_server_url_examples">例:%1$s</string>
     <string name="server_profile_empty">サーバー未設定。追加してください</string>
     <string name="storage_access_title">ストレージへのアクセスを許可</string>
     <string name="storage_access_message">ダウンロードは %1$s に保存されます。エンジンが書き込めるよう、すべてのファイルへのアクセスを許可してください。</string>

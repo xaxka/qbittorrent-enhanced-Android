@@ -1082,6 +1082,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">Изменить сервер</string>
     <string name="server_delete_confirm">Удалить этот профиль сервера?</string>
     <string name="server_profile_name">Название профиля</string>
+    <string name="settings_server_server_info">Сведения о сервере</string>
+    <string name="settings_server_credentials">Учётные данные</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">Неверный URL</string>
+    <string name="settings_server_url_examples">Примеры:%1$s</string>
     <string name="server_profile_empty">Серверы не настроены — добавьте один</string>
     <string name="storage_access_title">Разрешить доступ к хранилищу</string>
     <string name="storage_access_message">Загрузки сохраняются в %1$s. Разрешите приложению доступ ко всем файлам, чтобы движок мог туда писать.</string>

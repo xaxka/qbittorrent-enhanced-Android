@@ -1073,6 +1073,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">Sửa máy chủ</string>
     <string name="server_delete_confirm">Xóa cấu hình máy chủ này?</string>
     <string name="server_profile_name">Tên cấu hình</string>
+    <string name="settings_server_server_info">Thông tin máy chủ</string>
+    <string name="settings_server_credentials">Thông tin đăng nhập</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">URL không hợp lệ</string>
+    <string name="settings_server_url_examples">Ví dụ:%1$s</string>
     <string name="server_profile_empty">Chưa có máy chủ — hãy thêm một máy chủ</string>
     <string name="storage_access_title">Cho phép truy cập bộ nhớ</string>
     <string name="storage_access_message">Tải xuống được lưu vào %1$s. Hãy cấp cho ứng dụng quyền truy cập tất cả tệp để engine có thể ghi vào đó.</string>

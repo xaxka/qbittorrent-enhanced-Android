@@ -1074,6 +1074,11 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="server_edit">Sunucuyu düzenle</string>
     <string name="server_delete_confirm">Bu sunucu profili silinsin mi?</string>
     <string name="server_profile_name">Profil adı</string>
+    <string name="settings_server_server_info">Sunucu bilgileri</string>
+    <string name="settings_server_credentials">Kimlik bilgileri</string>
+    <string name="settings_server_url">URL</string>
+    <string name="settings_server_invalid_url">Geçersiz URL</string>
+    <string name="settings_server_url_examples">Örnekler:%1$s</string>
     <string name="server_profile_empty">Henüz sunucu yok — bir tane ekleyin</string>
     <string name="storage_access_title">Depolama erişimine izin ver</string>
     <string name="storage_access_message">İndirmeler %1$s klasörüne kaydedilir. Motorun oraya yazabilmesi için uygulamaya tüm dosyalara erişim izni verin.</string>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- qBitController-style server profile editor (add / edit dialog). -->
+<!-- Server profile editor (add / edit dialog), qBitController
+     AddEditServerScreen parity: a single URL field (scheme, host, port and
+     an optional sub-path are all parsed from it — no separate host/port/
+     https/basePath inputs), two section headers, leading icons on every
+     field, and a full-width "test configuration" outlined button. Hints
+     live ONLY on the TextInputLayout (never on the inner EditText) —
+     doubling them makes the floating label and the placeholder overlap. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -12,10 +18,19 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            style="?attr/textAppearanceTitleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="@string/settings_server_server_info" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/server_profile_name">
+            android:hint="@string/server_profile_name"
+            app:startIconDrawable="@drawable/ic_computer_24px">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/nameInput"
@@ -25,37 +40,41 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/urlInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/settings_host_label">
+            android:hint="@string/settings_server_url"
+            app:startIconDrawable="@drawable/ic_link_24px">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/hostInput"
+                android:id="@+id/urlInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/settings_host_hint"
-                android:inputType="textUri" />
+                android:imeOptions="actionNext"
+                android:inputType="textUri"
+                android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            style="?attr/textAppearanceTitleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="@string/settings_server_credentials" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/settings_port_label">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/portInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/settings_username_label">
+            android:hint="@string/settings_username_label"
+            app:startIconDrawable="@drawable/ic_person_24px">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/usernameInput"
@@ -69,7 +88,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/settings_password_label"
-            app:endIconMode="password_toggle">
+            app:endIconMode="password_toggle"
+            app:startIconDrawable="@drawable/ic_lock_24px">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/passwordInput"
@@ -78,40 +98,23 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="@string/settings_base_path_label">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/basePathInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/settings_base_path_hint"
-                android:inputType="textNoSuggestions" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/httpsSwitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/settings_https_label" />
-
+        <!-- qBC moves this to a per-server "advanced settings" page; the
+             Android-View port keeps it visible in the same dialog so no
+             second screen is needed. -->
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/trustAllSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="12dp"
             android:text="@string/settings_trust_all_label" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/testButton"
-            style="?attr/borderlessButtonStyle"
+            style="?attr/materialOutlinedButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            app:icon="@drawable/ic_speed_24px"
             android:text="@string/settings_test_connection" />
     </LinearLayout>
 </ScrollView>
