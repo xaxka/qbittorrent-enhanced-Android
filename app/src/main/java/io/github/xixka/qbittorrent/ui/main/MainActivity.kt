@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -81,6 +82,26 @@ class MainActivity : AppCompatActivity() {
     private lateinit var searchAdapter: TorrentListAdapter
 
     private var engineFailurePrompted = false
+
+    /** Update accepted for download, waiting for the install permission. */
+    private var pendingUpdate: io.github.xixka.qbittorrent.util.UpdateChecker.Update? = null
+
+    /**
+     * "Install unknown apps" system screen. The screen always finishes with
+     * RESULT_CANCELED, so the callback re-checks the real permission state:
+     * granted → the pending update download starts; otherwise the pending
+     * update is dropped (the user can tap Download again).
+     */
+    private val installPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        val update = pendingUpdate
+        pendingUpdate = null
+        // minSdk 26: canRequestPackageInstalls() is always available.
+        if (update != null && packageManager.canRequestPackageInstalls()) {
+            io.github.xixka.qbittorrent.util.UpdateInstaller.downloadAndInstall(this, update)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -582,8 +603,28 @@ class MainActivity : AppCompatActivity() {
             .setMessage(getString(R.string.update_available_message, update.version) + notes)
             .setPositiveButton(R.string.update_download) { _, _ ->
                 // In-app multi-threaded download + install — no browser,
-                // no manual APK download anymore.
-                io.github.xixka.qbittorrent.util.UpdateInstaller.downloadAndInstall(this, update)
+                // no manual APK download. The "install unknown apps" grant
+                // is requested BEFORE any bytes are downloaded: the user is
+                // sent to the system screen first and the download starts
+                // automatically on return.
+                if (packageManager.canRequestPackageInstalls()) {
+                    io.github.xixka.qbittorrent.util.UpdateInstaller.downloadAndInstall(this, update)
+                } else {
+                    pendingUpdate = update
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.update_install)
+                        .setMessage(R.string.update_install_permission_download_hint)
+                        .setPositiveButton(R.string.update_install_open_settings) { _, _ ->
+                            installPermissionLauncher.launch(
+                                Intent(
+                                    android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                    Uri.parse("package:$packageName"),
+                                )
+                            )
+                        }
+                        .setNegativeButton(android.R.string.cancel) { _, _ -> pendingUpdate = null }
+                        .show()
+                }
             }
             .setNeutralButton(R.string.update_release_page) { _, _ -> openUrl(update.htmlUrl) }
             .setNegativeButton(android.R.string.cancel, null)

@@ -1113,6 +1113,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">インストール</string>
     <string name="update_install_permission_hint">このソースからのインストールには Android の許可が必要です。システム設定で許可してから戻り、インストールをタップしてください。</string>
     <string name="update_install_open_settings">設定を開く</string>
+    <string name="update_install_permission_download_hint">このアプリがアプリをインストールできるよう、Android の許可が必要です。システム設定で許可すると、戻った時点でダウンロードが自動的に開始されます。</string>
     <string name="update_download_canceled">ダウンロードを中止しました</string>
     <string name="categories_empty">カテゴリはまだありません</string>
     <string name="category_torrents_fmt">%1$d 件のトレント</string>

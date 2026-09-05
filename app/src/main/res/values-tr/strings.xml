@@ -1114,6 +1114,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">Yükle</string>
     <string name="update_install_permission_hint">Android bu kaynaktan uygulama yükleme izni ister. Sistem ayarlarında izin verin, sonra dönüp Yükle öğesine dokunun.</string>
     <string name="update_install_open_settings">Ayarları aç</string>
+    <string name="update_install_permission_download_hint">Android, bu kaynaktan uygulama yüklemek için izin gerektiriyor. Sistem ayarlarında izin verin â geri döndüğünüzde indirme otomatik olarak başlar.</string>
     <string name="update_download_canceled">İndirme iptal edildi</string>
     <string name="categories_empty">Henüz kategori yok</string>
     <string name="category_torrents_fmt">%1$d torrent</string>

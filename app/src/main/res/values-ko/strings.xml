@@ -1114,6 +1114,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">설치</string>
     <string name="update_install_permission_hint">이 출처에서 앱을 설치하려면 Android 권한이 필요합니다. 시스템 설정에서 허용한 후 돌아와 설치를 누르세요.</string>
     <string name="update_install_open_settings">설정 열기</string>
+    <string name="update_install_permission_download_hint">이 괔이 APK를 설치할 수 있도록 Android 권한이 필요합니다. 시스템 설정에서 허용하면 돌아왔을 때 다운로드가 자동으로 시작됩니다.</string>
     <string name="update_download_canceled">다운로드가 취소되었습니다</string>
     <string name="categories_empty">아직 카테고리가 없습니다</string>
     <string name="category_torrents_fmt">토런트 %1$d개</string>

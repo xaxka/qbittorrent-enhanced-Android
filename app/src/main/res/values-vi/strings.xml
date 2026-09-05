@@ -1113,6 +1113,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">Cài đặt</string>
     <string name="update_install_permission_hint">Android cần quyền cài ứng dụng từ nguồn này. Hãy cấp quyền trong cài đặt hệ thống rồi quay lại và nhấn Cài đặt.</string>
     <string name="update_install_open_settings">Mở cài đặt</string>
+    <string name="update_install_permission_download_hint">Android cần quyền cài đặt ứng dụng từ nguồn này. Hãy cấp trong cài đặt hệ thống â tải về sẽ tự động bắđầu khi bạn quay lạ.</string>
     <string name="update_download_canceled">Đã hủy tải xuống</string>
     <string name="categories_empty">Chưa có danh mục nào</string>
     <string name="category_torrents_fmt">%1$d torrent</string>

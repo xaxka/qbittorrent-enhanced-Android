@@ -1116,6 +1116,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">安装</string>
     <string name="update_install_permission_hint">Android 需要授权此应用安装未知应用。请在系统设置中允许后返回并点击安装。</string>
     <string name="update_install_open_settings">打开设置</string>
+    <string name="update_install_permission_download_hint">Android éè¦æææ­¤åºç¨å®è£æªç¥åºç¨ãè¯·å¨ç³»ç»è®¾ç½®ä¸­åè®¸ï¼è¿ååä¸è½½å°èªå¨å¼å§ã</string>
     <string name="update_download_canceled">已取消下载</string>
     <string name="categories_empty">还没有分类</string>
     <string name="category_torrents_fmt">%1$d 个种子</string>

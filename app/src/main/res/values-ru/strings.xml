@@ -1122,6 +1122,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">Установить</string>
     <string name="update_install_permission_hint">Android требует разрешение на установку приложений из этого источника. Разрешите его в настройках системы, затем вернитесь и нажмите «Установить».</string>
     <string name="update_install_open_settings">Открыть настройки</string>
+    <string name="update_install_permission_download_hint">Android требует разрешения на установку приложений из этого источника. Разрешите в системных настройках â загрузка начнётся автоматически при возврате.</string>
     <string name="update_download_canceled">Загрузка отменена</string>
     <string name="categories_empty">Категорий пока нет</string>
     <string name="category_torrents_fmt">Торрентов: %1$d</string>

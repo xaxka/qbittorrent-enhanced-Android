@@ -1114,6 +1114,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="update_install">Installieren</string>
     <string name="update_install_permission_hint">Android erfordert die Berechtigung, Apps aus dieser Quelle zu installieren. Erlauben Sie dies in den Systemeinstellungen und kehren Sie dann hierher zurück.</string>
     <string name="update_install_open_settings">Einstellungen öffnen</string>
+    <string name="update_install_permission_download_hint">Android benötigt die Berechtigung, Apps aus dieser Quelle zu installieren. Erlaube sie in den Systemeinstellungen â der Download startet automatisch, sobald du zurückkommst.</string>
     <string name="update_download_canceled">Download abgebrochen</string>
     <string name="categories_empty">Noch keine Kategorien</string>
     <string name="category_torrents_fmt">%1$d Torrents</string>
