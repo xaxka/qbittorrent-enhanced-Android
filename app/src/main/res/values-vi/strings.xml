@@ -253,8 +253,7 @@
     <string name="drawer_status">Trạng thái</string>
     <string name="drawer_status_downloading">Đang tải…</string>
     <string name="drawer_status_downloaded">Đã tải xong</string>
-    <string name="drawer_status_downloading_metadata">Đang tải metadata…</string>
-    <string name="drawer_status_error">Lỗi</string>
+        <string name="drawer_status_error">Lỗi</string>
     <string name="drawer_sorting">Sắp xếp</string>
     <string name="drawer_sorting_name">Tên</string>
     <string name="drawer_sorting_date_added">Ngày thêm</string>
@@ -262,13 +261,7 @@
     <string name="drawer_sorting_progress">Tiến độ</string>
     <string name="drawer_sorting_ETA">Thời gian còn lại</string>
     <string name="drawer_sorting_peers">Độ phổ biến</string>
-    <string name="drawer_date_added">Ngày thêm</string>
-    <string name="drawer_date_added_today">Hôm nay</string>
-    <string name="drawer_date_added_yesterday">Hôm qua</string>
-    <string name="drawer_date_added_week">Tuần</string>
-    <string name="drawer_date_added_month">Tháng</string>
-    <string name="drawer_date_added_year">Năm</string>
-    <string name="tags">Thẻ</string>
+                            <string name="tags">Thẻ</string>
     <string name="add_tag">Thêm thẻ</string>
     <string name="no_tags">Không thẻ</string>
     <string name="reset_filter">Đặt lại bộ lọc</string>
@@ -610,9 +603,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_i2p_inbound_length">Độ dài I2P đầu vào</string>
     <string name="qbt_i2p_outbound_length">Độ dài I2P đầu ra</string>
     <string name="qbt_webui_auth_section">Xác thực</string>
-    <string name="qbt_bypass_subnet_enabled">Bỏ qua xác thực cho các subnet trong whitelist</string>
-    <string name="qbt_bypass_subnet">Subnet trong whitelist (mỗi dòng một)</string>
-    <string name="qbt_max_auth_fails">Số lần xác thất thất bại tối đa</string>
+            <string name="qbt_max_auth_fails">Số lần xác thất thất bại tối đa</string>
     <string name="qbt_ban_duration_sec">Thời gian cấm (giây)</string>
     <string name="qbt_session_timeout_sec">Hết thời gian phiên (giây)</string>
     <string name="qbt_webui_security_section">Bảo mật</string>
@@ -1060,4 +1051,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="server_delete_confirm">Xóa cấu hình máy chủ này?</string>
     <string name="server_profile_name">Tên cấu hình</string>
     <string name="server_profile_empty">Chưa có máy chủ — hãy thêm một máy chủ</string>
+    <string name="storage_access_title">Cho phép truy cập bộ nhớ</string>
+    <string name="storage_access_message">Tải xuống được lưu vào /storage/emulated/0/Download/qbittorrent. Hãy cấp cho ứng dụng quyền truy cập tất cả tệp để engine có thể ghi vào đó.</string>
+    <string name="storage_access_grant">Cấp quyền</string>
+    <string name="storage_access_granted">Đã cấp quyền truy cập bộ nhớ</string>
+    <string name="storage_access_denied">Đã từ chối quyền — tải xuống sẽ thất bại</string>
 </resources>

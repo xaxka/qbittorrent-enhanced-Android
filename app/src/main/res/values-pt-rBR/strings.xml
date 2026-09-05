@@ -254,8 +254,7 @@ Dispositivos da LAN abrem sem login (toque para copiar o endereço)</string>
     <string name="drawer_status">Status</string>
     <string name="drawer_status_downloading">Baixando…</string>
     <string name="drawer_status_downloaded">Baixados</string>
-    <string name="drawer_status_downloading_metadata">Baixando metadados…</string>
-    <string name="drawer_status_error">Erro</string>
+        <string name="drawer_status_error">Erro</string>
     <string name="drawer_sorting">Ordenação</string>
     <string name="drawer_sorting_name">Nome</string>
     <string name="drawer_sorting_date_added">Data de adição</string>
@@ -263,13 +262,7 @@ Dispositivos da LAN abrem sem login (toque para copiar o endereço)</string>
     <string name="drawer_sorting_progress">Progresso</string>
     <string name="drawer_sorting_ETA">Tempo restante</string>
     <string name="drawer_sorting_peers">Popularidade</string>
-    <string name="drawer_date_added">Data de adição</string>
-    <string name="drawer_date_added_today">Hoje</string>
-    <string name="drawer_date_added_yesterday">Ontem</string>
-    <string name="drawer_date_added_week">Semana</string>
-    <string name="drawer_date_added_month">Mês</string>
-    <string name="drawer_date_added_year">Ano</string>
-    <string name="tags">Etiquetas</string>
+                            <string name="tags">Etiquetas</string>
     <string name="add_tag">Adicionar etiqueta</string>
     <string name="no_tags">Sem etiquetas</string>
     <string name="reset_filter">Redefinir filtro</string>
@@ -611,9 +604,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_i2p_inbound_length">Comprimento de entrada I2P</string>
     <string name="qbt_i2p_outbound_length">Comprimento de saída I2P</string>
     <string name="qbt_webui_auth_section">Autenticação</string>
-    <string name="qbt_bypass_subnet_enabled">Ignorar autenticação para sub-redes na lista branca</string>
-    <string name="qbt_bypass_subnet">Sub-redes na lista branca (uma por linha)</string>
-    <string name="qbt_max_auth_fails">Falhas de autenticação máximas</string>
+            <string name="qbt_max_auth_fails">Falhas de autenticação máximas</string>
     <string name="qbt_ban_duration_sec">Duração do ban (segundos)</string>
     <string name="qbt_session_timeout_sec">Tempo limite da sessão (segundos)</string>
     <string name="qbt_webui_security_section">Segurança</string>
@@ -1065,4 +1056,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="server_delete_confirm">Excluir este perfil de servidor?</string>
     <string name="server_profile_name">Nome do perfil</string>
     <string name="server_profile_empty">Nenhum servidor — adicione um</string>
+    <string name="storage_access_title">Permitir acesso ao armazenamento</string>
+    <string name="storage_access_message">Os downloads são salvos em /storage/emulated/0/Download/qbittorrent. Conceda ao app acesso a todos os arquivos para que o motor possa gravar lá.</string>
+    <string name="storage_access_grant">Conceder acesso</string>
+    <string name="storage_access_granted">Acesso ao armazenamento concedido</string>
+    <string name="storage_access_denied">Acesso negado; os downloads falharão</string>
 </resources>

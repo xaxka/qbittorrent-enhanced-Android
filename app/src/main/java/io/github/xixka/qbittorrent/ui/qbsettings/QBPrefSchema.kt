@@ -397,13 +397,12 @@ object QBPrefSchema {
             field("web_ui_password", R.string.qbt_webui_password, PrefKind.PASSWORD, def = "", blankKeepsValue = true),
             field("bypass_local_auth", R.string.qbt_webui_bypass_local, PrefKind.BOOL, def = false),
             header(R.string.qbt_webui_auth_section),
-            field(
-                "bypass_auth_subnet_whitelist_enabled",
-                R.string.qbt_bypass_subnet_enabled,
-                PrefKind.BOOL,
-                def = false,
-            ),
-            field("bypass_auth_subnet_whitelist", R.string.qbt_bypass_subnet, PrefKind.TEXT),
+            // NOTE: qB's "bypass authentication for whitelisted subnets"
+            // (bypass_auth_subnet_whitelist_enabled + _whitelist) is
+            // intentionally NOT exposed here: the app owns that switch and
+            // keeps it OFF (LAN clients must always log in — NoxConfig
+            // re-patches it back off on every engine start), so showing a
+            // toggle that is silently reverted would only confuse.
             field("web_ui_max_auth_fail_count", R.string.qbt_max_auth_fails, PrefKind.INT, def = 5, min = 0L),
             field("web_ui_ban_duration", R.string.qbt_ban_duration_sec, PrefKind.INT, def = 3600, min = 0L),
             field("web_ui_session_timeout", R.string.qbt_session_timeout_sec, PrefKind.INT, def = 3600, min = 0L),

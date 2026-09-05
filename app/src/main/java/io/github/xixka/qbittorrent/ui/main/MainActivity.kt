@@ -3,6 +3,7 @@ package io.github.xixka.qbittorrent.ui.main
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.ContextThemeWrapper
@@ -14,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.children
@@ -44,6 +46,7 @@ import io.github.xixka.qbittorrent.ui.rss.RssFragment
 import io.github.xixka.qbittorrent.ui.search.SearchFragment
 import io.github.xixka.qbittorrent.ui.settings.SettingsFragment
 import io.github.xixka.qbittorrent.util.Format
+import io.github.xixka.qbittorrent.util.StorageAccess
 import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
@@ -701,20 +704,6 @@ class MainActivity : AppCompatActivity() {
                     R.id.drawer_status_checking -> StatusFilter.CHECKING
                     R.id.drawer_status_moving -> StatusFilter.MOVING
                     R.id.drawer_status_error -> StatusFilter.ERROR
-                    R.id.drawer_status_downloading_metadata -> StatusFilter.DOWNLOADING_METADATA
-                    else -> null
-                }
-            )
-        }
-
-        d.drawerDateAddedChipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
-            viewModel.setDateAddedFilter(
-                when (checkedIds.firstOrNull()) {
-                    R.id.drawer_date_added_today -> DateAddedFilter.TODAY
-                    R.id.drawer_date_added_yesterday -> DateAddedFilter.YESTERDAY
-                    R.id.drawer_date_added_week -> DateAddedFilter.WEEK
-                    R.id.drawer_date_added_month -> DateAddedFilter.MONTH
-                    R.id.drawer_date_added_year -> DateAddedFilter.YEAR
                     else -> null
                 }
             )
@@ -1023,6 +1012,7 @@ class MainActivity : AppCompatActivity() {
 
         val prefs = ServiceLocator.prefs(this)
         val localEngine = prefs.usingLocalEngine
+        maybePromptForStorageAccess(localEngine)
         val emptyText = when {
             !state.configured -> R.string.empty_not_configured
             state.authError -> R.string.empty_auth_error
@@ -1077,6 +1067,56 @@ class MainActivity : AppCompatActivity() {
         updateDrawerChips(state.categories, state.tags)
     }
 
+    /**
+     * One prompt per process: the bundled engine downloads into the PUBLIC
+     * /storage/emulated/0/Download/qbittorrent folder, and raw-path writes
+     * there need "All files access" (Android 11+) / the classic WRITE grant
+     * (Android 9-10). Without it every download fails with a write error.
+     */
+    private fun maybePromptForStorageAccess(localEngine: Boolean) {
+        if (!localEngine || storagePromptShown) return
+        if (StorageAccess.isGranted(this)) {
+            storagePromptShown = true
+            return
+        }
+        storagePromptShown = true
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.storage_access_title)
+            .setMessage(getString(R.string.storage_access_message))
+            .setPositiveButton(R.string.storage_access_grant) { _, _ ->
+                val legacy = StorageAccess.legacyRuntimePermission
+                if (legacy != null) {
+                    ActivityCompat.requestPermissions(
+                        this@MainActivity, arrayOf(legacy), REQUEST_STORAGE
+                    )
+                } else {
+                    StorageAccess.allFilesSettingsIntent(this@MainActivity)?.let {
+                        runCatching { startActivity(it) }
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_STORAGE) {
+            val granted = grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            Toast.makeText(
+                this,
+                if (granted) R.string.storage_access_granted
+                else R.string.storage_access_denied,
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
     private fun updateDrawerChips(categories: List<String>, tags: List<String>) {
         updateChips(
             group = drawerBinding.drawerCategoriesChipGroup,
@@ -1098,19 +1138,41 @@ class MainActivity : AppCompatActivity() {
         names: List<String>,
         onManage: (String) -> Unit,
     ) {
-        val existing = group.children.filter { it.id != keepId }.toList()
-        existing.forEach { group.removeView(it) }
+        // Chips are keyed by name and REUSED across the 1 s poll refreshes
+        // so a checked chip keeps both its checked state and its view id
+        // (recreating them every poll would silently drop the selection).
+        //
+        // Each dynamic chip gets a generated view id: the checked-state
+        // listener resolves the tapped chip via findViewById(id) — without
+        // an id every chip registers as NO_ID and the listener would always
+        // resolve whichever no-id chip is first in the group, i.e. tapping
+        // ANY category/tag chip filtered by the FIRST one.
+        val existing = HashMap<String, Chip>()
+        group.children.forEach { child ->
+            if (child.id != keepId && child is Chip) {
+                (child.tag as? String)?.let { name -> existing[name] = child }
+            }
+        }
+        val wanted = names.toSet()
+        // drop chips whose category/tag no longer exists on the server
+        group.children.filter { it.id != keepId }.toList().forEach { child ->
+            val name = (child as? Chip)?.tag as? String
+            if (name == null || name !in wanted) group.removeView(child)
+        }
         if (names.isEmpty()) return
         names.forEach { name ->
-            val chip = LayoutInflater.from(this)
-                .inflate(R.layout.item_tag_chip, group, false) as Chip
-            chip.text = name
-            chip.tag = name
-            chip.setOnLongClickListener {
-                onManage(name)
-                true
+            if (name !in existing) {
+                val chip = LayoutInflater.from(this)
+                    .inflate(R.layout.item_tag_chip, group, false) as Chip
+                chip.id = View.generateViewId()
+                chip.text = name
+                chip.tag = name
+                chip.setOnLongClickListener {
+                    onManage(name)
+                    true
+                }
+                group.addView(chip)
             }
-            group.addView(chip)
         }
     }
 
@@ -1152,6 +1214,13 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val PICK_TORRENT_FILE = 42
+
+        /** Runtime request id of the legacy (pre-R) storage permission. */
+        private const val REQUEST_STORAGE = 43
+
+        /** One-shot per process so the storage prompt is never nagging. */
+        @Volatile
+        private var storagePromptShown = false
 
         /** Auto update check frequency. */
         private const val UPDATE_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000

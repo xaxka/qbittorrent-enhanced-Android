@@ -25,7 +25,7 @@ import java.net.UnknownHostException
 
 /**
  * Home screen state, modeled after LibreTorrent's TorrentListViewModel:
- * drawer chips (status / date added / category), sorting with direction,
+ * drawer chips (status / category / tag), sorting with direction,
  * search query and live transfer stats.
  */
 data class ListUiState(
@@ -48,11 +48,16 @@ data class ListUiState(
 )
 
 /**
- * The full status filter set of the qBittorrent WebUI sidebar, with exactly
+ * The status filter set of the qBittorrent WebUI sidebar, with exactly
  * the server-side semantics (qb-enhanced src/base/torrentfilter.cpp +
- * torrentimpl.cpp): `downloading` includes stopped-downloading torrents,
- * `completed` is the seeding state set, `resumed` is anything not stopped,
- * `active`/`inactive` are based on current transfer speeds.
+ * torrentimpl.cpp): `downloading` includes stopped-downloading torrents
+ * AND metadata-fetching ones, `completed` is the seeding state set,
+ * `resumed` is anything not stopped, `active`/`inactive` are based on
+ * current transfer speeds. Matches the engine's own WebUI sidebar
+ * (views/filters.html) filter-for-filter — the engine offers neither a
+ * standalone "downloading metadata" filter (metadl is counted under
+ * `downloading`) nor any date-added window filters, so neither exists
+ * here either.
  */
 enum class StatusFilter(val states: Set<String>? = null, val speedBased: Int = 0) {
     ALL(null),
@@ -77,10 +82,8 @@ enum class StatusFilter(val states: Set<String>? = null, val speedBased: Int = 0
     CHECKING(setOf("checkingup", "checkingdl", "checkingresumedata")),
     MOVING(setOf("moving")),
     ERROR(setOf("error", "missingfiles")),
-    DOWNLOADING_METADATA(setOf("metadl", "forcedmetadl")),
 }
 
-enum class DateAddedFilter { NONE, TODAY, YESTERDAY, WEEK, MONTH, YEAR }
 enum class SortField {
     DATE_ADDED, NAME, SIZE, PROGRESS, ETA, PEERS, RATIO,
     DL_SPEED, UP_SPEED, UPLOADED, COMPLETION_DATE,
@@ -107,8 +110,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
     // drawer filters
     var statusFilter = StatusFilter.ALL
-        private set
-    var dateFilter = DateAddedFilter.NONE
         private set
     var category: String? = null
         private set
@@ -280,11 +281,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
         refilter()
     }
 
-    fun setDateAddedFilter(filter: DateAddedFilter?) {
-        dateFilter = filter ?: DateAddedFilter.NONE
-        refilter()
-    }
-
     fun setCategory(category: String?) {
         this.category = category
         refilter()
@@ -312,7 +308,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun resetFilters() {
         statusFilter = StatusFilter.ALL
-        dateFilter = DateAddedFilter.NONE
         category = null
         refilter()
     }
@@ -347,22 +342,6 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             f.states != null -> result = result.filter { it.state.lowercase() in f.states }
         }
 
-        result = when (dateFilter) {
-            DateAddedFilter.NONE -> result
-            else -> {
-                val now = System.currentTimeMillis() / 1000
-                val from = when (dateFilter) {
-                    DateAddedFilter.TODAY -> now - 86400
-                    DateAddedFilter.YESTERDAY -> now - 172800
-                    DateAddedFilter.WEEK -> now - 604800
-                    DateAddedFilter.MONTH -> now - 2592000
-                    DateAddedFilter.YEAR -> now - 31536000
-                    else -> 0
-                }
-                result.filter { it.addedOn >= from }
-            }
-        }
-
         category?.let { cat ->
             result = if (cat.isEmpty()) {
                 result.filter { it.category.isBlank() }
@@ -383,7 +362,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             result = result.filter { it.name.contains(searchQuery.trim(), ignoreCase = true) }
         }
 
-        val cmp: java.util.Comparator<TorrentInfo> = when (sortField) {
+        val base: java.util.Comparator<TorrentInfo> = when (sortField) {
             SortField.DATE_ADDED -> compareBy { it.addedOn }
             SortField.NAME -> compareBy { it.name.lowercase() }
             SortField.SIZE -> compareBy { it.size }
@@ -396,6 +375,18 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             SortField.UPLOADED -> compareBy { it.uploaded }
             SortField.COMPLETION_DATE -> compareBy { it.completionOn }
         }
+        // TOTAL order, deterministic regardless of the server's array
+        // order: the server serializes its torrent map in QHash order,
+        // which reshuffles whenever the key set changes. A partial
+        // comparator leaves items that compare EQUAL on the primary key
+        // (same addedOn, same progress, …) in that ever-changing source
+        // order — so every 1 s poll re-shuffled them and the list visibly
+        // jumped around, right after tapping a sort chip. Chaining name +
+        // hash tiebreakers pins equal-key items to a stable position:
+        // the same data now always sorts to the same list.
+        val cmp = base
+            .thenBy { it.name.lowercase() }
+            .thenBy { it.hash }
         val sorted = if (sortDescending) result.sortedWith(cmp.reversed()) else result.sortedWith(cmp)
         return sorted.toList()
     }

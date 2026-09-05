@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Port of LibreTorrent home_drawer_content.xml (GPL-3.0), pixel-level:
+<!-- Port of LibreTorrent home_drawer_content.xml (GPL-3.0):
      stats rows + filter sections, same styles/margins as the original.
-     Chip sets are extended with the full qBittorrent status/sort set. -->
+     Filter chips are laid out in fixed 3-column grids (EqualColumnsChipGroup)
+     with a 6dp vertical gap (25% below the M3 8dp default). The status set
+     mirrors the engine's own WebUI sidebar (views/filters.html); the
+     date-added window filters were dropped — qBittorrent offers no such
+     sidebar filters, the "Date added" sort covers that need. -->
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -100,117 +104,111 @@
                 app:icon="@drawable/ic_filter_list_off_24px" />
         </RelativeLayout>
 
-        <com.google.android.material.chip.ChipGroup
+        <io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup
             android:id="@+id/drawer_status_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="4dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="6dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_all"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_all"
-                app:chipIcon="@drawable/ic_lists_24px" />
+                android:text="@string/drawer_status_all" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_downloading"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_downloading"
-                app:chipIcon="@drawable/ic_download_24px" />
+                android:text="@string/drawer_status_downloading" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_seeding"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_seeding"
-                app:chipIcon="@drawable/ic_upload_24px" />
+                android:text="@string/drawer_status_seeding" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_completed"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_completed"
-                app:chipIcon="@drawable/ic_download_done_24px" />
+                android:text="@string/drawer_status_completed" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_resumed"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_resumed"
-                app:chipIcon="@drawable/ic_play_arrow_24px" />
+                android:text="@string/drawer_status_resumed" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_paused"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_paused"
-                app:chipIcon="@drawable/ic_pause_24px" />
+                android:text="@string/drawer_status_paused" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_active"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_active"
-                app:chipIcon="@drawable/ic_speed_24px" />
+                android:text="@string/drawer_status_active" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_inactive"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_inactive"
-                app:chipIcon="@drawable/ic_stop_circle_24px" />
+                android:text="@string/drawer_status_inactive" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_stalled"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_stalled"
-                app:chipIcon="@drawable/ic_hub_24px" />
+                android:text="@string/drawer_status_stalled" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_checking"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_checking"
-                app:chipIcon="@drawable/ic_checklist_24px" />
+                android:text="@string/drawer_status_checking" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_moving"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_moving"
-                app:chipIcon="@drawable/ic_drive_file_move_24px" />
+                android:text="@string/drawer_status_moving" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_status_error"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/drawer_status_error"
-                app:chipIcon="@drawable/ic_error_24px" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_status_downloading_metadata"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/drawer_status_downloading_metadata"
-                app:chipIcon="@drawable/ic_magnet_24px" />
-        </com.google.android.material.chip.ChipGroup>
+                android:text="@string/drawer_status_error" />
+        </io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup>
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
@@ -257,17 +255,19 @@
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </RelativeLayout>
 
-        <com.google.android.material.chip.ChipGroup
+        <io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup
             android:id="@+id/drawer_sorting_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="4dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="6dp"
             app:singleSelection="true"
             tools:checkedChip="@id/drawer_sorting_date_added">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_date_added"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -275,7 +275,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_name"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -283,7 +283,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_size"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -291,7 +291,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_progress"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -299,7 +299,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_ETA"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -307,7 +307,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_ratio"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -315,7 +315,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_peers"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -323,7 +323,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_dl_speed"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -331,7 +331,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_up_speed"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -339,7 +339,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_uploaded"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
@@ -347,87 +347,12 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_completion_date"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
                 android:text="@string/drawer_sorting_completion_date" />
-        </com.google.android.material.chip.ChipGroup>
-
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp" />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp">
-
-            <TextView
-                style="?attr/textAppearanceTitleMedium"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/date_added_clear_button"
-                android:text="@string/drawer_date_added" />
-
-            <Button
-                android:id="@+id/date_added_clear_button"
-                style="?attr/materialIconButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:contentDescription="@string/reset_filter"
-                app:icon="@drawable/ic_filter_list_off_24px" />
-        </RelativeLayout>
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/drawer_date_added_chip_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_date_added_today"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/drawer_date_added_today"
-                app:chipIcon="@drawable/ic_today_24px" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_date_added_yesterday"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/drawer_date_added_yesterday"
-                app:chipIcon="@drawable/ic_calendar_month_24px" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_date_added_week"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/drawer_date_added_week"
-                app:chipIcon="@drawable/ic_calendar_month_24px" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_date_added_month"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/drawer_date_added_month"
-                app:chipIcon="@drawable/ic_calendar_month_24px" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/drawer_date_added_year"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/drawer_date_added_year"
-                app:chipIcon="@drawable/ic_calendar_month_24px" />
-        </com.google.android.material.chip.ChipGroup>
+        </io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup>
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
@@ -466,21 +391,23 @@
                 app:icon="@drawable/ic_filter_list_off_24px" />
         </RelativeLayout>
 
-        <com.google.android.material.chip.ChipGroup
+        <io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup
             android:id="@+id/drawer_categories_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="4dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="6dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/no_category_chip"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/no_tags"
-                app:chipIcon="@drawable/ic_label_off_24px" />
-        </com.google.android.material.chip.ChipGroup>
+                android:text="@string/no_tags" />
+        </io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup>
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
@@ -519,20 +446,22 @@
                 app:icon="@drawable/ic_filter_list_off_24px" />
         </RelativeLayout>
 
-        <com.google.android.material.chip.ChipGroup
+        <io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup
             android:id="@+id/drawer_tags_chip_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="4dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="6dp"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/no_tags_chip"
+                style="@style/Widget.App.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="@string/no_tags"
-                app:chipIcon="@drawable/ic_label_off_24px" />
-        </com.google.android.material.chip.ChipGroup>
+                android:text="@string/no_tags" />
+        </io.github.xixka.qbittorrent.ui.customviews.EqualColumnsChipGroup>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

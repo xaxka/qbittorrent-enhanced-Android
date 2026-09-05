@@ -2,10 +2,12 @@ package io.github.xixka.qbittorrent.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Environment
 import io.github.xixka.qbittorrent.BuildConfig
 import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.qbt.NoxConfig
 import io.github.xixka.qbittorrent.util.ThemeUtils
+import java.io.File
 
 /**
  * Application preferences: server connection profile + local engine settings.
@@ -80,7 +82,8 @@ class Prefs(context: Context) {
         set(value) = sp.edit().putInt(KEY_ENGINE_PORT, value).apply()
 
     var engineSavePath: String
-        get() = sp.getString(KEY_ENGINE_SAVE_PATH, "") ?: ""
+        get() = sp.getString(KEY_ENGINE_SAVE_PATH, null)?.takeIf { it.isNotBlank() }
+            ?: defaultEngineSavePath()
         set(value) = sp.edit().putString(KEY_ENGINE_SAVE_PATH, value).apply()
 
     // LAN access is on by default: the WebUI listens on every interface (with
@@ -258,6 +261,17 @@ class Prefs(context: Context) {
 
         /** Default endpoint of the bundled local engine (Enhanced edition). */
         const val LOCAL_ENGINE_HOST = "127.0.0.1"
+
+        /**
+         * Default download location of the bundled engine: the PUBLIC
+         * Download folder (`/storage/emulated/0/Download/qbittorrent` on the
+         * usual device) instead of an app-private dir, so downloads survive
+         * an app uninstall and are reachable from the file manager.
+         */
+        fun defaultEngineSavePath(): String = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            "qbittorrent"
+        ).absolutePath
 
         const val KEY_HOST = "server_host"
         const val KEY_PORT = "server_port"

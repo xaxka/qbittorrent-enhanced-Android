@@ -254,8 +254,7 @@
     <string name="drawer_status">狀態</string>
     <string name="drawer_status_downloading">下載中…</string>
     <string name="drawer_status_downloaded">已下載</string>
-    <string name="drawer_status_downloading_metadata">取得中繼資料中…</string>
-    <string name="drawer_status_error">錯誤</string>
+        <string name="drawer_status_error">錯誤</string>
     <string name="drawer_sorting">排序</string>
     <string name="drawer_sorting_name">名稱</string>
     <string name="drawer_sorting_date_added">新增時間</string>
@@ -263,13 +262,7 @@
     <string name="drawer_sorting_progress">進度</string>
     <string name="drawer_sorting_ETA">剩餘時間</string>
     <string name="drawer_sorting_peers">熱門度</string>
-    <string name="drawer_date_added">新增時間</string>
-    <string name="drawer_date_added_today">今天</string>
-    <string name="drawer_date_added_yesterday">昨天</string>
-    <string name="drawer_date_added_week">本週</string>
-    <string name="drawer_date_added_month">本月</string>
-    <string name="drawer_date_added_year">本年</string>
-    <string name="tags">標籤</string>
+                            <string name="tags">標籤</string>
     <string name="add_tag">新增標籤</string>
     <string name="no_tags">無標籤</string>
     <string name="reset_filter">重設篩選</string>
@@ -611,9 +604,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_i2p_inbound_length">I2P 入站長度</string>
     <string name="qbt_i2p_outbound_length">I2P 出站長度</string>
     <string name="qbt_webui_auth_section">身分驗證</string>
-    <string name="qbt_bypass_subnet_enabled">IP 子網白名單跳過身分驗證</string>
-    <string name="qbt_bypass_subnet">白名單子網（每行一個）</string>
-    <string name="qbt_max_auth_fails">最大驗證失敗次數</string>
+            <string name="qbt_max_auth_fails">最大驗證失敗次數</string>
     <string name="qbt_ban_duration_sec">封鎖時長（秒）</string>
     <string name="qbt_session_timeout_sec">工作階段逾時（秒）</string>
     <string name="qbt_webui_security_section">安全</string>
@@ -1061,4 +1052,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="server_delete_confirm">刪除此伺服器設定？</string>
     <string name="server_profile_name">設定檔名稱</string>
     <string name="server_profile_empty">尚未設定伺服器——新增一個以遠端連線</string>
+    <string name="storage_access_title">允許儲存空間存取</string>
+    <string name="storage_access_message">下載將儲存到 /storage/emulated/0/Download/qbittorrent。請授予應用程式「所有檔案存取」權限，以便引擎寫入該目錄。</string>
+    <string name="storage_access_grant">授予權限</string>
+    <string name="storage_access_granted">已授予儲存權限</string>
+    <string name="storage_access_denied">儲存權限遭拒絕，下載將失敗</string>
 </resources>

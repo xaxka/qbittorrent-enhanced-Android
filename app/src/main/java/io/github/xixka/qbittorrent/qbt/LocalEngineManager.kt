@@ -123,8 +123,15 @@ object LocalEngineManager {
             appendLog("starting qbittorrent-enhanced-nox on port $port")
 
             val effectiveSave = savePath.ifBlank {
-                File(ctx.getExternalFilesDir(null), "Downloads").absolutePath
+                io.github.xixka.qbittorrent.data.Prefs.defaultEngineSavePath()
             }
+            // The engine writes through the app's storage view: make sure the
+            // target folder exists (and is writable) before the child starts.
+            // A failure here means the all-files permission has not been
+            // granted yet — log it and keep going; the UI prompts for access
+            // and the engine retries on its next (re)start.
+            runCatching { File(effectiveSave).mkdirs() }
+                .onFailure { appendLog("warning: could not create save path $effectiveSave (storage permission?)") }
             // The engine's WebUI credentials are app-managed: seed the exact
             // username/password the app itself logs in with so the config
             // file can never drift away from the app + LAN browser login.

@@ -254,8 +254,7 @@ LAN 기기는 로그인 없이 열 수 있습니다(탭하여 주소 복사)</st
     <string name="drawer_status">상태</string>
     <string name="drawer_status_downloading">다운로드 중…</string>
     <string name="drawer_status_downloaded">다운로드됨</string>
-    <string name="drawer_status_downloading_metadata">메타데이터 받는 중…</string>
-    <string name="drawer_status_error">오류</string>
+        <string name="drawer_status_error">오류</string>
     <string name="drawer_sorting">정렬</string>
     <string name="drawer_sorting_name">이름</string>
     <string name="drawer_sorting_date_added">추가한 날짜</string>
@@ -263,13 +262,7 @@ LAN 기기는 로그인 없이 열 수 있습니다(탭하여 주소 복사)</st
     <string name="drawer_sorting_progress">진행률</string>
     <string name="drawer_sorting_ETA">남은 시간</string>
     <string name="drawer_sorting_peers">인기도</string>
-    <string name="drawer_date_added">추가한 날짜</string>
-    <string name="drawer_date_added_today">오늘</string>
-    <string name="drawer_date_added_yesterday">어제</string>
-    <string name="drawer_date_added_week">이번 주</string>
-    <string name="drawer_date_added_month">이번 달</string>
-    <string name="drawer_date_added_year">올해</string>
-    <string name="tags">태그</string>
+                            <string name="tags">태그</string>
     <string name="add_tag">태그 추가</string>
     <string name="no_tags">태그 없음</string>
     <string name="reset_filter">필터 초기화</string>
@@ -611,9 +604,7 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="qbt_i2p_inbound_length">I2P 인바운드 길이</string>
     <string name="qbt_i2p_outbound_length">I2P 아웃바운드 길이</string>
     <string name="qbt_webui_auth_section">인증</string>
-    <string name="qbt_bypass_subnet_enabled">화이트리스트 서브넷은 인증 건너뛰기</string>
-    <string name="qbt_bypass_subnet">화이트리스트 서브넷(한 줄에 하나)</string>
-    <string name="qbt_max_auth_fails">최대 인증 실패 횟수</string>
+            <string name="qbt_max_auth_fails">최대 인증 실패 횟수</string>
     <string name="qbt_ban_duration_sec">차단 기간(초)</string>
     <string name="qbt_session_timeout_sec">세션 시간 초과(초)</string>
     <string name="qbt_webui_security_section">보안</string>
@@ -1061,4 +1052,9 @@ https://github.com/proninyaroslav/libretorrent</string>
     <string name="server_delete_confirm">이 서버 프로필을 삭제하시겠습니까?</string>
     <string name="server_profile_name">프로필 이름</string>
     <string name="server_profile_empty">서버가 없습니다. 하나 추가하세요</string>
+    <string name="storage_access_title">저장소 접근 허용</string>
+    <string name="storage_access_message">다운로드는 /storage/emulated/0/Download/qbittorrent에 저장됩니다. 엔진이 쓸 수 있도록 앱에 모든 파일 접근 권한을 허용하세요.</string>
+    <string name="storage_access_grant">접근 허용</string>
+    <string name="storage_access_granted">저장소 접근이 허용되었습니다</string>
+    <string name="storage_access_denied">접근이 거부되어 다운로드가 실패합니다</string>
 </resources>

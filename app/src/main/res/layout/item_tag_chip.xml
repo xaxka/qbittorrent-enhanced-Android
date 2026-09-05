@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Dynamic category/tag chip: matches the drawer's fixed-grid filter chips
+     (Widget.App.Chip.Filter — single line, end ellipsis) so programmatically
+     added chips look identical to the static ones. -->
 <com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/Widget.Material3.Chip.Filter"
+    style="@style/Widget.App.Chip.Filter"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:checkable="true" />

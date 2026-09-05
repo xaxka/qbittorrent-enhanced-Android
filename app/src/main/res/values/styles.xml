@@ -70,4 +70,19 @@
     <style name="Widget.App.LinearProgressIndicator" parent="Widget.Material3.LinearProgressIndicator">
         <item name="trackStopIndicatorSize">0dp</item>
     </style>
+
+    <!-- Drawer filter chips, laid out in fixed 3-column grids
+         (EqualColumnsChipGroup). Single-line label with end ellipsis so a
+         long label stretches its column instead of reflowing the grid;
+         label-medium (12sp) + trimmed inner padding so common labels
+         ("Downloading", "Completed", …) fit a 1/3-of-drawer column. -->
+    <style name="Widget.App.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="chipStartPadding">2dp</item>
+        <item name="textStartPadding">6dp</item>
+        <item name="textEndPadding">6dp</item>
+    </style>
 </resources>
