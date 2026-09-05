@@ -1,10 +1,13 @@
 package io.github.xixka.qbittorrent.ui.detail
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.ImageLoader
+import coil.load
 import com.google.android.material.color.MaterialColors
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.databinding.ItemQbcPeerBinding
@@ -13,17 +16,28 @@ import io.github.xixka.qbittorrent.util.Format
 import java.util.Locale
 
 /**
- * Peers list, qBC PeerItem parity: card with ip:port + client, progress /
- * download / upload stat columns and the raw connection flags.
+ * Peers list, qBC PeerItem parity: card with a country flag image +
+ * ip:port + client header, four stat columns (progress / download /
+ * upload / connection) and the raw connection-flags banner.
+ *
+ * Flags come from the engine's own WebUI static files
+ * (`images/flags/{cc}.svg`, the exact URL qBitController builds), decoded
+ * by [coil.decode.SvgDecoder] through the [flagLoader] the tab owns; the
+ * URL itself is produced by [flagUrlOf] from the active server config.
  */
 class PeersAdapter(
     private val selected: Set<String>,
+    private val flagLoader: ImageLoader,
+    private val flagUrlOf: (String) -> String,
     private val onClick: (Peer) -> Unit,
     private val onLongClick: (Peer) -> Unit,
 ) : ListAdapter<Peer, PeersAdapter.ViewHolder>(DIFF) {
 
-    class ViewHolder(private val binding: ItemQbcPeerBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(
+        private val binding: ItemQbcPeerBinding,
+        private val flagLoader: ImageLoader,
+        private val flagUrlOf: (String) -> String,
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
             peer: Peer,
@@ -33,17 +47,20 @@ class PeersAdapter(
         ) {
             binding.peerEndpoint.text = peer.endpoint
             binding.peerClient.text = peer.client
-            // qBC shows a country flag image; the Android-View port renders
-            // the localized country NAME instead (no SVG flag pipeline).
-            if (peer.countryCode.isNotBlank()) {
-                binding.peerCountryCode.visibility = android.view.View.VISIBLE
-                binding.peerCountryCode.text = countryName(peer.countryCode)
+
+            // qBC PeerItem: 24dp flag image in front of the endpoint, loaded
+            // from the engine's images/flags/{cc}.svg. The localized country
+            // name stays as the accessibility description.
+            val code = peer.countryCode.trim()
+            if (code.isNotBlank()) {
+                binding.peerFlag.visibility = View.VISIBLE
+                binding.peerFlag.contentDescription = countryName(code)
+                binding.peerFlag.load(flagUrlOf(code.lowercase(Locale.ROOT)), flagLoader)
             } else {
-                binding.peerCountryCode.visibility = android.view.View.GONE
+                binding.peerFlag.visibility = View.GONE
+                binding.peerFlag.setImageDrawable(null)
             }
 
-            // qBC card row: four stat columns — progress, download, upload
-            // and the connection column ("BT" / "µTP" / "Web")
             binding.peerConnection.text = peer.connectionStatus
 
             binding.peerProgress.text = String.format(
@@ -57,9 +74,9 @@ class PeersAdapter(
             // qBC flags banner: raw flags joined by spaces inside a rounded
             // secondaryContainer surface with a flag icon.
             if (peer.flags.isBlank()) {
-                binding.peerFlagsBubble.visibility = android.view.View.GONE
+                binding.peerFlagsBubble.visibility = View.GONE
             } else {
-                binding.peerFlagsBubble.visibility = android.view.View.VISIBLE
+                binding.peerFlagsBubble.visibility = View.VISIBLE
                 binding.peerFlags.text = peer.flags
             }
 
@@ -86,7 +103,11 @@ class PeersAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(ItemQbcPeerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        ViewHolder(
+            ItemQbcPeerBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            flagLoader,
+            flagUrlOf,
+        )
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) =
         holder.bind(getItem(position), getItem(position).endpoint in selected, onClick, onLongClick)

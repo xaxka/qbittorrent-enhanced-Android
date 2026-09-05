@@ -14,15 +14,22 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import coil.ImageLoader
+import coil.decode.SvgDecoder
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import io.github.xixka.qbittorrent.R
+import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.DialogPeerDetailsBinding
 import io.github.xixka.qbittorrent.databinding.FragmentPeersBinding
 import io.github.xixka.qbittorrent.model.Peer
 import io.github.xixka.qbittorrent.util.Format
+import okhttp3.OkHttpClient
 import kotlinx.coroutines.launch
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.Locale
+import javax.net.ssl.SSLContext
 
 /**
  * Peers tab, qBC TorrentPeersTab parity: peer cards, tap = details dialog,
@@ -47,6 +54,8 @@ class PeersFragment : Fragment() {
 
     private lateinit var adapter: PeersAdapter
 
+    private lateinit var flagLoader: ImageLoader
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -59,8 +68,22 @@ class PeersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // qBC PeerItem: country flags are fetched from the engine's WebUI
+        // static files (images/flags/{cc}.svg) and SVG-decoded by Coil.
+        // Self-signed https servers reuse the trust-all policy the API
+        // client already applies.
+        val serverConfig = ServiceLocator.prefs(requireContext()).serverConfig()
+        val flagBase = serverConfig.baseUrl()
+        flagLoader = ImageLoader.Builder(requireContext())
+            .components { add(SvgDecoder.Factory()) }
+            .apply {
+                if (serverConfig.trustAllCerts) okHttpClient(trustAllOkHttpClient())
+            }
+            .build()
         adapter = PeersAdapter(
             selected = selected,
+            flagLoader = flagLoader,
+            flagUrlOf = { code -> "${flagBase}images/flags/$code.svg" },
             onClick = ::onPeerClick,
             onLongClick = ::onPeerLongClick,
         )
@@ -291,5 +314,22 @@ class PeersFragment : Fragment() {
         unregisterPageSwipe = null
         _binding = null
         super.onDestroyView()
+    }
+
+    /** Trust-all HTTPS for flag requests on self-signed servers — the same
+     *  opt-in policy QBApiClient applies to the API calls. */
+    private fun trustAllOkHttpClient(): OkHttpClient {
+        val trustManager = object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+        }
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, arrayOf(trustManager), SecureRandom())
+        }
+        return OkHttpClient.Builder()
+            .sslSocketFactory(sslContext.socketFactory, trustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
     }
 }

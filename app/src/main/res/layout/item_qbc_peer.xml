@@ -28,16 +28,16 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/peer_country_code"
-                style="?attr/textAppearanceLabelMedium"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <!-- qBC PeerItem: 24dp country flag loaded from the engine's
+                 WebUI static files (images/flags/{cc}.svg). -->
+            <ImageView
+                android:id="@+id/peer_flag"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_marginEnd="8dp"
-                android:background="@null"
-                android:textColor="?attr/colorPrimary"
+                android:contentDescription="@null"
                 android:visibility="gone"
-                tools:text="DE"
+                tools:src="@drawable/ic_flag_24px"
                 tools:visibility="visible" />
 
             <TextView
