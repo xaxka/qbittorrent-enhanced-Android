@@ -912,7 +912,6 @@
     <string name="rss_add">Add</string>
     <string name="rss_add_feed">Add feed</string>
     <string name="rss_add_folder">New folder</string>
-    <string name="rss_folder">Folder name</string>
     <string name="rss_feed_url">Feed URL</string>
     <string name="rss_feed_name_optional">Name (optional)</string>
     <string name="rss_feed_name_helper">Taken from the feed title if left empty</string>
@@ -920,10 +919,8 @@
     <string name="rss_refresh">Refresh</string>
     <string name="rss_refreshed">Feed refreshed</string>
     <string name="rss_empty">No feeds yet — add one to follow releases</string>
-    <string name="rss_open">Open</string>
     <string name="rss_rename">Rename</string>
     <string name="rss_move">Move</string>
-    <string name="rss_move_hint">Destination folder path (empty = root)</string>
     <string name="rss_edit_url">Edit feed URL</string>
     <string name="rss_delete">Delete</string>
     <string name="rss_delete_confirm">Delete %1$s?</string>
@@ -933,6 +930,25 @@
     <string name="rss_mark_all_read">Mark all read</string>
     <string name="rss_add_torrent">Download</string>
     <string name="rss_open_link">Open in browser</string>
+    <string name="rss_refresh_all">Refresh all</string>
+    <string name="rss_refresh_all_done">All feeds refreshed</string>
+    <string name="rss_select_folder">Select destination folder</string>
+    <string name="rss_rename_feed">Rename feed</string>
+    <string name="rss_rename_folder">Rename folder</string>
+    <string name="rss_move_feed">Move feed</string>
+    <string name="rss_move_folder">Move folder</string>
+    <string name="rss_delete_feed">Delete feed</string>
+    <string name="rss_delete_folder">Delete folder</string>
+    <string name="rss_required">Required</string>
+    <string name="rss_success">Done</string>
+    <string name="rss_details">Article details</string>
+    <string name="rss_new">NEW</string>
+    <string name="rss_description">Description</string>
+    <string name="rss_filter">Filter</string>
+    <string name="rss_all_articles">All articles</string>
+    <string name="rss_selected_count">%1$d selected</string>
+    <string name="rss_select_all">Select all</string>
+    <string name="rss_select_inverse">Select inverse</string>
     <string name="rss_add_rule">New rule</string>
     <string name="rss_edit_rule">Edit rule</string>
     <string name="rss_rename_rule">Rename rule</string>

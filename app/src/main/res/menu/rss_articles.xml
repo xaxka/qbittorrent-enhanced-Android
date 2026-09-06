@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- qBC RssArticlesScreen toolbar: search, mark all read, refresh. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/refresh_log_menu"
-        android:icon="@drawable/ic_refresh_24px"
-        android:title="@string/refresh"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/action_rss_search"
+        android:icon="@drawable/ic_search_24px"
+        android:title="@string/rss_filter"
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
     <item
-        android:id="@+id/mark_all_read_menu"
-        android:icon="@drawable/ic_check_24px"
+        android:id="@+id/action_rss_mark_all"
+        android:icon="@drawable/ic_mark_email_read_24px"
         android:title="@string/rss_mark_all_read"
-        app:showAsAction="ifRoom" />
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_rss_refresh"
+        android:icon="@drawable/ic_refresh_24px"
+        android:title="@string/rss_refresh"
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
 </menu>

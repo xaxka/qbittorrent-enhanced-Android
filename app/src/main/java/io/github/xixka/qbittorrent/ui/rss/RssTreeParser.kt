@@ -83,4 +83,30 @@ object RssTreeParser {
         walk(nodes)
         return out
     }
+
+    /**
+     * Articles of one node addressed by its API path: a feed's own list, or
+     * for a folder every article of its subtree (qBC navigates to the
+     * articles screen for folders too — "all articles" of that branch).
+     */
+    fun subtreeArticles(nodes: List<RssFeedNode>, apiPath: String): List<RssArticle> {
+        val node = findNode(nodes, apiPath) ?: return emptyList()
+        if (node.isFeed) return node.articles
+        val out = mutableListOf<RssArticle>()
+        fun walk(children: List<RssFeedNode>) {
+            for (c in children) {
+                if (c.isFeed) out.addAll(c.articles) else walk(c.children)
+            }
+        }
+        walk(node.children)
+        return out
+    }
+
+    private fun findNode(nodes: List<RssFeedNode>, apiPath: String): RssFeedNode? {
+        for (n in nodes) {
+            if (n.apiPath == apiPath) return n
+            findNode(n.children, apiPath)?.let { return it }
+        }
+        return null
+    }
 }

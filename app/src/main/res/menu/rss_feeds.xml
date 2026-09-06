@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- qBC RssFeedsScreen toolbar: add (dropdown), refresh all, rules. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_rss_add"
+        android:icon="@drawable/ic_add_24px"
+        android:title="@string/rss_add"
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_rss_refresh_all"
+        android:icon="@drawable/ic_refresh_24px"
+        android:title="@string/rss_refresh_all"
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_rss_rules"
+        android:icon="@drawable/ic_rule_24px"
+        android:title="@string/rss_tab_rules"
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
+</menu>

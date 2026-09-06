@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Articles of one RSS feed, qBC RssArticlesScreen parity: toolbar with
+     search / mark-all / refresh, a search input that swaps in for the
+     title, pull-to-refresh article list, a selection bottom bar (download
+     selected / select all / select inverse) and an empty placeholder. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        app:liftOnScroll="false"
+        app:statusBarForeground="?attr/colorSurface">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back_24px"
+            app:title="@string/rss_all_articles" />
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/search_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            android:hint="@string/rss_filter"
+            android:imeOptions="actionDone"
+            android:inputType="text"
+            android:maxLines="1"
+            android:visibility="gone" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+                android:id="@+id/article_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingHorizontal="12dp"
+                android:paddingTop="8dp" />
+
+            <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
+                android:id="@+id/empty_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- Selection mode bottom bar, qBC parity: close, "N selected",
+         download selected, select all + select inverse in overflow.
+         Menu is inflated in code (rss_selection.xml). -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/selection_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurfaceContainerHigh"
+        android:visibility="gone"
+        app:navigationIcon="@drawable/ic_close_24px"
+        app:title="@string/rss_selected_count"
+        app:titleTextColor="?attr/colorOnSurface" />
+</LinearLayout>

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- RSS hub: Feeds tree + auto-download rules, LibreTorrent-style tabs. -->
+<!-- RSS hub, qBC RssFeedsScreen parity: Feeds tree + Rules tabs; the
+     toolbar carries the qBC action set (add / refresh all / rules), and
+     the bottom bar slides in during qBC's move mode ("select destination
+     folder"). No FAB — adding happens from the toolbar like upstream. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -45,13 +48,17 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/rss_fab"
-        style="?attr/floatingActionButtonPrimaryStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/rss_add"
-        app:srcCompat="@drawable/ic_add_24px" />
+    <!-- qBC move mode: tap a folder in the tree to move the picked item
+         there; the back arrow (and the system back) cancel the move. -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/move_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorSurfaceContainerHigh"
+        android:elevation="8dp"
+        android:visibility="gone"
+        app:navigationIcon="@drawable/ic_arrow_back_24px"
+        app:title="@string/rss_select_folder"
+        app:titleTextColor="?attr/colorOnSurface" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
