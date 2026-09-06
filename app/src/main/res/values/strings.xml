@@ -476,6 +476,7 @@ https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="qbt_add_trackers">Trackers to add (one per line)</string>
     <string name="listen_port_stat">Port</string>
     <string name="qbt_conn_listen">Listening port</string>
+    <string name="mem_usage">RAM: %1$s</string>
     <string name="qbt_listen_port">Port used for incoming connections</string>
     <string name="qbt_upnp">Use UPnP / NAT-PMP port forwarding</string>
     <string name="qbt_conn_limits">Connection limits</string>

@@ -1358,14 +1358,19 @@ class MainActivity : AppCompatActivity() {
         d.sessionDhtNodesStat.text =
             getString(R.string.drawer_stat_dht) + ": " + (t?.dhtNodes ?: 0L)
         // Listening port: the bundled engine's WebUI port, or the active
-        // remote server's port — LibreTorrent drawer row.
+        // remote server's port — LibreTorrent drawer row. The bundled
+        // engine's resident memory (VmRSS) rides along in the same row.
         val listenPort = if (prefs.usingLocalEngine) {
             prefs.enginePort
         } else {
             prefs.activeServer()?.port ?: ServerConfig.DEFAULT_PORT
         }
-        d.sessionListenPortStat.text =
-            getString(R.string.listen_port_stat) + ": " + listenPort
+        d.sessionListenPortStat.text = buildString {
+            append(getString(R.string.listen_port_stat)).append(": ").append(listenPort)
+            state.engineRss?.let { rss ->
+                append("  •  ").append(getString(R.string.mem_usage, Format.size(rss)))
+            }
+        }
 
         updateDrawerChips(state.categories, state.tags)
     }

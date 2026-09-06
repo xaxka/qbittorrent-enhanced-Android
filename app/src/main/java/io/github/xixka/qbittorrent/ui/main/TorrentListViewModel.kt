@@ -9,6 +9,7 @@ import io.github.xixka.qbittorrent.qbt.LocalEngineManager
 import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TransferInfo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -38,6 +40,8 @@ data class ListUiState(
     val transfer: TransferInfo? = null,
     val categories: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
+    /** Resident memory (bytes) of the bundled engine, null when not running. */
+    val engineRss: Long? = null,
     /** local-engine states (Enhanced): engine running / failed / starting. */
     val engineRunning: Boolean = false,
     val engineFailed: Boolean = false,
@@ -201,9 +205,13 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                         upInfoSpeed = it.uploadSpeed,
                     )
                 }
-            // The engine's resident memory used to be sampled here for the
-            // drawer's listening-port row; the stat was dropped from the UI,
-            // so the /proc scan goes with it — one less syscall per poll.
+            // Engine RSS for the drawer's listening-port row; /proc reads are
+            // tiny but belong off the main thread
+            val engineRss = if (prefs.usingLocalEngine) {
+                withContext(Dispatchers.IO) {
+                    runCatching { LocalEngineManager.engineRssBytes(getApplication<Application>()) }.getOrNull()
+                }
+            } else null
             val categories = runCatching {
                 repository.categories().keys.filter { it.isNotBlank() }.sorted()
             }.getOrDefault(emptyList())
@@ -218,6 +226,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     torrents = filtered(torrents),
                     allCount = torrents.size,
                     transfer = transfer,
+                    engineRss = engineRss,
                     categories = categories,
                     tags = tagList,
                 )
