@@ -2,11 +2,12 @@ package io.github.xixka.qbittorrent.ui.detail
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Outline
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewOutlineProvider
 
 /**
  * Compact single-row piece bar, qBC PieceBar parity: one full-width bar
@@ -23,8 +24,19 @@ class PieceBarView(context: Context, attrs: AttributeSet?) : View(context, attrs
     private val color = resolveThemeColor(androidx.appcompat.R.attr.colorPrimary)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val rect = RectF()
-    private val clipPath = Path()
     private val cornerRadius = dp(4f)
+
+    init {
+        // Outline clipping is anti-aliased on the render thread; canvas
+        // clipPath (the obvious alternative) is not, and staircases the
+        // rounded ends of the bar.
+        outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, cornerRadius)
+            }
+        }
+        clipToOutline = true
+    }
 
     fun submit(newStates: List<Int>) {
         states = newStates
@@ -37,18 +49,10 @@ class PieceBarView(context: Context, attrs: AttributeSet?) : View(context, attrs
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
 
-        // qBC: .clip(RoundedCornerShape(4.dp)) around the whole bar
-        val save = canvas.save()
-        clipPath.reset()
-        rect.set(0f, 0f, w, h)
-        clipPath.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
-        canvas.clipPath(clipPath)
-
         if (states.isEmpty()) {
             paint.color = color
             paint.alpha = 64
             canvas.drawRect(0f, 0f, w, h, paint)
-            canvas.restoreToCount(save)
             return
         }
 
@@ -68,7 +72,6 @@ class PieceBarView(context: Context, attrs: AttributeSet?) : View(context, attrs
             canvas.drawRect(rect, paint)
             i = end
         }
-        canvas.restoreToCount(save)
     }
 
     private fun resolveThemeColor(attr: Int): Int {

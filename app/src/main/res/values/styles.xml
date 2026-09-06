@@ -67,7 +67,16 @@
              zero it too, or every bar looks broken near 100% -->
         <item name="indicatorTrackGapSize">0dp</item>
         <item name="trackThickness">4dp</item>
-        <item name="trackCornerRadius">2dp</item>
+        <!-- the corner radius MUST be the fraction form (50%), never an
+             absolute 2dp: only the fraction form flips the library into
+             its ROUND stroke-cap rendering for fully rounded ends
+             (b/319309456). The absolute form falls back to the butt-cap +
+             rounded-block path, where the radius is integer-quantized
+             (min(thickness/2, round(2dp)) < thickness/2 at most densities),
+             so every bar end gets a slightly flattened tip. This mirrors
+             the same 2dp → 50% change Google made to the M3 defaults in
+             1.13 itself. -->
+        <item name="trackCornerRadius">50%</item>
     </style>
 
     <!-- Drawer filter chips, laid out in equal-column grids
