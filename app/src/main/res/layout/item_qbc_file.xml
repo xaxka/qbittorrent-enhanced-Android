@@ -32,15 +32,6 @@
             android:minWidth="0dp"
             android:contentDescription="@null" />
 
-        <ImageButton
-            android:id="@+id/expand_button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_keyboard_arrow_down_24px"
-            app:tint="?attr/colorOnSurfaceVariant" />
-
         <ImageView
             android:id="@+id/type_icon"
             android:layout_width="wrap_content"
