@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- qBC RssFeedsScreen toolbar: add (dropdown), refresh all, rules. -->
+<!-- qBC RssFeedsScreen toolbar: add (dropdown), refresh all, rules on the
+     feeds tab; a dedicated add-rule action on the rules tab. switchMenus()
+     flips visibility with the tab. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
@@ -18,6 +20,13 @@
         android:id="@+id/action_rss_rules"
         android:icon="@drawable/ic_rule_24px"
         android:title="@string/rss_tab_rules"
+        app:iconTint="?attr/colorOnSurfaceVariant"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_rss_add_rule"
+        android:icon="@drawable/ic_add_24px"
+        android:title="@string/rss_add_rule"
+        android:visible="false"
         app:iconTint="?attr/colorOnSurfaceVariant"
         app:showAsAction="always" />
 </menu>
