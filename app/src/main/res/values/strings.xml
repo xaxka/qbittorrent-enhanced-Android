@@ -192,9 +192,7 @@
     <string name="peer_connection_fmt">Connection: %1$s</string>
     <string name="peer_client_fmt">Client: %1$s</string>
     <string name="peer_flags_fmt">Flags: %1$s</string>
-    <string name="engine_webui_access_fmt">Built-in engine WebUI: %1$s
-%2$s / %3$s
-LAN devices open it without a login LAN devices open it without a login (tap to copy the address)</string>
+    <string name="engine_webui_access_fmt">WebUI: %1$s\nLogin %2$s · Password %3$s\nLAN devices open it without a login (tap to copy the address)</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="priority_title">File priority</string>
     <string name="priority_skip">Skip</string>

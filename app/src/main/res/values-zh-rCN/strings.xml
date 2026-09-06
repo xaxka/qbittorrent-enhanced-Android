@@ -192,10 +192,7 @@
     <string name="peer_connection_fmt">连接：%1$s</string>
     <string name="peer_client_fmt">客户端：%1$s</string>
     <string name="peer_flags_fmt">标志：%1$s</string>
-    <string name="engine_webui_access_fmt">内置引擎 WebUI：%1$s
-%2$s / %3$s
-局域网设备可直接访问，无需登录
-局域网设备可直接访问，无需登录（点击复制地址）</string>
+    <string name="engine_webui_access_fmt">WebUI 地址：%1$s\n账号 %2$s · 密码 %3$s\n局域网设备可直接访问、无需登录（点击复制地址）</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="priority_title">文件优先级</string>
     <string name="priority_skip">跳过</string>
