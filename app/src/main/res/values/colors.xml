@@ -169,4 +169,7 @@
     <color name="colorFilePriorityHigh">#FF5722</color>
     <color name="colorFilePriorityMaximum">#CF222E</color>
     <color name="colorFilePriorityMixed">#03A9F4</color>
+    <!-- qBC search seeder / leecher accent colors (CustomColors.kt parity) -->
+    <color name="colorSearchSeeders">#3B7E44</color>
+    <color name="colorSearchLeechers">#A33B3B</color>
 </resources>

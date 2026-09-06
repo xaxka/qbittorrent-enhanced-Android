@@ -1,64 +1,151 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One search result row (qBitController parity). -->
+<!-- One search result row, qBC SearchResultItem parity: elevated card,
+     file name (titleMedium), size + site rows on the left with storage /
+     language icons, seeders / leechers on the right with colored arrows.
+     Selection highlight is applied in code (secondary container). -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
-    style="@style/App.Components.ListItem"
+    style="?attr/materialCardViewElevatedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
     android:clickable="true"
     android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginVertical="12dp"
-        android:minHeight="@dimen/list_item_two_lines_height"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
 
         <TextView
             android:id="@+id/file_name"
-            style="@style/App.Components.ListItem.Label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="2"
-            tools:text="Ubuntu 24.04 LTS" />
-
-        <TextView
-            android:id="@+id/file_site"
-            style="@style/App.Components.ListItem.SupportingText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:maxLines="1"
-            tools:text="site: linuxtracker.org" />
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            tools:text="Ubuntu 24.04.1 Desktop amd64 iso" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/file_size"
-                style="@style/App.Components.ListItem.SupportingText"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                tools:text="4.2 GiB" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/seeders_leechers"
-                style="@style/App.Components.ListItem.SupportingText"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@null"
+                        app:srcCompat="@drawable/ic_storage_24px"
+                        app:tint="?attr/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/file_size"
+                        style="?attr/textAppearanceBodySmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        tools:text="4.2 GiB" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@null"
+                        app:srcCompat="@drawable/ic_language_24px"
+                        app:tint="?attr/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/file_site"
+                        style="?attr/textAppearanceBodySmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:ellipsize="middle"
+                        android:maxLines="1"
+                        tools:text="linuxtracker.org" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:gravity="end"
-                tools:text="↑ 128 ↓ 5" />
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@null"
+                        app:srcCompat="@drawable/ic_arrow_upward_24px"
+                        app:tint="@color/colorSearchSeeders" />
+
+                    <TextView
+                        android:id="@+id/seeders"
+                        style="?attr/textAppearanceBodySmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:textColor="@color/colorSearchSeeders"
+                        android:textStyle="bold"
+                        tools:text="128" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:contentDescription="@null"
+                        app:srcCompat="@drawable/ic_arrow_downward_24px"
+                        app:tint="@color/colorSearchLeechers" />
+
+                    <TextView
+                        android:id="@+id/leechers"
+                        style="?attr/textAppearanceBodySmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:textColor="@color/colorSearchLeechers"
+                        android:textStyle="bold"
+                        tools:text="5" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- qBC SearchStartScreen toolbar: plugins, start search. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/search_plugins_menu"
         android:icon="@drawable/ic_extension_24px"
         android:title="@string/search_plugins"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
-        android:id="@+id/search_stop_menu"
-        android:icon="@drawable/ic_stop_circle_24px"
-        android:title="@string/search_stop"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/search_start_menu"
+        android:icon="@drawable/ic_search_24px"
+        android:title="@string/search_start"
+        app:showAsAction="always" />
 </menu>

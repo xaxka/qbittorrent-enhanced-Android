@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- qBC SearchResultScreen toolbar: filter by name, filter dialog, sort
+     menu, stop search. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/search_filter_menu"
+        android:icon="@drawable/ic_search_24px"
+        android:title="@string/search_filter_results"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/search_filter_dialog_menu"
+        android:icon="@drawable/ic_filter_list_24px"
+        android:title="@string/search_result_filter"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/search_sort_menu"
+        android:icon="@drawable/ic_sort_24px"
+        android:title="@string/search_result_sort"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/search_stop_menu"
+        android:icon="@drawable/ic_stop_circle_24px"
+        android:title="@string/search_stop"
+        app:showAsAction="always" />
+</menu>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- qBC search selection bar: download selected, select all + inverse. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_search_download_selected"
+        android:icon="@drawable/ic_download_24px"
+        android:title="@string/search_add_torrent"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_search_select_all"
+        android:icon="@drawable/ic_select_all_24px"
+        android:title="@string/rss_select_all"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_search_select_inverse"
+        android:icon="@drawable/ic_flip_to_back_24px"
+        android:title="@string/rss_select_inverse"
+        app:showAsAction="never" />
+</menu>

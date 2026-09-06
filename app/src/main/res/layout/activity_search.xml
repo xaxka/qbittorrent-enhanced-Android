@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Engine search screen (qBitController SearchStartScreen parity). -->
+<!-- Engine search start screen, qBC SearchStartScreen parity: query and
+     category in the app bar, then the plugin scope radio group (enabled /
+     all / manually select) with per-plugin checkbox cards below. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/coordinator_layout"
@@ -30,7 +32,6 @@
             android:paddingBottom="8dp">
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -41,33 +42,14 @@
                     android:id="@+id/search_pattern"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:imeOptions="actionSearch"
+                    android:imeOptions="actionNext"
                     android:inputType="text"
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <Button
-                android:id="@+id/search_start_button"
-                style="?attr/materialIconButtonFilledTonalStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:contentDescription="@string/search_start"
-                app:icon="@drawable/ic_search_24px" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="8dp">
-
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:hint="@string/search_category">
 
@@ -77,40 +59,98 @@
                     android:layout_height="wrap_content"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="@string/search_plugins">
-
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/search_plugins_dropdown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none" />
-            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
-        android:id="@+id/result_list"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingVertical="8dp"
-        android:paddingBottom="24dp"
-        android:scrollbarStyle="outsideOverlay"
-        android:scrollbars="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
-        android:id="@+id/empty_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="?attr/actionBarSize"
-        app:icon="@drawable/ic_search_24px"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:text="@string/search_no_results" />
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="12dp"
+                    android:text="@string/search_plugins"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="?attr/colorPrimary" />
+
+                <!-- The bundled engine has no Python: qB search plugins are
+                     server-side programs, so local search cannot work. -->
+                <TextView
+                    android:id="@+id/local_engine_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="4dp"
+                    android:text="@string/search_python_missing"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
+
+                <!-- qBC: plugin scope radio group inside an outlined box -->
+                <RadioGroup
+                    android:id="@+id/plugin_scope_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <RadioButton
+                        android:id="@+id/plugin_scope_enabled"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:paddingVertical="8dp"
+                        android:text="@string/search_plugins_enabled" />
+
+                    <RadioButton
+                        android:id="@+id/plugin_scope_all"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp"
+                        android:text="@string/search_plugins_all" />
+
+                    <RadioButton
+                        android:id="@+id/plugin_scope_select"
+                        style="?attr/textAppearanceBodyLarge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingVertical="8dp"
+                        android:text="@string/search_plugins_select" />
+                </RadioGroup>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/plugin_select_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

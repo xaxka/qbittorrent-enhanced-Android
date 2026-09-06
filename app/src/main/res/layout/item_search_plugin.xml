@@ -1,57 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One search plugin row: name, version, enable switch. -->
+<!-- One search plugin card, qBC PluginItem parity: extension icon in a
+     primary-container circle, name + version, enable switch, delete /
+     undo-delete toggle. Staged changes apply on the toolbar save action.
+     The link row shows the plugin source URL. Deleted cards dim to 50%. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
-    style="@style/App.Components.ListItem"
+    style="?attr/materialCardViewElevatedStyle"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginHorizontal="4dp"
-    android:clickable="true"
-    android:focusable="true">
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginVertical="8dp"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/list_item_two_lines_height"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_extension_24px" />
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/plugin_name"
-                style="@style/App.Components.ListItem.Label"
+            <FrameLayout
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_search_plugin_circle">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    app:srcCompat="@drawable/ic_extension_24px"
+                    app:tint="?attr/colorOnPrimaryContainer" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/plugin_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    tools:text="The Pirate Bay" />
+
+                <TextView
+                    android:id="@+id/plugin_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="1.2" />
+            </LinearLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/plugin_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                tools:text="The Pirate Bay" />
+                android:layout_marginHorizontal="8dp" />
 
-            <TextView
-                android:id="@+id/plugin_version"
-                style="@style/App.Components.ListItem.SupportingText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:text="version 1.2" />
+            <ImageButton
+                android:id="@+id/plugin_delete"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/delete"
+                app:srcCompat="@drawable/ic_delete_24px"
+                app:tint="?attr/colorError" />
         </LinearLayout>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/plugin_switch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@null"
+                app:srcCompat="@drawable/ic_link_24px"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/plugin_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="middle"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="https://raw.githubusercontent.com/…/piratebay.py" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

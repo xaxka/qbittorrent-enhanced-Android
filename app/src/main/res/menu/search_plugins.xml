@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- qBC SearchPluginsScreen toolbar: save staged changes, install, update. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/save_plugins_menu"
+        android:icon="@drawable/ic_save_24px"
+        android:title="@string/search_plugins_save"
+        app:showAsAction="always" />
     <item
         android:id="@+id/install_plugin_menu"
         android:icon="@drawable/ic_add_24px"
         android:title="@string/search_install_plugin"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/update_plugins_menu"
-        android:icon="@drawable/ic_refresh_24px"
+        android:icon="@drawable/ic_update_24px"
         android:title="@string/search_update_plugins"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 </menu>
