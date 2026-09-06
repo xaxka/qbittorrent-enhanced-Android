@@ -404,7 +404,12 @@ class MainActivity : AppCompatActivity() {
     /** Shows / hides the home search section (Settings → Appearance). */
     private fun applySearchVisibility(show: Boolean) {
         binding.homeContent.searchBar.visibility = if (show) View.VISIBLE else View.GONE
-        binding.homeContent.searchView.visibility = if (show) View.VISIBLE else View.GONE
+        // NEVER touch the SearchView's visibility: it manages itself (GONE
+        // until expanded). Forcing it visible parks the full-screen collapsed
+        // overlay on top of the home screen and hides everything.
+        if (!show && binding.homeContent.searchView.visibility == View.VISIBLE) {
+            binding.homeContent.searchView.hide()
+        }
         binding.homeContent.homeToolbar.visibility = if (show) View.GONE else View.VISIBLE
     }
 
