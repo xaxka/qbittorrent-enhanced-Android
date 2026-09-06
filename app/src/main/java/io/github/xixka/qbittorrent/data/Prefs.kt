@@ -117,35 +117,6 @@ class Prefs(context: Context) {
         get() = sp.getLong(KEY_UPDATE_CHECK_LAST, 0L)
         set(value) = sp.edit().putLong(KEY_UPDATE_CHECK_LAST, value).apply()
 
-    // ---- DNS over HTTPS (local engine DHT bootstrap) ----
-
-    /**
-     * Resolve the DHT bootstrap router hostnames through DoH at every engine
-     * start. OFF by default — an opt-in: the static-IP bootstrap fallback
-     * keeps DHT working without it, and the app must not silently send
-     * bootstrap lookups to a third-party provider (domestic or foreign)
-     * the user never chose. Turning it on fixes the "DHT nodes: 0" failure
-     * mode of DNS-poisoning carrier networks (China Mobile in particular);
-     * the provider is selectable in Settings.
-     */
-    var dohEnabled: Boolean
-        get() = sp.getBoolean(KEY_DOH_ENABLED, false)
-        set(value) = sp.edit().putBoolean(KEY_DOH_ENABLED, value).apply()
-
-    /** DoH endpoint (JSON API style, `GET <url>?name=…&type=1`). */
-    var dohUrl: String
-        get() = sp.getString(KEY_DOH_URL, DOH_DEFAULT_URL) ?: DOH_DEFAULT_URL
-        set(value) = sp.edit().putString(KEY_DOH_URL, value.trim()).apply()
-
-    /**
-     * The bootstrap list value THIS app wrote last (plain string as it went
-     * into qBittorrent.conf). Used at the next start to distinguish "app-
-     * managed list, safe to refresh" from "user-edited list, keep it".
-     */
-    var dohLastBootstrap: String
-        get() = sp.getString(KEY_DOH_LAST_BOOTSTRAP, "") ?: ""
-        set(value) = sp.edit().putString(KEY_DOH_LAST_BOOTSTRAP, value).apply()
-
     /**
      * Material You dynamic colors, ON by default on devices that support
      * them (Android 12+). Turning it off falls back to the static palette.
@@ -324,25 +295,6 @@ class Prefs(context: Context) {
         const val KEY_SERVERS_JSON = "servers_json"
         const val KEY_ACTIVE_SERVER = "active_server_id"
         const val KEY_SERVERS_MIGRATED = "servers_migrated"
-        const val KEY_DOH_ENABLED = "doh_enabled"
-        const val KEY_DOH_URL = "doh_url"
-        const val KEY_DOH_LAST_BOOTSTRAP = "doh_last_bootstrap"
-
-        /**
-         * Preset DoH providers (JSON API style). Domestic ones first (they
-         * are reachable and fast inside China, where the DoH fix matters);
-         * the foreign ones (Cloudflare / Google / Quad9) are for networks
-         * where the domestic resolvers themselves are blocked or mistrusted.
-         * All speak the `?name=…&type=1` JSON API the resolver expects:
-         * Cloudflare on the plain /dns-query endpoint when addressed with
-         * Accept: application/dns-json, Quad9 JSON on port 5053.
-         */
-        const val DOH_ALIDNS_URL = "https://dns.alidns.com/resolve"
-        const val DOH_DNSPOD_URL = "https://doh.pub/resolve"
-        const val DOH_CLOUDFLARE_URL = "https://cloudflare-dns.com/dns-query"
-        const val DOH_GOOGLE_URL = "https://dns.google/resolve"
-        const val DOH_QUAD9_URL = "https://dns.quad9.net:5053/dns-query"
-        const val DOH_DEFAULT_URL = DOH_ALIDNS_URL
     }
 }
 

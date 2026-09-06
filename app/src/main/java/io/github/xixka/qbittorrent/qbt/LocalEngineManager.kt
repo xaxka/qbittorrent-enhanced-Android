@@ -143,7 +143,6 @@ object LocalEngineManager {
                 ctx, port, lanAccess, effectiveSave,
                 username = enginePrefs.engineUsername,
                 password = enginePrefs.enginePassword,
-                bootstrapNodes = resolveBootstrapViaDoh(ctx, enginePrefs),
             )
 
             val nativeDir = File(ctx.applicationInfo.nativeLibraryDir)
@@ -244,52 +243,6 @@ object LocalEngineManager {
             conn.disconnect()
         }
     }.getOrNull()
-
-    /**
-     * DHT bootstrap refresh through DNS over HTTPS (Settings -> DoH), run
-     * before every engine start:
-     *
-     *  * DoH disabled or the server answers nothing -> null, and the seed
-     *    falls back to the static CN-friendly bootstrap list (append-if-absent
-     *    semantics, exactly the pre-DoH behavior);
-     *  * DoH answered -> a fresh list (hostnames + current IPs + static
-     *    literals), which REPLACES the config value — but only while that
-     *    value is one the app itself wrote (absent, the static default, or
-     *    the list remembered in Prefs.dohLastBootstrap). A list the user
-     *    edited through the WebUI / in-app qB settings editor is detected by
-     *    set-comparison and left completely alone.
-     *
-     * Fresh resolution matters: static bootstrap IPs rot as operators move
-     * their routers; the poisoned-DNS failure mode (DHT nodes stuck at 0 on
-     * Chinese carrier networks) then silently returns. Encrypted DoH answers
-     * cannot be rewritten on-path, so the list stays current without the app
-     * shipping a new hardwired table every time an address changes.
-     */
-    private suspend fun resolveBootstrapViaDoh(
-        context: Context,
-        enginePrefs: io.github.xixka.qbittorrent.data.Prefs,
-    ): String? {
-        if (!enginePrefs.dohEnabled) return null
-        val fresh = runCatching {
-            io.github.xixka.qbittorrent.util.DohResolver.resolveBootstrapNodes(enginePrefs.dohUrl) {
-                appendLog(it)
-            }
-        }.getOrNull() ?: return null
-        val current = NoxConfig.readBootstrapValue(context)
-        val replaceable = current == null ||
-            NoxConfig.sameBootstrapValue(current, NoxConfig.DHT_BOOTSTRAP_CN_FRIENDLY) ||
-            NoxConfig.sameBootstrapValue(current, NoxConfig.DHT_BOOTSTRAP_LEGACY) ||
-            NoxConfig.sameBootstrapValue(current, NoxConfig.DHT_BOOTSTRAP_ROUND46) ||
-            NoxConfig.sameBootstrapValue(current, enginePrefs.dohLastBootstrap)
-        return if (replaceable) {
-            enginePrefs.dohLastBootstrap = fresh
-            appendLog("doh: DHT bootstrap list refreshed (${fresh.split(',').size} entries)")
-            fresh
-        } else {
-            appendLog("doh: user-defined dht_bootstrap_nodes kept, DoH result discarded")
-            null
-        }
-    }
 
     /** Exports the Android system trust store to a PEM bundle for the bare process. */
     private fun exportCaBundle(context: Context): File? = runCatching {

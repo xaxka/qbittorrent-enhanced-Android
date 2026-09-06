@@ -554,17 +554,6 @@
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
     <string name="pref_poll_interval_sub">每 %1$d 秒更新一次种子列表</string>
-    <string name="settings_doh">DNS over HTTPS (DoH)</string>
-    <string name="settings_doh_sub">通过 DoH 加密解析 DHT 引导节点地址，绕过运营商 DNS 污染（内置引擎，重启引擎后生效）</string>
-    <string name="settings_doh_provider">DoH 服务器</string>
-    <string name="doh_provider_alidns">阿里公共 DNS（dns.alidns.com）</string>
-    <string name="doh_provider_dnspod">DNSPod 公共 DNS（doh.pub）</string>
-    <string name="doh_provider_cloudflare">Cloudflare（1.1.1.1）</string>
-    <string name="doh_provider_google">Google（8.8.8.8）</string>
-    <string name="doh_provider_quad9">Quad9（9.9.9.9）</string>
-    <string name="doh_provider_custom">自定义…</string>
-    <string name="doh_custom_hint">DoH 接口地址（JSON API，如 https://dns.alidns.com/resolve）</string>
-    <string name="doh_custom_invalid">链接必须是 DoH JSON 接口的 https 地址</string>
     <string name="settings_server_connection">服务器连接</string>
     <string name="settings_server_connection_engine">已连接内置引擎</string>
     <string name="settings_server_connection_not_configured">尚未配置</string>

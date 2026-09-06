@@ -66,55 +66,44 @@ object NoxConfig {
      * so 2 of the 3 default bootstrap contacts are dead and DHT never
      * bootstraps -> "DHT nodes: 0".
      *
-     * Two complementary fixes live in this file's call chain:
-     *
-     *  1. DNS over HTTPS (see util/DohResolver.kt): LocalEngineManager asks a
-     *     DoH server (domestic/foreign preset or custom, opt-in and
-     *     configurable in Settings) for the
-     *     CURRENT addresses of the three bootstrap routers and hands the
-     *     resolved list to [seed] as `bootstrapNodes` — encrypted answers
-     *     cannot be poisoned, and the IPs stay fresh instead of rotting.
-     *  2. The STATIC list below (this constant): hostnames only. It is the
-     *     seed default and the fallback when DoH is disabled/unreachable —
-     *     the engine then resolves them with its own plaintext DNS, which
-     *     still works for transmission/utorrent/ouinet on the target
-     *     networks. It carries NO IP literals: baked addresses rot (three
-     *     of the four shipped by round-46 went stale within weeks, and
-     *     router.bitcomet.org turned NXDOMAIN), while the DoH refresh keeps
-     *     the resolved list current on every engine start.
+     * The seed therefore writes a wider all-hostname list (DHT_BOOTSTRAP_CN_FRIENDLY)
+     * below. It deliberately contains NO IP literals: baked addresses rot
+     * (three of the four shipped by round-46 went stale within weeks, and
+     * router.bitcomet.org turned NXDOMAIN). Hostnames survive plaintext-DNS
+     * networks; the engine resolves them itself at startup.
      *
      * Once ANY contact answers, libtorrent learns real nodes from the swarm,
      * persists them in its session state, and the bootstrap list stops
      * mattering.
      *
      * A list the user saved through the in-app qB settings editor
-     * (dht_bootstrap_nodes) or the WebUI is never overwritten: the DoH path
-     * only refreshes values the app itself wrote last (or the static default
-     * / a missing key), tracked via Prefs.dohLastBootstrap + entry-set
-     * comparison (see [sameBootstrapValue]).
+     * (dht_bootstrap_nodes) or the WebUI is never overwritten: only values
+     * the app itself wrote in PAST rounds (the entry-set comparisons against
+     * DHT_BOOTSTRAP_LEGACY / DHT_BOOTSTRAP_ROUND46, both carrying dead
+     * contacts) are migrated to the current list; anything else is left
+     * alone (see [sameBootstrapValue]).
      */
     private const val KEY_DHT_BOOTSTRAP = "Session\\DHTBootstrapNodes"
 
-    /** Static CN-friendly bootstrap list (public: reference for the DoH
-     *  refresh logic that decides whether the current value is app-managed).
+    /** Static CN-friendly bootstrap list (public: reference for the dead-list
+     *  migration that decides whether the current value is app-managed).
      *  Hostnames only — the ouinet router is qBittorrent 5.x's own default,
      *  built for censored networks. router.bitcomet.org was dropped
-     *  (NXDOMAIN since 2026-09) and every IP literal was removed: fresh
-     *  addresses are the DoH refresh's job, hardcoded ones only rot. */
+     *  (NXDOMAIN since 2026-09); no IP literals — hardcoded ones only rot. */
     const val DHT_BOOTSTRAP_CN_FRIENDLY =
         "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
             "router.utorrent.com:6881, router.bt.ouinet.work:6881"
 
     /** Pre-round-41 seed list: existing installs carry this value in
-     *  qBittorrent.conf, so the DoH refresh must still treat it as
+     *  qBittorrent.conf, so the startup migration must still treat it as
      *  app-managed (entry-set comparison against BOTH lists). */
     const val DHT_BOOTSTRAP_LEGACY =
         "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
             "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
 
     /** The round-46 seed list (dead bitcomet router + now-stale literals):
-     *  installs carrying it must also count as app-managed so the DoH
-     *  refresh migrates them to the hostname-only list above. */
+     *  installs carrying it must also count as app-managed so the startup
+     *  migration replaces them with the hostname-only list above. */
     const val DHT_BOOTSTRAP_ROUND46 =
         "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
             "router.utorrent.com:6881, router.bitcomet.org:6881, " +
@@ -154,7 +143,6 @@ object NoxConfig {
         savePath: String,
         username: String = WEBUI_USERNAME,
         password: String = WEBUI_DEFAULT_PASSWORD,
-        bootstrapNodes: String? = null,
     ): Int {
         val conf = configFile(context)
         // remove upgrade residue from a previously interrupted start
@@ -163,9 +151,9 @@ object NoxConfig {
         File(profileDir(context), "qBittorrent/qBittorrent.conf").delete()
 
         if (!conf.isFile) {
-            writeDefaultConfig(conf, webUiPort, lanAccess, savePath, username, password, bootstrapNodes)
+            writeDefaultConfig(conf, webUiPort, lanAccess, savePath, username, password)
         } else {
-            patchConfig(conf, webUiPort, lanAccess, savePath, username, password, bootstrapNodes)
+            patchConfig(conf, webUiPort, lanAccess, savePath, username, password)
         }
         return webUiPort
     }
@@ -177,7 +165,6 @@ object NoxConfig {
         savePath: String,
         username: String,
         password: String,
-        bootstrapNodes: String? = null,
     ) {
         val address = if (lanAccess) "*" else "127.0.0.1"
         conf.writeText(
@@ -192,11 +179,10 @@ object NoxConfig {
                 append("Session\\LSDEnabled=true\n")
                 append("Session\\PeXEnabled=true\n")
                 append("Session\\Port=6881\n")
-                // DHT bootstrap contacts: the DoH-resolved list when the
-                // caller has one, otherwise the static CN-friendly set (see
-                // the KEY_DHT_BOOTSTRAP comment above).
+                // DHT bootstrap contacts: the static CN-friendly hostname set
+                // (see the KEY_DHT_BOOTSTRAP comment above).
                 append("Session\\DHTBootstrapNodes=")
-                append(bootstrapNodes ?: DHT_BOOTSTRAP_CN_FRIENDLY).append('\n')
+                append(DHT_BOOTSTRAP_CN_FRIENDLY).append('\n')
                 append("\n[Core]\nAutoExitEnabled=false\n\n")
                 append("[LegalNotice]\nAccepted=true\n\n")
                 append("[Meta]\nMigrationVersion=8\n\n")
@@ -249,7 +235,6 @@ object NoxConfig {
         savePath: String,
         username: String,
         password: String,
-        bootstrapNodes: String? = null,
     ) {
         val address = if (lanAccess) "*" else "127.0.0.1"
         val desired = mutableMapOf(
@@ -270,13 +255,8 @@ object NoxConfig {
             KEY_WEBUI_PASSWORD to "\"@ByteArray(" + pbkdf2String(password) + ")\"",
             KEY_SAVE_PATH to escapePath(savePath),
         )
-        // App-managed DoH bootstrap refresh: the caller has ALREADY decided
-        // (current value is absent / static / last app-written) that the key
-        // is ours to update — a plain managed replace, NOT append-if-absent.
-        if (bootstrapNodes != null) {
-            desired[KEY_DHT_BOOTSTRAP] = bootstrapNodes
-        }
         val remaining = desired.toMutableMap()
+        var bootstrapMigrated = false
         val lines = conf.readLines().map { line ->
             var result = line
             for ((key, value) in desired) {
@@ -286,6 +266,19 @@ object NoxConfig {
                     break
                 }
             }
+            // One-time migration of dead app-managed bootstrap lists (the
+            // pre-round-41 and round-46 values carry a bitcomet router that
+            // is NXDOMAIN and IP literals that no longer answer). Lists the
+            // user wrote themselves don't match either set and survive.
+            if (!bootstrapMigrated && line.startsWith("$KEY_DHT_BOOTSTRAP=")) {
+                val current = line.removePrefix("$KEY_DHT_BOOTSTRAP=")
+                if (sameBootstrapValue(current, DHT_BOOTSTRAP_LEGACY) ||
+                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND46)
+                ) {
+                    result = "$KEY_DHT_BOOTSTRAP=$DHT_BOOTSTRAP_CN_FRIENDLY"
+                    bootstrapMigrated = true
+                }
+            }
             result
         }.toMutableList()
 
@@ -293,11 +286,7 @@ object NoxConfig {
         // its own (fresh installs upgrading from an older app). A key the
         // user set through the WebUI / in-app settings editor survives
         // untouched, so app-managed replacement never fights user intent.
-        val ifAbsent = if (bootstrapNodes == null) {
-            mapOf(KEY_DHT_BOOTSTRAP to DHT_BOOTSTRAP_CN_FRIENDLY)
-        } else {
-            emptyMap()
-        }
+        val ifAbsent = mapOf(KEY_DHT_BOOTSTRAP to DHT_BOOTSTRAP_CN_FRIENDLY)
         for ((key, value) in ifAbsent) {
             val present = lines.any { it == "$key=" || it.startsWith("$key=") }
             if (!present) remaining[key] = value
@@ -320,18 +309,6 @@ object NoxConfig {
     }
 
     private fun sectionOf(key: String): String = key.substringBefore('\\')
-
-    /** Current `Session\DHTBootstrapNodes` value, or null when unset. */
-    fun readBootstrapValue(context: android.content.Context): String? {
-        val conf = configFile(context)
-        if (!conf.isFile) return null
-        conf.readLines().forEach { line ->
-            if (line.startsWith("$KEY_DHT_BOOTSTRAP=")) {
-                return line.removePrefix("$KEY_DHT_BOOTSTRAP=").trim().ifEmpty { null }
-            }
-        }
-        return null
-    }
 
     /**
      * Bootstrap-list equality that tolerates the engine's own reserialization
