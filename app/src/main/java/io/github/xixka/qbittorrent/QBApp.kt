@@ -23,6 +23,7 @@ class QBApp : Application() {
         // its own call as a fallback for exotic launch paths.
         if (BuildConfig.IS_ENHANCED &&
             LocalEngineManager.isSupported(this) &&
+            !prefs.useRemoteServer && // remote-control mode: the bundled engine stays down
             !LocalEngineManager.isRunning() &&
             LocalEngineManager.state != LocalEngineManager.State.STARTING
         ) {

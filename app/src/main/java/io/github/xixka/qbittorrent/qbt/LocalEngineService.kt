@@ -57,7 +57,8 @@ class LocalEngineService : Service() {
         // always tears down before spawning, so a naive double start would
         // kill the engine the first request just brought up.
         val state = LocalEngineManager.state
-        if (state == LocalEngineManager.State.STARTING ||
+        if (prefs.useRemoteServer ||
+            state == LocalEngineManager.State.STARTING ||
             LocalEngineManager.isRunning() ||
             engineStartJob?.isActive == true
         ) {
@@ -101,6 +102,11 @@ class LocalEngineService : Service() {
                 delay(WATCHDOG_INTERVAL_MS)
                 val prefs = ServiceLocator.prefs(this@LocalEngineService)
                 if (prefs.useRemoteServer) continue
+                // a start in flight (boot path / another watchdog tick) owns
+                // the process: poking start() here would race it. The manager
+                // itself is mutex-guarded, but skipping early keeps the
+                // watchdog from queueing behind a slow 25 s readiness probe.
+                if (LocalEngineManager.state == LocalEngineManager.State.STARTING) continue
                 if (!LocalEngineManager.isRunning()) {
                     runCatching {
                         LocalEngineManager.start(

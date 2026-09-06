@@ -51,6 +51,12 @@ class AddTorrentActivity : AppCompatActivity() {
     private var selectedContentLayout = 0
     private var selectedStopCondition = 0
 
+    /** Fields the user already changed: async server defaults must never
+     *  overwrite a choice the user made while the request was in flight. */
+    private var layoutTouched = false
+    private var stopTouched = false
+    private var pausedTouched = false
+
     private val pickFile =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri != null) readFile(uri)
@@ -97,6 +103,7 @@ class AddTorrentActivity : AppCompatActivity() {
             )
         )
         binding.layoutDropdown.setOnItemClickListener { _, _, position, _ ->
+            layoutTouched = true
             selectedContentLayout = position
         }
 
@@ -112,7 +119,43 @@ class AddTorrentActivity : AppCompatActivity() {
             )
         )
         binding.stopConditionDropdown.setOnItemClickListener { _, _, position, _ ->
+            stopTouched = true
             selectedStopCondition = position
+        }
+
+        binding.pausedSwitch.setOnCheckedChangeListener { _, _ -> pausedTouched = true }
+
+        savedInstanceState?.let { s ->
+            selectedContentLayout = s.getInt(STATE_LAYOUT, 0)
+            selectedStopCondition = s.getInt(STATE_STOP, 0)
+            binding.layoutDropdown.setText(
+                listOf(
+                    getString(R.string.content_layout_original),
+                    getString(R.string.content_layout_subfolder),
+                    getString(R.string.content_layout_no_subfolder),
+                )[selectedContentLayout],
+                false,
+            )
+            binding.stopConditionDropdown.setText(
+                listOf(
+                    getString(R.string.stop_condition_none),
+                    getString(R.string.stop_condition_metadata),
+                    getString(R.string.stop_condition_files_checked),
+                )[selectedStopCondition],
+                false,
+            )
+            s.getString(STATE_FILE_NAME)?.let { name ->
+                val f = java.io.File(cacheDir, PENDING_ADD_TORRENT_FILE)
+                if (f.isFile) {
+                    val bytes = runCatching { f.readBytes() }.getOrNull()
+                    if (bytes != null) {
+                        fileBytes = bytes
+                        fileName = name
+                        binding.fileNameText.text = fileName
+                        binding.fileNameText.visibility = View.VISIBLE
+                    }
+                }
+            }
         }
     }
 
@@ -157,39 +200,46 @@ class AddTorrentActivity : AppCompatActivity() {
                 binding.savePathInput.setText(defaults.savePath)
             }
             defaults.prefs?.let { p ->
-                // "Start torrent" checkbox mirrors the server preference, like the WebUI
-                binding.pausedSwitch.isChecked =
-                    p.get("add_stopped_enabled")?.asBoolean == true
-                val layout = p.get("torrent_content_layout")?.takeIf { it.isJsonPrimitive }?.asString
-                selectedContentLayout = layout.let {
-                    when (it?.lowercase()) {
-                        "subfolder" -> 1
-                        "nosubfolder" -> 2
+                // "Start torrent" checkbox mirrors the server preference, like the WebUI —
+                // but only when the user has not flipped it while loading
+                if (!pausedTouched) {
+                    binding.pausedSwitch.isChecked =
+                        p.get("add_stopped_enabled")?.asBoolean == true
+                }
+                if (!layoutTouched) {
+                    val layout = p.get("torrent_content_layout")?.takeIf { it.isJsonPrimitive }?.asString
+                    selectedContentLayout = layout.let {
+                        when (it?.lowercase()) {
+                            "subfolder" -> 1
+                            "nosubfolder" -> 2
+                            else -> 0
+                        }
+                    }
+                    binding.layoutDropdown.setText(
+                        listOf(
+                            getString(R.string.content_layout_original),
+                            getString(R.string.content_layout_subfolder),
+                            getString(R.string.content_layout_no_subfolder),
+                        )[selectedContentLayout],
+                        false,
+                    )
+                }
+                if (!stopTouched) {
+                    val stop = p.get("torrent_stop_condition")?.takeIf { it.isJsonPrimitive }?.asString
+                    selectedStopCondition = when (stop?.lowercase()) {
+                        "metadatareceived" -> 1
+                        "fileschecked" -> 2
                         else -> 0
                     }
+                    binding.stopConditionDropdown.setText(
+                        listOf(
+                            getString(R.string.stop_condition_none),
+                            getString(R.string.stop_condition_metadata),
+                            getString(R.string.stop_condition_files_checked),
+                        )[selectedStopCondition],
+                        false,
+                    )
                 }
-                binding.layoutDropdown.setText(
-                    listOf(
-                        getString(R.string.content_layout_original),
-                        getString(R.string.content_layout_subfolder),
-                        getString(R.string.content_layout_no_subfolder),
-                    )[selectedContentLayout],
-                    false,
-                )
-                val stop = p.get("torrent_stop_condition")?.takeIf { it.isJsonPrimitive }?.asString
-                selectedStopCondition = when (stop?.lowercase()) {
-                    "metadatareceived" -> 1
-                    "fileschecked" -> 2
-                    else -> 0
-                }
-                binding.stopConditionDropdown.setText(
-                    listOf(
-                        getString(R.string.stop_condition_none),
-                        getString(R.string.stop_condition_metadata),
-                        getString(R.string.stop_condition_files_checked),
-                    )[selectedStopCondition],
-                    false,
-                )
             }
         }
     }
@@ -276,7 +326,9 @@ class AddTorrentActivity : AppCompatActivity() {
             return
         }
         if (urls.isNotEmpty() && fileBytes == null &&
-            !urls.lineSequence().all { it.startsWith("magnet:") || it.startsWith("http") }
+            !urls.lineSequence()
+                .filter { it.isNotBlank() } // a stray blank line must not reject the whole batch
+                .all { it.startsWith("magnet:") || it.startsWith("http") }
         ) {
             Toast.makeText(this, R.string.add_no_input, Toast.LENGTH_SHORT).show()
             return
@@ -332,7 +384,25 @@ class AddTorrentActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_LAYOUT, selectedContentLayout)
+        outState.putInt(STATE_STOP, selectedStopCondition)
+        // the picked .torrent goes through a cache file: it can exceed the
+        // Bundle limit, and losing it means re-picking the file
+        fileBytes?.let { bytes ->
+            runCatching {
+                java.io.File(cacheDir, PENDING_ADD_TORRENT_FILE).writeBytes(bytes)
+                outState.putString(STATE_FILE_NAME, fileName ?: "torrent.torrent")
+            }
+        }
+    }
+
     companion object {
+        private const val STATE_LAYOUT = "state_layout"
+        private const val STATE_STOP = "state_stop"
+        private const val STATE_FILE_NAME = "state_file_name"
+        private const val PENDING_ADD_TORRENT_FILE = "pending_add.torrent"
         /** Opens the add-torrent screen with a link or a picked .torrent file. */
         fun start(context: android.content.Context, url: String? = null, uri: android.net.Uri? = null) {
             val intent = android.content.Intent(context, AddTorrentActivity::class.java)

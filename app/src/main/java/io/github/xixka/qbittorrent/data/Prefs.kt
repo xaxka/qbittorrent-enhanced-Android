@@ -33,7 +33,9 @@ class Prefs(context: Context) {
 
     var serverPort: Int
         get() = sp.getInt(KEY_PORT, ServerConfig.DEFAULT_PORT)
-        set(value) = sp.edit().putInt(KEY_PORT, value).apply()
+        // coerce on write: an out-of-range port would be silently dropped by
+        // ServerConfig.baseUrl() and requests would hit the default port
+        set(value) = sp.edit().putInt(KEY_PORT, value.coerceIn(1, 65535)).apply()
 
     var serverHttps: Boolean
         get() = sp.getBoolean(KEY_HTTPS, false)

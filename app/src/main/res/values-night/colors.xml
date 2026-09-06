@@ -152,4 +152,19 @@
     <color name="colorOnOk_highContrast">#00391C</color>
     <color name="colorOkContainer_highContrast">#12512E</color>
     <color name="colorOnOkContainer_highContrast">#B1F1C1</color>
+    <!-- night variants for the light-palette accents: the light values sit
+         on dark surfaces with ~2-3.4:1 contrast, unreadable in dark mode -->
+    <color name="colorWarn">#F3B95F</color>
+    <color name="colorOnWarn">#4A3200</color>
+    <color name="colorWarnContainer">#6A4A00</color>
+    <color name="colorOnWarnContainer">#FFDF9B</color>
+    <color name="colorPieceHave">#96D5A6</color>
+    <color name="colorPiecePartial">#FFC64B</color>
+    <color name="colorFilePrioritySkipped">#9EA7B3</color>
+    <color name="colorFilePriorityNormal">#6CC97F</color>
+    <color name="colorFilePriorityHigh">#FF8A65</color>
+    <color name="colorFilePriorityMaximum">#FF7B72</color>
+    <color name="colorFilePriorityMixed">#4FC3F7</color>
+    <color name="colorSearchSeeders">#7CC98A</color>
+    <color name="colorSearchLeechers">#E58B8B</color>
 </resources>

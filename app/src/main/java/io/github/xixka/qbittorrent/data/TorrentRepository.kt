@@ -1,8 +1,11 @@
 package io.github.xixka.qbittorrent.data
 
+import android.util.Log
 import com.google.gson.JsonObject
 import io.github.xixka.qbittorrent.api.QBApiClient
 import io.github.xixka.qbittorrent.api.QBApiException
+import io.github.xixka.qbittorrent.api.QBAuthException
+import io.github.xixka.qbittorrent.api.QBConnectException
 import io.github.xixka.qbittorrent.model.LogEntry
 import io.github.xixka.qbittorrent.model.MainData
 import io.github.xixka.qbittorrent.model.Peer
@@ -31,13 +34,27 @@ import retrofit2.Response
  */
 class TorrentRepository(private val client: QBApiClient) {
 
+    /**
+     * Defensive wrapper for optional / decorative data: an API error (e.g. an
+     * endpoint missing on older engines) falls back to [default], but auth
+     * and connectivity failures are logged loudly — silently returning empty
+     * data makes "wrong password" look identical to "no tags configured".
+     */
+    private inline fun <T> optional(tag: String, default: T, block: () -> T): T =
+        runCatching(block).getOrElse { e ->
+            if (e is QBAuthException || e is QBConnectException) {
+                Log.w(TAG, "$tag failed: ${e.message}")
+            }
+            default
+        }
+
     suspend fun appVersion(): String = client.withAuth { it.appVersion() }
 
     suspend fun webApiVersion(): String = client.withAuth { it.webApiVersion() }
 
     /** Default download location of the connected instance. */
     suspend fun defaultSavePath(): String =
-        runCatching { client.withAuth { it.defaultSavePath() } }.getOrDefault("")
+        optional("defaultSavePath", "") { client.withAuth { it.defaultSavePath() } }
 
     /** Full preference snapshot (`GET /api/v2/app/preferences`). */
     suspend fun appPreferences(): JsonObject = client.withAuth { it.appPreferences() }
@@ -74,7 +91,7 @@ class TorrentRepository(private val client: QBApiClient) {
     // ---------- web seeds (qBC parity) ----------
 
     suspend fun webSeeds(hash: String): List<WebSeed> =
-        runCatching { client.withAuth { it.webSeeds(hash) } }.getOrDefault(emptyList())
+        optional("webSeeds", emptyList()) { client.withAuth { it.webSeeds(hash) } }
 
     suspend fun addWebSeeds(hash: String, urls: String) =
         client.withAuth { it.addWebSeeds(hash, urls) }
@@ -274,9 +291,9 @@ class TorrentRepository(private val client: QBApiClient) {
 
     // tags
 
-    suspend fun tags(): List<String> = runCatching {
+    suspend fun tags(): List<String> = optional("tags", emptyList()) {
         client.withAuth { it.tags() }
-    }.getOrDefault(emptyList())
+    }
 
     suspend fun createTags(names: List<String>) =
         client.withAuth { it.createTags(names.joinToString(",")) }
@@ -354,7 +371,7 @@ class TorrentRepository(private val client: QBApiClient) {
         client.withAuth { it.editTracker(hash, origUrl, newUrl) }
 
     suspend fun pieceStates(hash: String): List<Int> =
-        runCatching { client.withAuth { it.pieceStates(hash) } }.getOrDefault(emptyList())
+        optional("pieceStates", emptyList()) { client.withAuth { it.pieceStates(hash) } }
 
     // log
 
@@ -394,7 +411,7 @@ class TorrentRepository(private val client: QBApiClient) {
         client.withAuth { it.rssRemoveItem(path) }
 
     suspend fun rssRules(): Map<String, RssRule> =
-        runCatching { client.withAuth { it.rssRules() } }.getOrDefault(emptyMap())
+        optional("rssRules", emptyMap()) { client.withAuth { it.rssRules() } }
 
     suspend fun rssSetRule(name: String, rule: RssRule) =
         client.withAuth {
@@ -420,7 +437,7 @@ class TorrentRepository(private val client: QBApiClient) {
         client.withAuth { it.searchResults(id, offset, limit) }
 
     suspend fun searchPlugins(): List<SearchPlugin> =
-        runCatching { client.withAuth { it.searchPlugins() } }.getOrDefault(emptyList())
+        optional("searchPlugins", emptyList()) { client.withAuth { it.searchPlugins() } }
 
     suspend fun searchEnablePlugin(names: List<String>, enable: Boolean) =
         client.withAuth { it.searchEnablePlugin(names.joinToString("|"), enable) }
@@ -432,6 +449,10 @@ class TorrentRepository(private val client: QBApiClient) {
         client.withAuth { it.searchUninstallPlugin(names.joinToString("|")) }
 
     suspend fun searchUpdatePlugins() = client.withAuth { it.searchUpdatePlugins() }
+
+    companion object {
+        private const val TAG = "TorrentRepository"
+    }
 }
 
 private fun String.toFormPart() = toRequestBody("text/plain".toMediaTypeOrNull())

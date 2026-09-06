@@ -15,6 +15,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -34,6 +35,7 @@ import io.github.xixka.qbittorrent.ui.addtorrent.AddTorrentActivity
 import io.github.xixka.qbittorrent.ui.main.MainActivity
 import io.github.xixka.qbittorrent.util.Format
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -100,6 +102,13 @@ class SearchResultFragment : Fragment() {
 
     private val adapter = ResultAdapter()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // keep the engine-side search job across rotation: stopAndDeleteSearch
+        // is skipped for config changes, the new instance resumes polling
+        searchId = savedInstanceState?.getInt(STATE_SEARCH_ID, -1) ?: -1
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -158,12 +167,28 @@ class SearchResultFragment : Fragment() {
             true
         }
 
-        startSearch()
+        if (searchId < 0) {
+            startSearch()
+        } else {
+            // restored after rotation: the engine job is still alive, resume
+            // polling instead of silently restarting the search from scratch
+            searchRunning = true
+            syncRunningState()
+            pollResults()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_SEARCH_ID, searchId)
     }
 
     override fun onDestroy() {
-        // qBC stops and deletes the engine job when the screen goes away
-        stopAndDeleteSearch()
+        // qBC stops and deletes the engine job when the screen goes away —
+        // but a rotation keeps the job: the recreated instance resumes it
+        if (activity?.isChangingConfigurations != true) {
+            stopAndDeleteSearch()
+        }
         searchJob?.cancel()
         _binding = null
         super.onDestroy()
@@ -227,30 +252,35 @@ class SearchResultFragment : Fragment() {
         searchJob?.cancel()
         searchJob = lifecycleScope.launch {
             while (isActive && searchId >= 0) {
-                val results = runCatching {
-                    ServiceLocator.repository(requireContext()).searchResults(searchId)
-                }.getOrNull()
-                if (results != null) {
-                    allResults = results.results
-                    applyPipeline()
-                    binding.resultCount.isVisible = true
-                    binding.resultCount.text = getString(
-                        R.string.search_result_showing_count,
-                        adapter.itemCount,
-                        allResults.size,
-                    )
-                    if (results.status.equals("Stopped", ignoreCase = true)) {
-                        searchRunning = false
-                        syncRunningState()
-                        binding.emptyView.setText(
-                            if (allResults.isEmpty()) R.string.search_no_results else R.string.search_done,
+                val b = _binding
+                if (b == null) break // view already torn down
+                // poll only while the screen is visible: no background traffic
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    val results = runCatching {
+                        ServiceLocator.repository(requireContext()).searchResults(searchId)
+                    }.getOrNull()
+                    if (results != null) {
+                        allResults = results.results
+                        applyPipeline()
+                        b.resultCount.isVisible = true
+                        b.resultCount.text = getString(
+                            R.string.search_result_showing_count,
+                            adapter.itemCount,
+                            allResults.size,
                         )
-                        break
+                        if (results.status.equals("Stopped", ignoreCase = true)) {
+                            searchRunning = false
+                            syncRunningState()
+                            b.emptyView.setText(
+                                if (allResults.isEmpty()) R.string.search_no_results else R.string.search_done,
+                            )
+                            break
+                        }
                     }
                 }
                 delay(2000)
             }
-            binding.swipeRefresh.isRefreshing = false
+            _binding?.swipeRefresh?.isRefreshing = false
         }
     }
 
@@ -267,9 +297,13 @@ class SearchResultFragment : Fragment() {
         val id = searchId
         if (id < 0) return
         searchId = -1
-        lifecycleScope.launch {
-            runCatching { ServiceLocator.repository(requireContext()).searchStop(id) }
-            runCatching { ServiceLocator.repository(requireContext()).searchDelete(id) }
+        // lifecycleScope dies with this destroy — run the cleanup with
+        // NonCancellable (it survives the cancelled scope) and against the
+        // application context, or the engine-side job would leak
+        val appContext = requireContext().applicationContext
+        lifecycleScope.launch(NonCancellable) {
+            runCatching { ServiceLocator.repository(appContext).searchStop(id) }
+            runCatching { ServiceLocator.repository(appContext).searchDelete(id) }
         }
     }
 
@@ -578,6 +612,7 @@ class SearchResultFragment : Fragment() {
         private const val ARG_PATTERN = "pattern"
         private const val ARG_CATEGORY = "category"
         private const val ARG_PLUGINS = "plugins"
+        private const val STATE_SEARCH_ID = "search_id"
 
         fun newInstance(pattern: String, category: String, plugins: String): SearchResultFragment =
             SearchResultFragment().apply {

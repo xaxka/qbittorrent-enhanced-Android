@@ -168,6 +168,9 @@ class DetailOverviewViewModel(app: Application, hash: String) :
     private var stateTabActive = false
     private var infoTabActive = false
 
+    /** Guards the "torrent not found" event against per-poll repeats. */
+    private var notFoundReported = false
+
     fun setStateTabActive(active: Boolean) {
         stateTabActive = active
         setScreenActive(stateTabActive || infoTabActive)
@@ -185,13 +188,19 @@ class DetailOverviewViewModel(app: Application, hash: String) :
         awaitAll(torrentDeferred, propertiesDeferred, piecesDeferred)
 
         // Success with no row = the torrent was deleted elsewhere: surface
-        // it once. A network failure keeps the last data and retries.
+        // it once per disappearance (the poll loop would otherwise repeat
+        // the message every cycle). A network failure keeps the last data
+        // and retries.
         val torrentResult = torrentDeferred.getCompleted()
         if (torrentResult.isSuccess) {
             val torrent = torrentResult.getOrNull()
-            if (torrent == null && _torrent.value == null) {
-                sendEvent(DetailEvent.Message(R.string.torrent_error_not_found))
-            } else if (torrent != null) {
+            if (torrent == null) {
+                if (!notFoundReported) {
+                    notFoundReported = true
+                    sendEvent(DetailEvent.Message(R.string.torrent_error_not_found))
+                }
+            } else {
+                notFoundReported = false
                 _torrent.value = torrent
             }
         }

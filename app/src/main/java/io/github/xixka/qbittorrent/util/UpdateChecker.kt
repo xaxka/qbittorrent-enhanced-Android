@@ -85,10 +85,12 @@ object UpdateChecker {
         if (candidate.versionCode > 0) {
             return candidate.versionCode > BuildConfig.VERSION_CODE.toLong()
         }
-        val remote = parseVersion(candidate.version)
-        val local = parseVersion(BuildConfig.VERSION_NAME)
-        if (remote != null && local != null) return remote > local
-        return false
+        // release without a versionCode in its body: compare version names
+        // (the packed "5.2.3" -> 50203 value must NOT be used as a versionCode,
+        // it would always read as older than an epoch-based build code)
+        val remote = parseVersion(candidate.version) ?: return false
+        val local = parseVersion(BuildConfig.VERSION_NAME) ?: return false
+        return remote > local
     }
 
     /** "5.2.3.10" (or "5.2.3.10-debug") -> 50203, component-packed. */
@@ -116,7 +118,10 @@ object UpdateChecker {
             }
         }
         val version = versionFromBody ?: return null
-        val versionCode = versionCodeFromBody ?: parseVersion(version) ?: return null
+        // versionCode is the Unix-epoch build code from the release body; a
+        // missing one stays 0 so isNewer() falls back to version-name compare
+        // (never stuff a packed version number into it)
+        val versionCode = versionCodeFromBody ?: 0L
 
         val apk = pickApk(assets)
         return Update(

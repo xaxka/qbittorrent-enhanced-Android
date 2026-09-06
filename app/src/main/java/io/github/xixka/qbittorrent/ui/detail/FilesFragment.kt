@@ -303,6 +303,9 @@ class FilesFragment : Fragment() {
             selectedPaths.clear()
             submitNodes()
             actionMode = null
+            // every exit path (back key, page swipe, dialog confirm) must
+            // release the poll gate, not just item taps
+            viewModel.setSelectionActive(false)
         }
     }
 

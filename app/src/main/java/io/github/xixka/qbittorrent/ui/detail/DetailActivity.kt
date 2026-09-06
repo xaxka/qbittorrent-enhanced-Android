@@ -36,6 +36,7 @@ import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Torrent detail screen, qBC TorrentScreen parity: five pages (overview /
@@ -372,8 +373,10 @@ class DetailActivity : AppCompatActivity() {
         view.downloadPathSwitch.isChecked = props?.downloadPath?.isNotBlank() == true
         view.downloadPathInput.setText(props?.downloadPath.orEmpty())
 
-        view.torrentUploadLimit.setText(limitToText(props?.upLimit ?: -1L))
-        view.torrentDownloadLimit.setText(limitToText(props?.dlLimit ?: -1L))
+        // prefill from the properties when loaded, else from torrents/info —
+        // defaulting to "unlimited" would overwrite the real limit on OK
+        view.torrentUploadLimit.setText(limitToText(props?.upLimit ?: torrent.upLimit))
+        view.torrentDownloadLimit.setText(limitToText(props?.dlLimit ?: torrent.dlLimit))
 
         // -2 = global default, -1 = no limit, positive = custom
         val ratioLimit = torrent.ratioLimit
@@ -432,9 +435,10 @@ class DetailActivity : AppCompatActivity() {
                     if (dlPath.isNotBlank()) overviewViewModel.setDownloadPath(dlPath)
                 }
 
-                // speed limits (KiB/s -> bytes/s, 0 = unlimited)
-                overviewViewModel.setDownloadLimit(textToLimit(view.torrentDownloadLimit.text?.toString()) * 1024)
-                overviewViewModel.setUploadLimit(textToLimit(view.torrentUploadLimit.text?.toString()) * 1024)
+                // speed limits (KiB/s -> bytes/s; -1 = unlimited, keep the
+                // sentinel out of the unit conversion)
+                overviewViewModel.setDownloadLimit(limitToWire(textToLimit(view.torrentDownloadLimit.text?.toString())))
+                overviewViewModel.setUploadLimit(limitToWire(textToLimit(view.torrentUploadLimit.text?.toString())))
 
                 // share limits
                 val ratio = when (view.shareLimitMode.checkedRadioButtonId) {
@@ -477,7 +481,11 @@ class DetailActivity : AppCompatActivity() {
         var selected: String? = torrent.category.ifBlank { null }
 
         lifecycleScope.launch {
-            val categories = overviewViewModel.categories.first { it != null } ?: return@launch
+            // bounded wait: a failed loadCategories() never emits, and an
+            // unguarded first { it != null } would hang forever below
+            val categories = withTimeoutOrNull(10_000L) {
+                overviewViewModel.categories.first { it != null }
+            } ?: return@launch
             if (categories.isEmpty()) {
                 view.findViewById<android.widget.TextView>(R.id.empty_text)?.run {
                     text = getString(R.string.torrent_no_categories)
@@ -518,7 +526,10 @@ class DetailActivity : AppCompatActivity() {
         val selected = current.toMutableSet()
 
         lifecycleScope.launch {
-            val tags = overviewViewModel.tags.first { it != null } ?: return@launch
+            // bounded wait: a failed loadTags() never emits
+            val tags = withTimeoutOrNull(10_000L) {
+                overviewViewModel.tags.first { it != null }
+            } ?: return@launch
             if (tags.isEmpty()) {
                 view.findViewById<android.widget.TextView>(R.id.empty_text)?.run {
                     text = getString(R.string.torrent_no_tags)
@@ -662,6 +673,10 @@ class DetailActivity : AppCompatActivity() {
         return if (v <= 0L) -1L else v
     }
 
+    /** KiB/s editor value -> wire bytes/s, keeping the -1 "unlimited" sentinel. */
+    private fun limitToWire(kibPerSec: Long): Long =
+        if (kibPerSec < 0) -1L else kibPerSec * 1024
+
     private class DetailPagerAdapter(activity: FragmentActivity) :
         FragmentStateAdapter(activity) {
 
@@ -697,7 +712,7 @@ class DetailActivity : AppCompatActivity() {
         private val REANNOUNCE_DEAD_STATES = setOf(
             "pausedup", "pauseddl", "stoppedup", "stoppeddl",
             "queuedup", "queueddl", "error", "missingfiles",
-            "checkingup", "checkingdl", "checkingresumeData",
+            "checkingup", "checkingdl", "checkingresumedata",
         )
 
         fun start(context: Context, hash: String, name: String) {

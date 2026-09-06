@@ -3,6 +3,8 @@ package io.github.xixka.qbittorrent.qbt
 import android.content.Context
 import io.github.xixka.qbittorrent.BuildConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
@@ -43,7 +45,15 @@ object LocalEngineManager {
     private val processRef = AtomicReference<Process?>(null)
     private val running = AtomicBoolean(false)
 
-    val logLines: ArrayDeque<String> = ArrayDeque()
+    /** Serializes start()/stop(): two racing starts must never orphan a process. */
+    private val lifecycleMutex = Mutex()
+
+    /** Engine log ring buffer; read via [logSnapshot], written on the pump thread. */
+    private val logLines = ArrayDeque<String>()
+
+    /** Thread-safe snapshot of the engine log (oldest first). */
+    @Synchronized
+    fun logSnapshot(): List<String> = logLines.toList()
 
     fun isSupported(context: Context): Boolean =
         BuildConfig.IS_ENHANCED && binaryFile(context)?.isFile == true
@@ -115,9 +125,17 @@ object LocalEngineManager {
      */
     suspend fun start(context: Context, port: Int, lanAccess: Boolean, savePath: String): String =
         withContext(Dispatchers.IO) {
+            lifecycleMutex.withLock {
             val ctx = context.applicationContext
             if (!isSupported(ctx)) {
                 throw IllegalStateException("Local engine is not available in this build")
+            }
+            // Another caller (service boot path + watchdog) may have won the
+            // race while we waited on the mutex: reuse the running engine
+            // instead of tearing it down and respawning.
+            if (isRunning() && state == State.RUNNING) {
+                appendLog("start requested while engine already running — reusing it")
+                return@withLock "127.0.0.1:$port"
             }
             stopInternal()
 
@@ -166,7 +184,10 @@ object LocalEngineManager {
                 if (caBundle != null) environment()["SSL_CERT_FILE"] = caBundle.absolutePath
             }
             val proc = pb.start()
-            processRef.set(proc)
+            // defensive: never orphan a previous child if one slipped through
+            processRef.getAndSet(proc)?.let { stale ->
+                runCatching { stale.destroy() }
+            }
             running.set(true)
 
             // pump stdout so the child never blocks on a full pipe
@@ -207,6 +228,7 @@ object LocalEngineManager {
                 appendLog("engine start failed: $lastError")
                 stopInternal()
                 throw IllegalStateException(lastError)
+            }
             }
         }
 
@@ -264,6 +286,6 @@ object LocalEngineManager {
     @Synchronized
     private fun appendLog(line: String) {
         logLines.addLast(line)
-        while (logLines.size > 200) logLines.removeFirst()
+        while (logLines.size > 200) logLines.removeFirstOrNull()
     }
 }

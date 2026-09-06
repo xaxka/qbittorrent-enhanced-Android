@@ -193,6 +193,9 @@ class WebSeedsFragment : Fragment() {
             selected.clear()
             adapter.notifyDataSetChanged()
             actionMode = null
+            // every exit path (back key, page swipe, dialog confirm) must
+            // release the poll gate, not just item taps
+            viewModel.setSelectionActive(false)
         }
     }
 

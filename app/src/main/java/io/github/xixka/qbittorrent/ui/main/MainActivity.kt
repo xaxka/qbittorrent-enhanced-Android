@@ -62,6 +62,7 @@ import io.github.xixka.qbittorrent.util.ThemeUtils
 import io.github.xixka.qbittorrent.util.UpdateChecker
 import io.github.xixka.qbittorrent.util.WindowInsetsSide
 import io.github.xixka.qbittorrent.util.applyWindowInsets
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 
 /**
@@ -105,6 +106,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // restore an update accepted before the process was reclaimed
+        savedInstanceState?.getString(STATE_UPDATE_VERSION)?.let { version ->
+            pendingUpdate = io.github.xixka.qbittorrent.util.UpdateChecker.Update(
+                version = version,
+                versionCode = savedInstanceState.getLong(STATE_UPDATE_CODE),
+                htmlUrl = savedInstanceState.getString(STATE_UPDATE_HTML).orEmpty(),
+                notes = savedInstanceState.getString(STATE_UPDATE_NOTES).orEmpty(),
+                apkUrl = savedInstanceState.getString(STATE_UPDATE_APK),
+                apkSize = savedInstanceState.getLong(STATE_UPDATE_SIZE),
+            )
+        }
         // Edge-to-edge, exactly like LibreTorrent's Utils.enableEdgeToEdge():
         // the AppBarLayout consumes the status bar inset, the bottom
         // navigation is inset-aware (immersive navigation bar).
@@ -358,6 +370,13 @@ class MainActivity : AppCompatActivity() {
     /** Hides or shows the RSS tab of the bottom navigation. */
     private fun applyRssVisibility(show: Boolean) {
         binding.bottomNavigation.menu.findItem(R.id.rss_nav)?.isVisible = show
+        // keep the RSS root fragment lifecycle in sync: a merely GONE
+        // container leaves it STARTED, still running its inner work
+        tabRoots[TAB_RSS]?.let { root ->
+            supportFragmentManager.beginTransaction()
+                .apply { if (show) show(root) else hide(root) }
+                .commitAllowingStateLoss()
+        }
         if (!show && currentTab == TAB_RSS) {
             // the visible tab vanished from the nav: return to the list
             navSelectionSuppressed = true
@@ -493,6 +512,17 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(STATE_CURRENT_TAB, currentTab)
+        // the accepted-but-uninstalled update must survive the settings
+        // round-trip (the activity can be reclaimed while the user grants
+        // the install permission) or the download silently never starts
+        pendingUpdate?.let { u ->
+            outState.putString(STATE_UPDATE_VERSION, u.version)
+            outState.putLong(STATE_UPDATE_CODE, u.versionCode)
+            outState.putString(STATE_UPDATE_HTML, u.htmlUrl)
+            outState.putString(STATE_UPDATE_NOTES, u.notes.take(20_000))
+            outState.putString(STATE_UPDATE_APK, u.apkUrl)
+            outState.putLong(STATE_UPDATE_SIZE, u.apkSize)
+        }
     }
 
     override fun onDestroy() {
@@ -500,6 +530,10 @@ class MainActivity : AppCompatActivity() {
             runCatching { ServiceLocator.prefs(this).unregisterChangeListener(it) }
         }
         rssPrefListener = null
+        searchPrefListener?.let {
+            runCatching { ServiceLocator.prefs(this).unregisterChangeListener(it) }
+        }
+        searchPrefListener = null
         super.onDestroy()
     }
 
@@ -818,6 +852,12 @@ class MainActivity : AppCompatActivity() {
         d.sortDirectionToggleButton.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) viewModel.setSortDirection(checkedId == R.id.sort_desc_button)
         }
+        // The XML pre-checks "descending" at inflate time — before this
+        // listener exists, so no callback fired for it. Re-check from the
+        // view-model so the highlighted direction matches the actual order.
+        d.sortDirectionToggleButton.check(
+            if (viewModel.sortDescending) R.id.sort_desc_button else R.id.sort_asc_button,
+        )
 
         d.statusClearButton.setOnClickListener { d.drawerStatusChipGroup.clearCheck(); viewModel.setStatusFilter(null) }
         d.categoriesClearButton.setOnClickListener { d.drawerCategoriesChipGroup.clearCheck(); viewModel.setCategory(null) }
@@ -1330,6 +1370,17 @@ class MainActivity : AppCompatActivity() {
     private fun observeState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    // gate the poll loop: no list traffic while backgrounded
+                    viewModel.setPollingActive(true)
+                    awaitCancellation()
+                } finally {
+                    viewModel.setPollingActive(false)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { render(it) }
             }
         }
@@ -1579,5 +1630,11 @@ class MainActivity : AppCompatActivity() {
 
         /** Saved bottom-nav tab, restored after activity recreation. */
         private const val STATE_CURRENT_TAB = "state_current_tab"
+        private const val STATE_UPDATE_VERSION = "state_update_version"
+        private const val STATE_UPDATE_CODE = "state_update_code"
+        private const val STATE_UPDATE_HTML = "state_update_html"
+        private const val STATE_UPDATE_NOTES = "state_update_notes"
+        private const val STATE_UPDATE_APK = "state_update_apk"
+        private const val STATE_UPDATE_SIZE = "state_update_size"
     }
 }

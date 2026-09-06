@@ -395,7 +395,10 @@ class RssFragment : Fragment() {
                     addPaused = addPaused?.isChecked,
                     assignedCategory = category?.text?.toString()?.trim().orEmpty(),
                     savePath = savePath?.text?.toString()?.trim().orEmpty(),
-                    contentLayout = null,
+                    // the editor has no content-layout control: preserve the
+                    // existing value instead of resetting it (rssSetRule is a
+                    // full-object replace on the server)
+                    contentLayout = rule?.contentLayout,
                     smartFilter = smartFilter?.isChecked == true,
                     affectedFeeds = affectedFeeds?.text?.toString()
                         ?.lines()?.map { it.trim() }?.filter { it.isNotEmpty() }

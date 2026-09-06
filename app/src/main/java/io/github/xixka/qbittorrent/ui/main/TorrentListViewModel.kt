@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.xixka.qbittorrent.api.QBAuthException
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.qbt.LocalEngineManager
+import io.github.xixka.qbittorrent.model.EngineScale
 import io.github.xixka.qbittorrent.model.QBCategory
 import io.github.xixka.qbittorrent.model.TorrentInfo
 import io.github.xixka.qbittorrent.model.TransferInfo
@@ -14,6 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -126,6 +128,17 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
 
     private var pollJob: Job? = null
 
+    /**
+     * Foreground gate for the poll loop: the activity flips this on
+     * STARTED / off on STOP, so the list never generates network traffic
+     * while the app is in the background.
+     */
+    private val pollActive = MutableStateFlow(false)
+
+    fun setPollingActive(active: Boolean) {
+        pollActive.value = active
+    }
+
     init {
         // Fast start: no torrent-list snapshot is persisted — the list shown
         // is always live data. Startup speed comes from the engine booting in
@@ -151,6 +164,9 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
             val startedAt = System.currentTimeMillis()
             var first = true
             while (isActive) {
+                // hold traffic while the app is in the background; resumes
+                // (and refreshes immediately) the moment it comes back
+                pollActive.first { it }
                 // blocking spinner only when nothing is on screen yet — an
                 // already-rendered list stays visible while it refreshes
                 val ok = refreshOnce(showLoading = first && _state.value.torrents.isEmpty())
@@ -229,13 +245,16 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                 repository.categories().keys.filter { it.isNotBlank() }.sorted()
             }.getOrDefault(emptyList())
             val tagList = runCatching { repository.tags() }.getOrDefault(emptyList())
+            val version = runCatching { repository.appVersion() }.getOrDefault("")
+            // qB 5.1+ switched file/peer progress from 0..1 to 0..100
+            if (version.isNotBlank()) EngineScale.progressIsPercent = isProgressPercentEngine(version)
             _state.update {
                 it.copy(
                     loading = false,
                     connected = true,
                     authError = false,
                     error = null,
-                    serverVersion = runCatching { repository.appVersion() }.getOrDefault(""),
+                    serverVersion = version,
                     torrents = filtered(torrents),
                     allCount = torrents.size,
                     transfer = transfer,
@@ -292,6 +311,14 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
     private fun engineState(): String? =
         if (prefs.usingLocalEngine) LocalEngineManager.state.name else null
 
+    /** qBittorrent 5.1+ reports file/peer progress on a 0..100 scale. */
+    private fun isProgressPercentEngine(version: String): Boolean {
+        val m = Regex("(\\d+)\\.(\\d+)").find(version.removePrefix("v").removePrefix("V")) ?: return false
+        val major = m.groupValues[1].toLongOrNull() ?: return false
+        val minor = m.groupValues[2].toLongOrNull() ?: return false
+        return major > 5 || (major == 5L && minor >= 1)
+    }
+
     fun setStatusFilter(filter: StatusFilter?) {
         statusFilter = filter ?: StatusFilter.ALL
         refilter()
@@ -322,9 +349,14 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
         refilter()
     }
 
+    /** Resets the full drawer state: filters, sorting and search query. */
     fun resetFilters() {
         statusFilter = StatusFilter.ALL
         category = null
+        tag = null
+        sortField = SortField.DATE_ADDED
+        sortDescending = false
+        searchQuery = ""
         refilter()
     }
 

@@ -173,7 +173,7 @@ class QBPrefsAdapter(
                             return
                         }
                         trimmed.toLongOrNull()?.let { raw ->
-                            vm.setValue(field.key, JsonPrimitive(clamp(raw, field)))
+                            vm.setValue(field.key, JsonPrimitive(clamp(toWireValue(raw, field), field)))
                         }
                     }
 
@@ -184,7 +184,7 @@ class QBPrefsAdapter(
                             return
                         }
                         trimmed.toDoubleOrNull()?.let { raw ->
-                            vm.setValue(field.key, JsonPrimitive(clamp(raw, field)))
+                            vm.setValue(field.key, JsonPrimitive(clamp(toWireValue(raw, field), field)))
                         }
                     }
 
@@ -195,6 +195,10 @@ class QBPrefsAdapter(
                             // key) edited as raw JSON: parse it back
                             runCatching { JsonParser.parseString(text) }
                                 .onSuccess { vm.setValue(field.key, it) }
+                        } else if (text.isBlank() && field.blankKeepsValue) {
+                            // declared "blank keeps the server value": revert
+                            // instead of storing an empty string
+                            vm.revert(field.key)
                         } else if (field.kind == PrefKind.PASSWORD) {
                             vm.setValue(field.key, JsonPrimitive(text))
                         } else {
@@ -204,6 +208,16 @@ class QBPrefsAdapter(
                 }
             }
         }
+
+        /**
+         * The editor shows display units (KiB/s) while the wire value is
+         * bytes/s: mirror [displayText]'s division on the way back in.
+         */
+        private fun toWireValue(raw: Long, field: PrefField): Long =
+            if (field.unit == PrefUnit.KIB_PER_SEC) raw * 1024L else raw
+
+        private fun toWireValue(raw: Double, field: PrefField): Double =
+            if (field.unit == PrefUnit.KIB_PER_SEC) raw * 1024.0 else raw
 
         private fun clamp(raw: Long, field: PrefField): Long {
             var value = raw

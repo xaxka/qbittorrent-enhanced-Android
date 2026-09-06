@@ -171,6 +171,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
+                android:checked="true"
                 android:text="@string/drawer_status_all" />
 
             <com.google.android.material.chip.Chip
@@ -315,7 +316,7 @@
             app:chipSpacingHorizontal="8dp"
             app:chipSpacingVertical="8dp"
             app:singleSelection="true"
-            tools:checkedChip="@id/drawer_sorting_date_added">
+            app:checkedChip="@id/drawer_sorting_date_added">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/drawer_sorting_date_added"

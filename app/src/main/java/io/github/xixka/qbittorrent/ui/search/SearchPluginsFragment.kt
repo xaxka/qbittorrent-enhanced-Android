@@ -172,6 +172,10 @@ class SearchPluginsFragment : Fragment() {
                 b.pluginName.text = plugin.fullName.ifBlank { plugin.name }
                 b.pluginVersion.text = plugin.version
                 b.pluginUrl.text = plugin.url
+                // recycle safety: detach the previous item's listener first,
+                // otherwise assigning isChecked writes staged state for the
+                // plugin this holder rendered before this one
+                b.pluginSwitch.setOnCheckedChangeListener(null)
                 b.pluginSwitch.isChecked = enabled
                 b.pluginSwitch.isEnabled = !deleted
                 b.pluginDelete.setImageResource(

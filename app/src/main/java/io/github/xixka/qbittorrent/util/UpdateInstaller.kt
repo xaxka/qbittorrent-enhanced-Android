@@ -59,30 +59,41 @@ object UpdateInstaller {
                 val file = ApkDownloader.download(url, dest) { p ->
                     activity.runOnUiThread {
                         val now = System.currentTimeMillis()
-                        if (now - lastTime >= 250 && p.total > 0) {
+                        // throttle updates; without a known total fall back to
+                        // an amount-only line so the dialog is not frozen
+                        if (now - lastTime >= 250) {
                             val bps = (p.downloaded - lastBytes) * 1000 / (now - lastTime)
                             lastBytes = p.downloaded
                             lastTime = now
-                            progressBinding.progressBar.progress =
-                                ((p.downloaded * 1000) / p.total).toInt()
-                            progressBinding.progressText.text = activity.getString(
-                                R.string.update_speed_fmt,
-                                Format.size(bps),
-                                Format.size(p.downloaded),
-                                Format.size(p.total),
-                            )
+                            if (p.total > 0) {
+                                progressBinding.progressBar.progress =
+                                    ((p.downloaded * 1000) / p.total).toInt()
+                                progressBinding.progressText.text = activity.getString(
+                                    R.string.update_speed_fmt,
+                                    Format.size(bps),
+                                    Format.size(p.downloaded),
+                                    Format.size(p.total),
+                                )
+                            } else {
+                                progressBinding.progressText.text = activity.getString(
+                                    R.string.update_downloading,
+                                ) + " — " + Format.size(p.downloaded)
+                            }
                         }
                     }
                 }
                 dialog.dismiss()
                 promptInstall(activity, file)
             } catch (e: CancellationException) {
-                // user pressed cancel — partial file already removed
+                // user pressed cancel — partial file already removed;
+                // cancellation must keep propagating to honour the
+                // structured-concurrency contract
                 activity.runOnUiThread {
                     Toast.makeText(
                         activity, R.string.update_download_canceled, Toast.LENGTH_SHORT
                     ).show()
                 }
+                throw e
             } catch (e: Exception) {
                 dialog.dismiss()
                 dest.delete()

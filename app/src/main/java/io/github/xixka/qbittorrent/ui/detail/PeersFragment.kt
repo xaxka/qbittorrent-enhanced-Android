@@ -55,7 +55,7 @@ class PeersFragment : Fragment() {
 
     private lateinit var adapter: PeersAdapter
 
-    private lateinit var flagLoader: ImageLoader
+    private var flagLoader: ImageLoader? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,15 +75,18 @@ class PeersFragment : Fragment() {
         // client already applies.
         val serverConfig = ServiceLocator.prefs(requireContext()).serverConfig()
         val flagBase = serverConfig.baseUrl()
-        flagLoader = ImageLoader.Builder(requireContext())
+        // build the loader once per fragment instance: each one carries its
+        // own OkHttp pool/threads, and view recreations would pile them up
+        val loader = flagLoader ?: ImageLoader.Builder(requireContext())
             .components { add(SvgDecoder.Factory()) }
             .apply {
                 if (serverConfig.trustAllCerts) okHttpClient(trustAllOkHttpClient())
             }
             .build()
+            .also { flagLoader = it }
         adapter = PeersAdapter(
             selected = selected,
-            flagLoader = flagLoader,
+            flagLoader = loader,
             flagUrlOf = { code -> "${flagBase}images/flags/$code.svg" },
             onClick = ::onPeerClick,
             onLongClick = ::onPeerLongClick,
@@ -217,6 +220,9 @@ class PeersFragment : Fragment() {
             selected.clear()
             adapter.notifyDataSetChanged()
             actionMode = null
+            // every exit path (back key, page swipe, dialog confirm) must
+            // release the poll gate, not just item taps
+            viewModel.setSelectionActive(false)
         }
     }
 
@@ -315,6 +321,13 @@ class PeersFragment : Fragment() {
         unregisterPageSwipe = null
         _binding = null
         super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        // the loader owns an OkHttp pool + dispatcher: release it with the fragment
+        flagLoader?.shutdown()
+        flagLoader = null
+        super.onDestroy()
     }
 
     /** Trust-all HTTPS for flag requests on self-signed servers — the same

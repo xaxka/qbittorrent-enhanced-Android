@@ -153,21 +153,23 @@ class QBSettingsViewModel(app: Application) : AndroidViewModel(app) {
             onResult(false, null) // caller shows the generic "not loaded" error
             return
         }
-        // client-side mirrors of the server's own validations, so the user
-        // gets a clear message instead of an HTTP 400
-        editable.get("web_ui_username")?.takeIf { it.isJsonPrimitive }?.asString?.let {
+        val diff = diff(editable, loaded)
+        // Client-side mirrors of the server's own validations — but only for
+        // the keys the user actually changed. The loaded snapshot may contain
+        // an empty web_ui_password (the WebAPI never echoes it back), so
+        // validating the whole editable here would block every save.
+        diff.get("web_ui_username")?.takeIf { it.isJsonPrimitive }?.asString?.let {
             if (it.length < 3 || it.contains(':')) {
                 onResult(false, ERR_USERNAME)
                 return
             }
         }
-        editable.get("web_ui_password")?.takeIf { it.isJsonPrimitive }?.asString?.let {
+        diff.get("web_ui_password")?.takeIf { it.isJsonPrimitive }?.asString?.let {
             if (it.length < 6) {
                 onResult(false, ERR_PASSWORD)
                 return
             }
         }
-        val diff = diff(editable, loaded)
         if (diff.size() == 0) {
             onResult(true, NO_CHANGES)
             return

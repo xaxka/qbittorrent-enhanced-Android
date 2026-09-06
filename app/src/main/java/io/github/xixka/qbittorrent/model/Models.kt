@@ -143,9 +143,18 @@ data class TorrentFile(
     @SerializedName("is_seed") val isSeed: Boolean = false,
     @SerializedName("availability") val availability: Double = -1.0,
 ) {
-    /** progress is 0..1 on qBittorrent < 5.1 and 0..100 on newer releases */
+    /**
+     * progress is 0..1 on qBittorrent < 5.1 and 0..100 on newer releases.
+     * A raw value of exactly 1.0 means 100% on the old scale but 1% on the
+     * new one — [EngineScale.progressIsPercent] (set from the engine's
+     * reported version) disambiguates it.
+     */
     val progressFraction: Double
-        get() = if (progress > 1.0) progress / 100.0 else progress
+        get() = when {
+            progress > 1.0 -> progress / 100.0
+            progress == 1.0 && EngineScale.progressIsPercent -> progress / 100.0
+            else -> progress
+        }
 
     /**
      * qBC TorrentFile parity: priority 4 is the legacy "normal" value some
@@ -219,9 +228,13 @@ data class Peer(
     /** qBC peer-details dialog parity: client fingerprint of the peer id. */
     @SerializedName("peer_id_client") val peerIdClient: String = "",
 ) {
-    /** progress is 0..1 (older) or 0..100 (newer qBittorrent) */
+    /** progress is 0..1 (older) or 0..100 (newer qBittorrent) — see [TorrentFile.progressFraction] */
     val progressFraction: Double
-        get() = if (progress > 1.0) progress / 100.0 else progress
+        get() = when {
+            progress > 1.0 -> progress / 100.0
+            progress == 1.0 && EngineScale.progressIsPercent -> progress / 100.0
+            else -> progress
+        }
 
     val endpoint: String get() = "$ip:$port"
 }

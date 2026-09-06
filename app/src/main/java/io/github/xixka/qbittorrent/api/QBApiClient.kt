@@ -3,6 +3,8 @@ package io.github.xixka.qbittorrent.api
 import android.util.Log
 import io.github.xixka.qbittorrent.data.ServerConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -46,6 +48,9 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
     @Volatile
     private var loggedIn = false
 
+    /** Serializes logins: parallel 403 retries must not wipe each other's SID. */
+    private val loginMutex = Mutex()
+
     fun reset() {
         synchronized(this) {
             service = null
@@ -66,8 +71,12 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
                 if (serviceConfig == cfgNow) return existing
             }
             val created = buildService(cfgNow)
-            service = created
+            // publish order matters: config first, then service — a fast-path
+            // reader comparing (service, serviceConfig) must never observe the
+            // new service together with the old config, or its request would
+            // go to the wrong server
             serviceConfig = cfgNow
+            service = created
             loggedIn = false
             cookieJar.clear()
             return created
@@ -141,23 +150,37 @@ class QBApiClient(private val configProvider: () -> ServerConfig) {
      * parameter — would fail silently and the UI would believe it succeeded.
      */
     suspend fun <T> withAuth(block: suspend (QBApiService) -> T): T = withContext(Dispatchers.IO) {
-        if (!loggedIn) login()
+        loginMutex.withLock { if (!loggedIn) login() }
         try {
             val result = block(currentService())
             if (result.isAuthExpired()) {
                 // the session cookie expired mid-call: re-login and retry once
-                login()
-                checked(block(currentService()))
+                checked(reloginAndRetry(block))
             } else {
                 checked(result)
             }
         } catch (e: HttpException) {
             if (e.code() == 403 || e.code() == 401) {
-                login()
-                checked(block(currentService()))
+                checked(reloginAndRetry(block))
             } else {
                 throw QBApiException(errorMessage(e.code(), e.response()?.errorBody()?.string()), e.code())
             }
+        }
+    }
+
+    /**
+     * Re-login once and retry the call. The retry outcome is always surfaced
+     * through the same contract as the first attempt: Response-typed results
+     * go through [checked], plain-type HTTP failures become [QBApiException]
+     * (an escaped [HttpException] would break callers that rely on the code,
+     * e.g. the stop→pause 404 fallback in TorrentRepository).
+     */
+    private suspend fun <T> reloginAndRetry(block: suspend (QBApiService) -> T): T {
+        loginMutex.withLock { login() }
+        return try {
+            block(currentService())
+        } catch (e: HttpException) {
+            throw QBApiException(errorMessage(e.code(), e.response()?.errorBody()?.string()), e.code())
         }
     }
 

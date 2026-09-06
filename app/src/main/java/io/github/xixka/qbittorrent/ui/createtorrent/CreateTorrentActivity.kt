@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -26,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * On-device torrent creator. The official qBittorrent WebUI API has no
@@ -41,11 +43,15 @@ class CreateTorrentActivity : AppCompatActivity() {
     private var sourceUri: Uri? = null
     private var sourceIsTree = false
     private var realPath: String? = null
+    private var sourceName: String? = null
 
     /** Result of a finished hashing run, kept for the save-file step. */
     private var madeResult: TorrentMaker.Result? = null
 
     private var hashJob: Job? = null
+
+    /** Hashing progress dialog, dismissed on destroy to avoid WindowLeaked. */
+    private var progressDialog: AlertDialog? = null
 
     /** Piece size menu: Auto + fixed sizes. */
     private val pieceLabels by lazy {
@@ -98,9 +104,71 @@ class CreateTorrentActivity : AppCompatActivity() {
             selectedPiece = pieceValues.getOrNull(position)
         }
 
+        savedInstanceState?.let { s -> restoreState(s) }
+
         loadCategories()
 
         updateSeedingAvailability()
+    }
+
+    /** Rotation / process death must not lose the picked source, the chosen
+     *  piece size (the dropdown text restores but the click listener does not
+     *  re-fire, silently switching the submit to "Auto") or hours of hashing. */
+    private fun restoreState(s: Bundle) {
+        sourceUri = s.getString(STATE_SOURCE)?.let { Uri.parse(it) }
+        sourceIsTree = s.getBoolean(STATE_IS_TREE)
+        realPath = s.getString(STATE_REAL_PATH)
+        sourceName = s.getString(STATE_SOURCE_NAME)
+        sourceName?.let { binding.sourceNameText.text = it }
+        if (s.getBoolean(STATE_HAS_PIECE)) {
+            selectedPiece = s.getLong(STATE_PIECE)
+            pieceValues.indexOf(selectedPiece).takeIf { it > 0 }?.let { idx ->
+                binding.pieceSizeDropdown.setText(pieceLabels[idx], false)
+            }
+        }
+        // a finished hash run is persisted to a cache file: the torrent bytes
+        // can exceed the Bundle limit, and re-hashing large sources takes hours
+        s.getString(STATE_MADE_FILE)?.let { path ->
+            val f = File(path)
+            if (f.isFile) {
+                madeResult = TorrentMaker.Result(
+                    bytes = runCatching { f.readBytes() }.getOrNull() ?: return@let,
+                    name = s.getString(STATE_MADE_NAME).orEmpty(),
+                    pieceSize = s.getLong(STATE_MADE_PIECE),
+                    totalSize = s.getLong(STATE_MADE_TOTAL),
+                    fileCount = s.getInt(STATE_MADE_COUNT),
+                )
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_SOURCE, sourceUri?.toString())
+        outState.putBoolean(STATE_IS_TREE, sourceIsTree)
+        outState.putString(STATE_REAL_PATH, realPath)
+        outState.putString(STATE_SOURCE_NAME, sourceName)
+        outState.putBoolean(STATE_HAS_PIECE, selectedPiece != null)
+        selectedPiece?.let { outState.putLong(STATE_PIECE, it) }
+        madeResult?.let { made ->
+            runCatching {
+                val f = File(cacheDir, PENDING_TORRENT_FILE)
+                f.writeBytes(made.bytes)
+                outState.putString(STATE_MADE_FILE, f.absolutePath)
+                outState.putString(STATE_MADE_NAME, made.name)
+                outState.putLong(STATE_MADE_PIECE, made.pieceSize)
+                outState.putLong(STATE_MADE_TOTAL, made.totalSize)
+                outState.putInt(STATE_MADE_COUNT, made.fileCount)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        // rotation cancels the hashing coroutine before its dismiss() line
+        // runs — dismiss here so the window is not leaked
+        runCatching { progressDialog?.dismiss() }
+        progressDialog = null
+        super.onDestroy()
     }
 
     /** Category dropdown options are generated live from
@@ -124,6 +192,7 @@ class CreateTorrentActivity : AppCompatActivity() {
         sourceUri = uri
         sourceIsTree = isTree
         val name = displayNameOf(uri, isTree) ?: uri.lastPathSegment ?: "?"
+        sourceName = name
         binding.sourceNameText.text = name
         if (binding.nameInput.text?.isBlank() == true) {
             binding.nameInput.setText(name)
@@ -188,6 +257,7 @@ class CreateTorrentActivity : AppCompatActivity() {
             .setCancelable(false)
             .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
             .show()
+        progressDialog = dialog
 
         hashJob = lifecycleScope.launch {
             var lastUi = 0L
@@ -300,6 +370,19 @@ class CreateTorrentActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val STATE_SOURCE = "state_source"
+        private const val STATE_IS_TREE = "state_is_tree"
+        private const val STATE_REAL_PATH = "state_real_path"
+        private const val STATE_SOURCE_NAME = "state_source_name"
+        private const val STATE_HAS_PIECE = "state_has_piece"
+        private const val STATE_PIECE = "state_piece"
+        private const val STATE_MADE_FILE = "state_made_file"
+        private const val STATE_MADE_NAME = "state_made_name"
+        private const val STATE_MADE_PIECE = "state_made_piece"
+        private const val STATE_MADE_TOTAL = "state_made_total"
+        private const val STATE_MADE_COUNT = "state_made_count"
+        private const val PENDING_TORRENT_FILE = "pending_created.torrent"
+
         /** Opens the torrent creator from the FAB action sheet. */
         fun start(context: android.content.Context) {
             context.startActivity(Intent(context, CreateTorrentActivity::class.java))

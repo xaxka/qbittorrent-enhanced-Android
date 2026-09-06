@@ -66,12 +66,17 @@ class TorrentMaker(private val resolver: ContentResolver) {
         val buf = ByteArray(pieceSize.toInt())
         var pending = 0          // bytes buffered toward the current piece
         var done = 0L            // bytes hashed overall (for progress)
+        var lastReport = 0L      // progress throttle watermark (per build)
         val pieceStart = System.currentTimeMillis()
 
         for (entry in entries) {
             coroutineContext.ensureActive()
+            // empty files contribute no piece bytes — skip the stream, they
+            // are still listed in the metainfo below
+            if (entry.size == 0L) continue
             resolver.openInputStream(entry.uri)?.use { input ->
                 while (true) {
+                    coroutineContext.ensureActive()
                     val want = buf.size - pending
                     val n = input.read(buf, pending, want)
                     if (n < 0) break
@@ -135,8 +140,6 @@ class TorrentMaker(private val resolver: ContentResolver) {
         )
     }
 
-    private var lastReport = 0L
-
     private fun collectEntries(source: Uri, isTree: Boolean): List<Entry> {
         val out = mutableListOf<Entry>()
         if (isTree) {
@@ -177,14 +180,15 @@ class TorrentMaker(private val resolver: ContentResolver) {
                 if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
                     dirs += id to name
                 } else {
+                    // 0-byte files are part of the source tree: qBittorrent
+                    // desktop includes them in the metainfo, and leaving them
+                    // out makes other clients fail the re-check
                     val size = c.getLong(3)
-                    if (size > 0) {
-                        out += Entry(
-                            prefix + name,
-                            size,
-                            DocumentsContract.buildDocumentUriUsingTree(treeUri, id),
-                        )
-                    }
+                    out += Entry(
+                        prefix + name,
+                        size,
+                        DocumentsContract.buildDocumentUriUsingTree(treeUri, id),
+                    )
                 }
             }
         }

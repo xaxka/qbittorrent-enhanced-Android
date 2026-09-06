@@ -126,7 +126,7 @@ class SearchFragment : Fragment() {
                 ServiceLocator.repository(requireContext()).searchPlugins()
             }.getOrDefault(emptyList())
             selectedPlugins.removeAll { name -> plugins.none { it.name == name } }
-            pluginAdapter?.submitList(plugins)
+            pluginAdapter?.notifyDataSetChanged()
             binding.swipeRefresh.isRefreshing = false
             syncPluginSelectionUi()
         }

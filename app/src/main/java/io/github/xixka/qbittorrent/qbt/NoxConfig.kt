@@ -336,7 +336,20 @@ object NoxConfig {
         conf.writeText(lines.joinToString("\n", postfix = "\n"))
     }
 
-    private fun sectionOf(key: String): String = key.substringBefore('\\')
+    /**
+     * QSettings layout of qBittorrent.conf: the INI section is the PARENT
+     * group of the key's first path component — `Session\…` keys live under
+     * [BitTorrent] and `WebUI\…` keys live under [Preferences], mirroring
+     * exactly how writeDefaultConfig lays them out. Deriving the section
+     * from the first component itself would append `Session\…` under a
+     * [Session] header, where the engine (reading the full key
+     * `Session\Session\…`) would never find it.
+     */
+    private fun sectionOf(key: String): String = when (key.substringBefore('\\')) {
+        "Session" -> "BitTorrent"
+        "WebUI" -> "Preferences"
+        else -> key.substringBefore('\\')
+    }
 
     /**
      * Bootstrap-list equality that tolerates the engine's own reserialization

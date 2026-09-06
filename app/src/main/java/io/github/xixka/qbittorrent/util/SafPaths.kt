@@ -26,7 +26,10 @@ object SafPaths {
         val volume = docId.substring(0, sep)
         val rawPath = docId.substring(sep + 1)
         if (rawPath.isBlank()) return null
-        val path = if (rawPath.contains('%')) Uri.decode(rawPath) else rawPath
+        // docIds are always percent-encoded per the SAF contract: decoding
+        // unconditionally (the old "contains '%'" heuristic mangled literal
+        // names like "50%off.zip")
+        val path = Uri.decode(rawPath)
         val volumeRoot = if (volume == "primary") {
             // /storage/emulated/0
             Environment.getExternalStorageDirectory().absolutePath

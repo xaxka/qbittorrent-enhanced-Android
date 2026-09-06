@@ -30,9 +30,11 @@ class TorrentListAdapter(
     fun selectedHashes() = selected.toList()
     fun selectedCount() = selected.size
 
-    fun toggleSelection(hash: String): Int {
+    /** Flips one hash in the selection. With a valid [position] only that
+     *  row rebinds, keeping the DiffUtil animations of the live list. */
+    fun toggleSelection(hash: String, position: Int = RecyclerView.NO_POSITION): Int {
         if (!selected.add(hash)) selected.remove(hash)
-        notifyDataSetChanged()
+        if (position in 0 until itemCount) notifyItemChanged(position) else notifyDataSetChanged()
         return selected.size
     }
 
@@ -121,7 +123,7 @@ class TorrentListAdapter(
             binding.card.isChecked = t.hash in selected
             binding.card.setOnClickListener {
                 if (selected.isNotEmpty()) {
-                    toggleSelection(t.hash)
+                    toggleSelection(t.hash, bindingAdapterPosition)
                     onLongClick(t)
                     binding.card.isChecked = t.hash in selected
                 } else {
@@ -129,7 +131,7 @@ class TorrentListAdapter(
                 }
             }
             binding.card.setOnLongClickListener {
-                toggleSelection(t.hash)
+                toggleSelection(t.hash, bindingAdapterPosition)
                 onLongClick(t)
                 binding.card.isChecked = t.hash in selected
                 true

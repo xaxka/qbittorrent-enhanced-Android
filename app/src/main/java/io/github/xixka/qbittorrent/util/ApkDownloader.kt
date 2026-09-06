@@ -113,22 +113,24 @@ object ApkDownloader {
         threads: Int,
         onProgress: (Progress) -> Unit,
     ) = coroutineScope {
-        val done = AtomicLong(0L)
         val partSize = (total + threads - 1) / threads
+        // Cumulative per-part progress: the retry resumes from it and the
+        // global counter is derived from it, so bytes re-fetched after a
+        // failed attempt are never double-counted (progress stays monotonic
+        // and can never exceed the file size).
+        val parts = (0 until threads).map { AtomicLong(0L) }
         val jobs = (0 until threads).map { index ->
             async {
                 val start = index * partSize
                 val end = minOf(start + partSize - 1, total - 1)
                 if (start > end) return@async
-                // How many bytes of [start..end] are already on disk — drives
-                // the one automatic retry of the missing tail.
-                val partDone = AtomicLong(0L)
+                val partDone = parts[index]
                 var attempt = 0
                 while (true) {
                     try {
-                        downloadPart(url, dest, start + partDone.get(), end, partDone) { n ->
-                            done.addAndGet(n.toLong())
-                            onProgress(Progress(done.get(), total))
+                        downloadPart(url, dest, start + partDone.get(), end) { absolute, n ->
+                            partDone.set(absolute - start + 1)
+                            onProgress(Progress(parts.sumOf { it.get() }, total))
                         }
                         return@async
                     } catch (t: Throwable) {
@@ -144,18 +146,17 @@ object ApkDownloader {
     }
 
     /**
-     * Streams the byte range [from]..[end] into its slot in [dest].
-     * [partDone] is kept up to date so a retry can resume mid-range; the
-     * [onChunk] callback receives chunk lengths for progress accounting.
-     * Throws on short reads / network errors (retryable by the caller).
+     * Streams the byte range [from]..[end] into its slot in [dest]. The
+     * [onChunk] callback receives (absolute end offset of the chunk, chunk
+     * length) so the caller can maintain cumulative progress. Throws on
+     * short reads / network errors (retryable by the caller).
      */
     private suspend fun downloadPart(
         url: String,
         dest: File,
         from: Long,
         end: Long,
-        partDone: AtomicLong,
-        onChunk: (Int) -> Unit,
+        onChunk: (absoluteDone: Long, chunk: Int) -> Unit,
     ) {
         val request = Request.Builder()
             .url(url)
@@ -179,8 +180,7 @@ object ApkDownloader {
                     if (n < 0) break
                     raf.write(buf, 0, n)
                     transferred += n
-                    partDone.set(transferred)
-                    onChunk(n)
+                    onChunk(from + transferred, n)
                 }
             }
         }

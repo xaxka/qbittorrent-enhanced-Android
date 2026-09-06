@@ -127,6 +127,7 @@ class EqualColumnsChipGroup(
             var totalHeight = 0
             var rowHeight = 0
             var childrenInRow = 0
+            var rows = 0
             for (i in 0 until childCount) {
                 val child = getChildAt(i)
                 if (child.visibility == View.GONE) continue
@@ -137,9 +138,15 @@ class EqualColumnsChipGroup(
                     totalHeight += rowHeight
                     rowHeight = 0
                     childrenInRow = 0
+                    rows++
                 }
             }
-            if (childrenInRow > 0) totalHeight += rowHeight
+            if (childrenInRow > 0) {
+                totalHeight += rowHeight
+                rows++
+            }
+            // keep the vertical gap consistent with the width-hinted branch
+            if (rows > 1) totalHeight += vGap * (rows - 1)
             setMeasuredDimension(
                 laidOutColumns * colWidth + chipSpacingHorizontal * (laidOutColumns - 1) +
                     paddingLeft + paddingRight,

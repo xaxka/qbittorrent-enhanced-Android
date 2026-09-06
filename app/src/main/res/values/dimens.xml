@@ -18,8 +18,12 @@
          (LibreTorrent's 48dp floating margin left a blank strip). -->
     <dimen name="search_bar_top_margin">8dp</dimen>
     <dimen name="toolbar_top_margin">24dp</dimen>
-    <dimen name="search_bar_max_width">@dimen/text_filed_max_width</dimen>
-    <dimen name="text_filed_max_width">488dp</dimen>
+    <!-- SearchBar width policy: on narrow screens the minimum is clamped to
+         the parent (full-width bar); on wide screens the bar settles at this
+         488dp target, centered. Named *_min_width because it is wired to
+         android:minWidth on the SearchBar. -->
+    <dimen name="search_bar_min_width">@dimen/text_field_max_width</dimen>
+    <dimen name="text_field_max_width">488dp</dimen>
     <dimen name="bottom_bar_padding">80dp</dimen>
     <dimen name="list_fab_padding">72dp</dimen>
 </resources>

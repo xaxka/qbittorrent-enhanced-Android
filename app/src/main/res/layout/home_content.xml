@@ -34,7 +34,6 @@
         android:id="@+id/loading_view_torrent_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
         tools:visibility="gone">
 
         <include layout="@layout/list_load_indicator" />
@@ -65,7 +64,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/search_bar_top_margin"
             android:hint="@string/search"
-            android:minWidth="@dimen/search_bar_max_width"
+            android:minWidth="@dimen/search_bar_min_width"
             app:menu="@menu/home"
             app:navigationIcon="@drawable/ic_menu_24px" />
 
