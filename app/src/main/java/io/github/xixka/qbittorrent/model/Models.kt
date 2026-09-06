@@ -432,6 +432,8 @@ data class SearchResults(
 data class SearchPlugin(
     @SerializedName("name") val name: String = "",
     @SerializedName("fullName") val fullName: String = "",
+    /** Plugin homepage URL (returned by GET /search/plugins). */
+    @SerializedName("url") val url: String = "",
     @SerializedName("version") val version: String = "",
     @SerializedName("enabled") val enabled: Boolean = false,
     @SerializedName("supportedCategories") val supportedCategories: Map<String, String> = emptyMap(),

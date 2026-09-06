@@ -1,7 +1,7 @@
 package io.github.xixka.qbittorrent.ui.search
 
-import android.content.ColorStateList
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -555,7 +555,7 @@ class SearchResultFragment : Fragment() {
                             setSpan(
                                 BackgroundColorSpan(
                                     MaterialColors.getColor(
-                                        b.root, com.google.android.material.R.attr.colorPrimary,
+                                        b.root, R.attr.colorPrimary,
                                     ),
                                 ),
                                 index, index + query.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,

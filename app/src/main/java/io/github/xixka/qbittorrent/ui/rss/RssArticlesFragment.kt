@@ -1,7 +1,7 @@
 package io.github.xixka.qbittorrent.ui.rss
 
-import android.content.ColorStateList
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.Html
@@ -345,8 +345,10 @@ class RssArticlesFragment : Fragment() {
 
     // ---------------- adapter ----------------
 
-    private inner class ArticleAdapter :
-        ListAdapter<RssArticle, ArticleAdapter.Holder>(DIFF) {
+    private inner class ArticleAdapter(
+        private val onClick: (RssArticle) -> Unit,
+        private val onLongClick: (RssArticle) -> Unit,
+    ) : ListAdapter<RssArticle, ArticleAdapter.Holder>(DIFF) {
 
         inner class Holder(private val b: ItemRssArticleBinding) :
             RecyclerView.ViewHolder(b.root) {
@@ -361,7 +363,7 @@ class RssArticlesFragment : Fragment() {
                 } else ""
                 b.readDot.visibility = if (article.isRead) View.GONE else View.VISIBLE
                 b.readDot.imageTintList = ColorStateList.valueOf(
-                    MaterialColors.getColor(b.root, com.google.android.material.R.attr.colorPrimary),
+                    MaterialColors.getColor(b.root, R.attr.colorPrimary),
                 )
                 if (article.id in selected) {
                     b.card.setCardBackgroundColor(

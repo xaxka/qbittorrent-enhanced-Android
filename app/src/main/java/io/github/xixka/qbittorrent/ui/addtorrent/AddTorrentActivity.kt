@@ -83,6 +83,7 @@ class AddTorrentActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setupDropdowns()
+        savedInstanceState?.let { s -> restoreInstanceState(s) }
         binding.pickFileButton.setOnClickListener { pickFile.launch("*/*") }
         binding.addButton.setOnClickListener { submit() }
 
@@ -124,36 +125,36 @@ class AddTorrentActivity : AppCompatActivity() {
         }
 
         binding.pausedSwitch.setOnCheckedChangeListener { _, _ -> pausedTouched = true }
+    }
 
-        savedInstanceState?.let { s ->
-            selectedContentLayout = s.getInt(STATE_LAYOUT, 0)
-            selectedStopCondition = s.getInt(STATE_STOP, 0)
-            binding.layoutDropdown.setText(
-                listOf(
-                    getString(R.string.content_layout_original),
-                    getString(R.string.content_layout_subfolder),
-                    getString(R.string.content_layout_no_subfolder),
-                )[selectedContentLayout],
-                false,
-            )
-            binding.stopConditionDropdown.setText(
-                listOf(
-                    getString(R.string.stop_condition_none),
-                    getString(R.string.stop_condition_metadata),
-                    getString(R.string.stop_condition_files_checked),
-                )[selectedStopCondition],
-                false,
-            )
-            s.getString(STATE_FILE_NAME)?.let { name ->
-                val f = java.io.File(cacheDir, PENDING_ADD_TORRENT_FILE)
-                if (f.isFile) {
-                    val bytes = runCatching { f.readBytes() }.getOrNull()
-                    if (bytes != null) {
-                        fileBytes = bytes
-                        fileName = name
-                        binding.fileNameText.text = fileName
-                        binding.fileNameText.visibility = View.VISIBLE
-                    }
+    private fun restoreInstanceState(s: Bundle) {
+        selectedContentLayout = s.getInt(STATE_LAYOUT, 0)
+        selectedStopCondition = s.getInt(STATE_STOP, 0)
+        binding.layoutDropdown.setText(
+            listOf(
+                getString(R.string.content_layout_original),
+                getString(R.string.content_layout_subfolder),
+                getString(R.string.content_layout_no_subfolder),
+            )[selectedContentLayout],
+            false,
+        )
+        binding.stopConditionDropdown.setText(
+            listOf(
+                getString(R.string.stop_condition_none),
+                getString(R.string.stop_condition_metadata),
+                getString(R.string.stop_condition_files_checked),
+            )[selectedStopCondition],
+            false,
+        )
+        s.getString(STATE_FILE_NAME)?.let { name ->
+            val f = java.io.File(cacheDir, PENDING_ADD_TORRENT_FILE)
+            if (f.isFile) {
+                val bytes = runCatching { f.readBytes() }.getOrNull()
+                if (bytes != null) {
+                    fileBytes = bytes
+                    fileName = name
+                    binding.fileNameText.text = fileName
+                    binding.fileNameText.visibility = View.VISIBLE
                 }
             }
         }

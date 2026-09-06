@@ -373,10 +373,11 @@ class DetailActivity : AppCompatActivity() {
         view.downloadPathSwitch.isChecked = props?.downloadPath?.isNotBlank() == true
         view.downloadPathInput.setText(props?.downloadPath.orEmpty())
 
-        // prefill from the properties when loaded, else from torrents/info —
-        // defaulting to "unlimited" would overwrite the real limit on OK
-        view.torrentUploadLimit.setText(limitToText(props?.upLimit ?: torrent.upLimit))
-        view.torrentDownloadLimit.setText(limitToText(props?.dlLimit ?: torrent.dlLimit))
+        // prefill from the properties only: TorrentInfo carries no limit
+        // fields, and defaulting to "unlimited" would overwrite the real
+        // limit on OK — the fields stay blank until properties arrive
+        view.torrentUploadLimit.setText(props?.upLimit?.let { limitToText(it) }.orEmpty())
+        view.torrentDownloadLimit.setText(props?.dlLimit?.let { limitToText(it) }.orEmpty())
 
         // -2 = global default, -1 = no limit, positive = custom
         val ratioLimit = torrent.ratioLimit
@@ -436,9 +437,13 @@ class DetailActivity : AppCompatActivity() {
                 }
 
                 // speed limits (KiB/s -> bytes/s; -1 = unlimited, keep the
-                // sentinel out of the unit conversion)
-                overviewViewModel.setDownloadLimit(limitToWire(textToLimit(view.torrentDownloadLimit.text?.toString())))
-                overviewViewModel.setUploadLimit(limitToWire(textToLimit(view.torrentUploadLimit.text?.toString())))
+                // sentinel out of the unit conversion). Applied only when the
+                // properties were loaded — otherwise the real limit would be
+                // overwritten with "unlimited".
+                if (props != null) {
+                    overviewViewModel.setDownloadLimit(limitToWire(textToLimit(view.torrentDownloadLimit.text?.toString())))
+                    overviewViewModel.setUploadLimit(limitToWire(textToLimit(view.torrentUploadLimit.text?.toString())))
+                }
 
                 // share limits
                 val ratio = when (view.shareLimitMode.checkedRadioButtonId) {

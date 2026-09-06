@@ -214,4 +214,13 @@ class SearchFragment : Fragment() {
 
         override fun getItemCount() = plugins.size
     }
+
+    companion object {
+        private const val ARG_PATTERN = "pattern"
+
+        fun newInstance(pattern: String?): SearchFragment =
+            SearchFragment().apply {
+                arguments = Bundle().apply { putString(ARG_PATTERN, pattern) }
+            }
+    }
 }
