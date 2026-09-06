@@ -322,16 +322,7 @@
     <string name="add_category">添加分类</string>
     <string name="session_listen_port">服务器：%1$s</string>
     <string name="dht_nodes">引擎：%1$s</string>
-        <string name="about_message">内置增强引擎的 Android qBittorrent 客户端。
-
-界面移植自 LibreTorrent（GPL-3.0）
-https://github.com/proninyaroslav/libretorrent
-
-功能参考 qBitController（GPL-3.0）
-https://github.com/Bartuzen/qBitController
-
-引擎：c0re100 的 qBittorrent Enhanced Edition（GPL-2.0）
-https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
+    <string name="about_message">内置增强引擎的 Android qBittorrent 客户端。\n\n界面移植自 LibreTorrent（GPL-3.0）\nhttps://github.com/proninyaroslav/libretorrent\n\n功能参考 qBitController（GPL-3.0）\nhttps://github.com/Bartuzen/qBitController\n\n引擎：c0re100 的 qBittorrent Enhanced Edition（GPL-2.0）\nhttps://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="load_message">加载中…</string>
     <string name="edit_torrent_name">编辑种子名称</string>
     <string name="dir_chooser_title">选择下载目录</string>

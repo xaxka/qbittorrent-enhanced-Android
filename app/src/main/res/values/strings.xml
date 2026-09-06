@@ -326,16 +326,7 @@ LAN devices open it without a login LAN devices open it without a login (tap to 
     <string name="add_category">Add category</string>
     <string name="session_listen_port">Server: %1$s</string>
     <string name="dht_nodes">Engine: %1$s</string>
-        <string name="about_message">qBittorrent client for Android with a built-in Enhanced engine.
-
-UI is a port of LibreTorrent (GPL-3.0)
-https://github.com/proninyaroslav/libretorrent
-
-Feature set references qBitController (GPL-3.0)
-https://github.com/Bartuzen/qBitController
-
-Engine: qBittorrent Enhanced Edition by c0re100 (GPL-2.0)
-https://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
+    <string name="about_message">qBittorrent client for Android with a built-in Enhanced engine.\n\nUI is a port of LibreTorrent (GPL-3.0)\nhttps://github.com/proninyaroslav/libretorrent\n\nFeature set references qBitController (GPL-3.0)\nhttps://github.com/Bartuzen/qBitController\n\nEngine: qBittorrent Enhanced Edition by c0re100 (GPL-2.0)\nhttps://github.com/c0re100/qBittorrent-Enhanced-Edition</string>
     <string name="force_announce_torrent">Force reannounce</string>
     <string name="load_message">Loading…</string>
     <string name="edit_torrent_name">Edit torrent name</string>
