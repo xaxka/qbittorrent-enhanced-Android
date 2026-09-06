@@ -1355,11 +1355,16 @@ class MainActivity : AppCompatActivity() {
             "${Format.size(t?.dlInfoData ?: 0L)} • ${Format.speed(t?.dlInfoSpeed ?: 0L)}"
         d.sessionUploadStat.text =
             "${Format.size(t?.upInfoData ?: 0L)} • ${Format.speed(t?.upInfoSpeed ?: 0L)}"
-        d.sessionDhtNodesStat.text =
-            getString(R.string.drawer_stat_dht) + ": " + (t?.dhtNodes ?: 0L)
+        d.sessionDhtNodesStat.text = buildString {
+            append(getString(R.string.drawer_stat_dht)).append(": ").append(t?.dhtNodes ?: 0L)
+            state.freeSpace?.let { free ->
+                append("  •  ").append(getString(R.string.drawer_stat_space))
+                    .append(": ").append(Format.size(free))
+            }
+        }
         // Listening port: the bundled engine's WebUI port, or the active
         // remote server's port — LibreTorrent drawer row. The bundled
-        // engine's resident memory (VmRSS) rides along in the same row.
+        // engine's resident memory rides along as a bare value.
         val listenPort = if (prefs.usingLocalEngine) {
             prefs.enginePort
         } else {
@@ -1368,7 +1373,7 @@ class MainActivity : AppCompatActivity() {
         d.sessionListenPortStat.text = buildString {
             append(getString(R.string.listen_port_stat)).append(": ").append(listenPort)
             state.engineRss?.let { rss ->
-                append("  •  ").append(getString(R.string.mem_usage, Format.size(rss)))
+                append("  •  ").append(Format.size(rss))
             }
         }
 

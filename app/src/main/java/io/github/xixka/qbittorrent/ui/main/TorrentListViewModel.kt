@@ -42,6 +42,8 @@ data class ListUiState(
     val tags: List<String> = emptyList(),
     /** Resident memory (bytes) of the bundled engine, null when not running. */
     val engineRss: Long? = null,
+    /** Free space (bytes) on the torrent save path, null when unknown. */
+    val freeSpace: Long? = null,
     /** local-engine states (Enhanced): engine running / failed / starting. */
     val engineRunning: Boolean = false,
     val engineFailed: Boolean = false,
@@ -212,6 +214,17 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     runCatching { LocalEngineManager.engineRssBytes(getApplication<Application>()) }.getOrNull()
                 }
             } else null
+            // Free space on the torrent save path for the drawer's DHT row:
+            // local engine = stat() on the folder, remote = sync/maindata's
+            // server_state.free_space_on_disk
+            val freeSpace = if (prefs.usingLocalEngine) {
+                withContext(Dispatchers.IO) {
+                    runCatching { File(prefs.engineSavePath).usableSpace }.getOrNull()?.takeIf { it > 0 }
+                }
+            } else {
+                runCatching { repository.serverState() }.getOrNull()
+                    ?.freeSpace?.takeIf { it > 0 }
+            }
             val categories = runCatching {
                 repository.categories().keys.filter { it.isNotBlank() }.sorted()
             }.getOrDefault(emptyList())
@@ -227,6 +240,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     allCount = torrents.size,
                     transfer = transfer,
                     engineRss = engineRss,
+                    freeSpace = freeSpace,
                     categories = categories,
                     tags = tagList,
                 )
@@ -246,6 +260,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     // LibreTorrent parity: stat rows zero out while offline
                     // instead of freezing at the last (stale) values
                     transfer = null,
+                    freeSpace = null,
                 )
             }
             return false
@@ -267,6 +282,7 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                     engineRunning = engine == RUNNING,
                     engineFailed = engine == FAILED,
                     transfer = null,
+                    freeSpace = null,
                 )
             }
             return false
