@@ -74,10 +74,14 @@ object NoxConfig {
      *     CURRENT addresses of the three bootstrap routers and hands the
      *     resolved list to [seed] as `bootstrapNodes` — encrypted answers
      *     cannot be poisoned, and the IPs stay fresh instead of rotting.
-     *  2. The STATIC list below (this constant): hostname + IP literals that
-     *     bypass DNS entirely. It is the seed default, the fallback when DoH
-     *     is disabled/unreachable, and the safety net that guarantees first
-     *     contact even with zero working resolution.
+     *  2. The STATIC list below (this constant): hostnames only. It is the
+     *     seed default and the fallback when DoH is disabled/unreachable —
+     *     the engine then resolves them with its own plaintext DNS, which
+     *     still works for transmission/utorrent/ouinet on the target
+     *     networks. It carries NO IP literals: baked addresses rot (three
+     *     of the four shipped by round-46 went stale within weeks, and
+     *     router.bitcomet.org turned NXDOMAIN), while the DoH refresh keeps
+     *     the resolved list current on every engine start.
      *
      * Once ANY contact answers, libtorrent learns real nodes from the swarm,
      * persists them in its session state, and the bootstrap list stops
@@ -93,14 +97,13 @@ object NoxConfig {
 
     /** Static CN-friendly bootstrap list (public: reference for the DoH
      *  refresh logic that decides whether the current value is app-managed).
-     *  Includes the ouinet router — qBittorrent 5.x's own default — plus
-     *  utorrent/bitcomet routers for redundancy. */
+     *  Hostnames only — the ouinet router is qBittorrent 5.x's own default,
+     *  built for censored networks. router.bitcomet.org was dropped
+     *  (NXDOMAIN since 2026-09) and every IP literal was removed: fresh
+     *  addresses are the DoH refresh's job, hardcoded ones only rot. */
     const val DHT_BOOTSTRAP_CN_FRIENDLY =
         "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
-            "router.utorrent.com:6881, router.bitcomet.org:6881, " +
-            "router.bt.ouinet.work:6881, " +
-            "212.129.33.59:6881, 87.98.162.88:6881, " +
-            "185.157.221.247:25401, 67.215.246.10:6881"
+            "router.utorrent.com:6881, router.bt.ouinet.work:6881"
 
     /** Pre-round-41 seed list: existing installs carry this value in
      *  qBittorrent.conf, so the DoH refresh must still treat it as
@@ -108,6 +111,16 @@ object NoxConfig {
     const val DHT_BOOTSTRAP_LEGACY =
         "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
             "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
+
+    /** The round-46 seed list (dead bitcomet router + now-stale literals):
+     *  installs carrying it must also count as app-managed so the DoH
+     *  refresh migrates them to the hostname-only list above. */
+    const val DHT_BOOTSTRAP_ROUND46 =
+        "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
+            "router.utorrent.com:6881, router.bitcomet.org:6881, " +
+            "router.bt.ouinet.work:6881, " +
+            "212.129.33.59:6881, 87.98.162.88:6881, " +
+            "185.157.221.247:25401, 67.215.246.10:6881"
 
     // qB's own "bypass authentication for clients in whitelisted subnets"
     // feature. The app keeps this switch OFF unconditionally: LAN clients

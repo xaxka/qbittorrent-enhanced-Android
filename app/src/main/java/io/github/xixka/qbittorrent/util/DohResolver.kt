@@ -28,34 +28,30 @@ import java.net.URLEncoder
  * What it deliberately does NOT claim to fix: DoH only repairs name
  * resolution. CGNAT (no public IPv4) and cross-border UDP QoS still slow
  * down bootstrap/joining; those are transport-layer issues no DNS mode can
- * address (the static-IP bootstrap entries shipped alongside this resolver
- * remain in the list as belt-and-braces).
+ * address.
+ *
+ * No hardcoded IP literals anywhere: the resolver's output list carries the
+ * freshly answered addresses itself, and past attempts at baked-in
+ * "belt-and-braces" literals rotted within weeks (three of the four shipped
+ * by round-46 no longer pointed at any router, and router.bitcomet.org is
+ * NXDOMAIN) — dead weight that pushed live contacts out of the bootstrap
+ * list.
  */
 object DohResolver {
 
     /** Reference DHT routers: hostname + the port each one answers on.
-     *  router.utorrent.com / router.bitcomet.org add redundancy; the
-     *  ouinet router is qBittorrent 5.x's own default, built for
-     *  censored networks (dropping it made China Mobile worse). */
+     *  The ouinet router is qBittorrent 5.x's own default, built for
+     *  censored networks (dropping it made China Mobile worse).
+     *  router.bitcomet.org is gone (NXDOMAIN since 2026-09) — dropped. */
     private val BOOTSTRAP_HOSTS = listOf(
         "dht.libtorrent.org" to 25401,
         "dht.transmissionbt.com" to 6881,
         "router.bittorrent.com" to 6881,
         "router.utorrent.com" to 6881,
-        "router.bitcomet.org" to 6881,
         "router.bt.ouinet.work" to 6881,
     )
 
-    /** Bootstrap IP literals kept as static fallback: they bypass DNS
-     *  entirely, so first contact works even when DoH itself fails. */
-    private val BOOTSTRAP_FALLBACK_IPS = listOf(
-        "212.129.33.59" to 6881, // dht.transmissionbt.com
-        "87.98.162.88" to 6881, // dht.transmissionbt.com
-        "185.157.221.247" to 25401, // dht.libtorrent.org
-        "67.215.246.10" to 6881, // router.bittorrent.com
-    )
-
-    /** Max entries of the final bootstrap list (hostnames + fresh IPs + literals). */
+    /** Max entries of the final bootstrap list (hostnames + fresh IPs). */
     private const val MAX_ENTRIES = 30
 
     /** Whole-of-operation budget; every query also has its own timeout. */
@@ -71,12 +67,14 @@ object DohResolver {
      *    up-to-date entry),
      *  * up to 2 FRESHLY resolved A-record IPs per hostname (the actual fix:
      *    current IPs instead of rotted literals),
-     *  * the static fallback literals last.
+     *  * up to 2 AAAA addresses per hostname — China Mobile often passes
+     *    IPv6 to foreign hosts when IPv4 UDP is throttled.
      *
      * Returns null when the DoH server could not answer a SINGLE query
      * (wrong URL, no network, non-JSON endpoint) — callers then fall back to
      * the plain static bootstrap list. One successful hostname is enough to
-     * return a list: the static literals still guarantee first contact.
+     * return a list: its fresh IPs and the engine's own resolution of the
+     * remaining hostnames carry the first contact.
      */
     suspend fun resolveBootstrapNodes(
         dohUrl: String,
@@ -125,7 +123,6 @@ object DohResolver {
             v4.take(2).forEach { ip -> entries.add("$ip:$port") }
             v6.take(2).forEach { ip -> entries.add("[$ip]:$port") }
         }
-        BOOTSTRAP_FALLBACK_IPS.forEach { (ip, port) -> entries.add("$ip:$port") }
         return entries.take(MAX_ENTRIES).joinToString(", ")
     }
 
