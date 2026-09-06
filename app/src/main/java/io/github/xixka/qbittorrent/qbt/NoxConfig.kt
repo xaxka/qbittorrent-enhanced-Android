@@ -66,11 +66,14 @@ object NoxConfig {
      * so 2 of the 3 default bootstrap contacts are dead and DHT never
      * bootstraps -> "DHT nodes: 0".
      *
-     * The seed therefore writes a wider all-hostname list (DHT_BOOTSTRAP_CN_FRIENDLY)
-     * below. It deliberately contains NO IP literals: baked addresses rot
-     * (three of the four shipped by round-46 went stale within weeks, and
-     * router.bitcomet.org turned NXDOMAIN). Hostnames survive plaintext-DNS
-     * networks; the engine resolves them itself at startup.
+     * The seed therefore writes a China-Mobile-verified list
+     * (DHT_BOOTSTRAP_CN_FRIENDLY below): DNS-clean hostnames plus IP
+     * literals that answered real KRPC pings from the target network.
+     * Literals are only ever added after a live measurement — unmeasured
+     * baked addresses rot silently (three of the four shipped by round-46
+     * went stale within weeks, and router.bitcomet.org turned NXDOMAIN).
+     * Hostnames survive plaintext-DNS networks; the engine resolves them
+     * itself at startup.
      *
      * Once ANY contact answers, libtorrent learns real nodes from the swarm,
      * persists them in its session state, and the bootstrap list stops
@@ -85,14 +88,22 @@ object NoxConfig {
      */
     private const val KEY_DHT_BOOTSTRAP = "Session\\DHTBootstrapNodes"
 
-    /** Static CN-friendly bootstrap list (public: reference for the dead-list
-     *  migration that decides whether the current value is app-managed).
-     *  Hostnames only — the ouinet router is qBittorrent 5.x's own default,
-     *  built for censored networks. router.bitcomet.org was dropped
-     *  (NXDOMAIN since 2026-09); no IP literals — hardcoded ones only rot. */
+    /**
+     * Bootstrap list measured on the target network (China Mobile, Shenzhen,
+     * AS9808, 2026-09-06): every entry below either resolves cleanly through
+     * China Mobile's plaintext DNS or answered a real KRPC ping through it
+     * (1-2 of 6 pings — the lossy-but-alive profile of cross-border UDP).
+     * Deliberately ABSENT: dht.libtorrent.org / router.utorrent.com /
+     * router.bittorrent.com — their hostnames are poisoned on China Mobile
+     * and none of their current IPs answered a single ping. Verified alive:
+     * the two OVH dht.transmissionbt.com addresses and three of the four
+     * router.bt.ouinet.work round-robin addresses (ouinet is qBittorrent
+     * 5.x's censorship-friendly router, built for exactly these networks).
+     */
     const val DHT_BOOTSTRAP_CN_FRIENDLY =
-        "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
-            "router.utorrent.com:6881, router.bt.ouinet.work:6881"
+        "dht.transmissionbt.com:6881, router.bt.ouinet.work:6881, " +
+            "212.129.33.59:6881, 87.98.162.88:6881, " +
+            "185.126.239.132:6881, 168.222.245.126:6881, 103.75.116.208:6881"
 
     /** Pre-round-41 seed list: existing installs carry this value in
      *  qBittorrent.conf, so the startup migration must still treat it as
@@ -101,9 +112,16 @@ object NoxConfig {
         "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
             "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
 
+    /** The round-54 seed list: all-hostname, but dht.libtorrent.org and
+     *  router.utorrent.com resolve to garbage on China Mobile's plaintext
+     *  DNS — installs carrying it migrate to the measured list above. */
+    const val DHT_BOOTSTRAP_ROUND54 =
+        "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
+            "router.utorrent.com:6881, router.bt.ouinet.work:6881"
+
     /** The round-46 seed list (dead bitcomet router + now-stale literals):
      *  installs carrying it must also count as app-managed so the startup
-     *  migration replaces them with the hostname-only list above. */
+     *  migration replaces them with the measured list above. */
     const val DHT_BOOTSTRAP_ROUND46 =
         "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
             "router.utorrent.com:6881, router.bitcomet.org:6881, " +
@@ -273,7 +291,8 @@ object NoxConfig {
             if (!bootstrapMigrated && line.startsWith("$KEY_DHT_BOOTSTRAP=")) {
                 val current = line.removePrefix("$KEY_DHT_BOOTSTRAP=")
                 if (sameBootstrapValue(current, DHT_BOOTSTRAP_LEGACY) ||
-                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND46)
+                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND46) ||
+                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND54)
                 ) {
                     result = "$KEY_DHT_BOOTSTRAP=$DHT_BOOTSTRAP_CN_FRIENDLY"
                     bootstrapMigrated = true
