@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
         }
         // No overflow menu: pause/resume-all live as toolbar icons
         // (LibreTorrent home menu parity), everything else in Settings.
-        binding.homeContent.searchBar.setOnMenuItemClickListener { item ->
+        val homeMenuHandler: (android.view.MenuItem) -> Boolean = { item ->
             when (item.itemId) {
                 R.id.pause_all_menu -> {
                     lifecycleScope.launch { runCatching { repo().pauseAll() } }
@@ -189,6 +189,13 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+        binding.homeContent.searchBar.setOnMenuItemClickListener(homeMenuHandler)
+        // the plain toolbar replacing the search bar when the search section
+        // is disabled carries the exact same drawer entry + pause/resume-all
+        binding.homeContent.homeToolbar.setNavigationOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+        binding.homeContent.homeToolbar.setOnMenuItemClickListener(homeMenuHandler)
 
         binding.homeContent.searchView.editText.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -265,6 +272,8 @@ class MainActivity : AppCompatActivity() {
         // live changes update the bottom navigation without a restart.
         applyRssVisibility(ServiceLocator.prefs(this).showRss)
         registerRssPrefListener()
+        applySearchVisibility(ServiceLocator.prefs(this).showSearch)
+        registerSearchPrefListener()
 
         setupDrawer()
         observeState()
@@ -372,6 +381,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var rssPrefListener: android.content.SharedPreferences.OnSharedPreferenceChangeListener? = null
+
+    /** Shows / hides the home search section (Settings → Appearance). */
+    private fun applySearchVisibility(show: Boolean) {
+        binding.homeContent.searchBar.visibility = if (show) View.VISIBLE else View.GONE
+        binding.homeContent.searchView.visibility = if (show) View.VISIBLE else View.GONE
+        binding.homeContent.homeToolbar.visibility = if (show) View.GONE else View.VISIBLE
+    }
+
+    private fun registerSearchPrefListener() {
+        val prefs = ServiceLocator.prefs(this)
+        searchPrefListener =
+            android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key == io.github.xixka.qbittorrent.data.Prefs.KEY_SHOW_SEARCH) {
+                    runOnUiThread { applySearchVisibility(prefs.showSearch) }
+                }
+            }
+        prefs.registerChangeListener(searchPrefListener!!)
+    }
+
+    private var searchPrefListener: android.content.SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     /**
      * Pushes an in-place sub-page (settings sub-screens, RSS articles, engine

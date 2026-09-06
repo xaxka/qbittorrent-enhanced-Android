@@ -547,6 +547,8 @@
     <string name="pref_dynamic_colors_sub">使用 Material You 壁纸取色（Android 12+）</string>
     <string name="pref_show_rss_sub">在底部导航中显示 RSS 标签页</string>
     <string name="pref_show_rss">显示 RSS 板块</string>
+    <string name="pref_show_search">显示搜索板块</string>
+    <string name="pref_show_search_sub">在主屏幕显示搜索栏</string>
     <string name="pref_dynamic_colors_unsupported">当前 Android 版本不支持（需要 12+）</string>
     <string name="pref_theme">主题</string>
     <string name="theme_system">跟随系统</string>

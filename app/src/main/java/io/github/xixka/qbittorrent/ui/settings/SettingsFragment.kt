@@ -121,6 +121,14 @@ class SettingsFragment : Fragment() {
             switch = true,
             checked = prefs.showRss,
         )
+        rows += Item(
+            id = ID_SHOW_SEARCH,
+            icon = R.drawable.ic_search_24px,
+            title = getString(R.string.pref_show_search),
+            summary = getString(R.string.pref_show_search_sub),
+            switch = true,
+            checked = prefs.showSearch,
+        )
 
         rows += Header(R.string.settings_behavior)
         rows += Item(
@@ -199,6 +207,8 @@ class SettingsFragment : Fragment() {
             }
 
             ID_SHOW_RSS -> prefs.showRss = checked
+
+            ID_SHOW_SEARCH -> prefs.showSearch = checked
 
             ID_THEME -> showThemeDialog()
 
@@ -402,6 +412,7 @@ class SettingsFragment : Fragment() {
         private const val ID_DYNAMIC_COLORS = 2
         private const val ID_THEME = 3
         private const val ID_SHOW_RSS = 5
+        private const val ID_SHOW_SEARCH = 13
         private const val ID_POLL_INTERVAL = 4
         private const val ID_SERVER = 7
         private const val ID_CHECK_UPDATE = 9

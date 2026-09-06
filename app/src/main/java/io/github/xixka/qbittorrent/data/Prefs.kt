@@ -134,6 +134,16 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_SHOW_RSS, true)
         set(value) = sp.edit().putBoolean(KEY_SHOW_RSS, value).apply()
 
+    /**
+     * Whether the home screen shows the search section (the M3 search bar
+     * with the local torrent filter and the hand-off to the engine search).
+     * Hiding it swaps in a plain toolbar that keeps the drawer entry and
+     * the pause / resume-all actions.
+     */
+    var showSearch: Boolean
+        get() = sp.getBoolean(KEY_SHOW_SEARCH, true)
+        set(value) = sp.edit().putBoolean(KEY_SHOW_SEARCH, value).apply()
+
     /** Day/night mode: system (default), light or dark. */
     var themeMode: String
         get() = sp.getString(KEY_THEME_MODE, ThemeUtils.MODE_SYSTEM) ?: ThemeUtils.MODE_SYSTEM
@@ -291,6 +301,7 @@ class Prefs(context: Context) {
         const val KEY_UPDATE_CHECK_LAST = "update_check_last"
         const val KEY_DYNAMIC_COLORS = "dynamic_colors"
         const val KEY_SHOW_RSS = "show_rss"
+        const val KEY_SHOW_SEARCH = "show_search"
         const val KEY_THEME_MODE = "theme_mode"
         const val KEY_SERVERS_JSON = "servers_json"
         const val KEY_ACTIVE_SERVER = "active_server_id"
