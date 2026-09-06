@@ -18,20 +18,29 @@ import kotlin.coroutines.coroutineContext
  * In-app multi-threaded APK downloader for GitHub-Releases updates.
  *
  * Splits the file into [threads] HTTP range requests that run in parallel
- * (each with its own file handle + one automatic resume attempt for its
- * remaining bytes), so update downloads use the full available bandwidth
- * instead of a browser round-trip. Falls back to a single stream when the
- * server does not advertise byte ranges or the file is small.
+ * (each with its own file handle + resumable retries for its remaining
+ * bytes), so update downloads use the full available bandwidth instead of
+ * a browser round-trip. Falls back to a single stream when the server does
+ * not advertise byte ranges or the file is small.
  */
 object ApkDownloader {
 
     private const val MULTI_PART_MIN_BYTES = 8L * 1024 * 1024
-    private const val CHUNK = 64 * 1024
+    private const val CHUNK = 256 * 1024
+
+    /** Per-part failures before giving up: flaky mobile links jitter a lot. */
+    private const val MAX_ATTEMPTS_PER_PART = 3
+
+    /** Progress emission interval: the raw per-chunk callback would fire
+     *  hundreds of times per second and flood the main thread. */
+    private const val PROGRESS_INTERVAL_MS = 100L
 
     private val http: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            // read timeout = max silence BETWEEN bytes; a connection this
+            // quiet is dead, so failing fast lets the retry resume sooner
+            .readTimeout(20, TimeUnit.SECONDS)
             .followRedirects(true)
             .build()
     }
@@ -45,24 +54,42 @@ object ApkDownloader {
      * Downloads [url] to [dest] and returns it. The returned file is
      * complete and length-verified. Partial files are removed on failure
      * or cancellation.
+     *
+     * The release CDN (objects.githubusercontent.com) throttles per
+     * connection, so throughput scales with the number of parallel range
+     * requests — the default of 8 saturates typical links without tipping
+     * into rate-limit territory.
      */
     suspend fun download(
         url: String,
         dest: File,
-        threads: Int = 4,
+        threads: Int = 8,
         onProgress: (Progress) -> Unit,
     ): File = withContext(Dispatchers.IO) {
         dest.parentFile?.mkdirs()
         val meta = probe(url)
         if (dest.exists()) dest.delete()
 
+        // one shared throttle for all parts: progress reaches the UI at a
+        // steady ~10 Hz instead of once per chunk
+        val lastEmit = AtomicLong(0L)
+        val report: (Progress) -> Unit = { p ->
+            val now = System.currentTimeMillis()
+            val then = lastEmit.get()
+            if (now - then >= PROGRESS_INTERVAL_MS &&
+                lastEmit.compareAndSet(then, now)
+            ) {
+                onProgress(p)
+            }
+        }
+
         val ok = try {
             if (meta != null && meta.acceptRanges &&
                 meta.total >= MULTI_PART_MIN_BYTES && threads > 1
             ) {
-                parallel(url, dest, meta.total, threads, onProgress)
+                parallel(url, dest, meta.total, threads, report)
             } else {
-                single(url, dest, meta?.total ?: -1L, onProgress)
+                single(url, dest, meta?.total ?: -1L, report)
             }
             meta == null || dest.length() == meta.total
         } catch (t: Throwable) {
@@ -136,8 +163,10 @@ object ApkDownloader {
                     } catch (t: Throwable) {
                         coroutineContext.ensureActive() // real cancellation rethrows
                         attempt++
-                        // one automatic retry resuming at partDone
-                        if (attempt > 1) throw t
+                        // each retry resumes from partDone; a couple of
+                        // extra attempts rides out mobile-network jitter
+                        // without restarting the whole file
+                        if (attempt > MAX_ATTEMPTS_PER_PART) throw t
                     }
                 }
             }
