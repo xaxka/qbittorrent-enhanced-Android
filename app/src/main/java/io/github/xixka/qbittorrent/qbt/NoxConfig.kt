@@ -66,14 +66,14 @@ object NoxConfig {
      * so 2 of the 3 default bootstrap contacts are dead and DHT never
      * bootstraps -> "DHT nodes: 0".
      *
-     * The seed therefore writes DHT_BOOTSTRAP_CN_FRIENDLY below: the
-     * official routers as hostnames (clean and reachable on Unicom /
-     * Telecom), plus IP literals that answered real KRPC pings from a
-     * China Mobile connection for the carrier that kills those routes.
-     * Literals are only ever added after a live measurement — unmeasured
-     * baked addresses rot silently (three of the four shipped by round-46
-     * went stale within weeks, and router.bitcomet.org turned NXDOMAIN).
-     * Hostnames survive plaintext-DNS networks; the engine resolves them
+     * The seed therefore writes DHT_BOOTSTRAP_CN_FRIENDLY below: HOSTNAMES
+     * ONLY, no IP literals. Names are the stable contract — the official
+     * routers have kept theirs for a decade while the addresses behind them
+     * rotate (dht.libtorrent.org changed IP between app rounds); baked IPs
+     * rot silently, so none are shipped. Users on hostile carriers route
+     * the official hostnames through their own proxy; the ouinet router
+     * (qBittorrent 5.x's censorship-friendly default) resolves cleanly on
+     * China Mobile even without one. The engine resolves the hostnames
      * itself at startup.
      *
      * Once ANY contact answers, libtorrent learns real nodes from the swarm,
@@ -90,26 +90,18 @@ object NoxConfig {
     private const val KEY_DHT_BOOTSTRAP = "Session\\DHTBootstrapNodes"
 
     /**
-     * Bootstrap list, two audiences in one:
-     *
-     *  - The official libtorrent/qBittorrent routers (dht.libtorrent.org,
-     *    dht.transmissionbt.com, router.bittorrent.com) stay as hostnames:
-     *    on China Unicom / Telecom they resolve cleanly and answer, and the
-     *    engine resolves them itself at startup.
-     *  - On China Mobile those same hostnames are poisoned and their IPs
-     *    were dead from a live probe (Shenzhen, AS9808, 2026-09-06), so the
-     *    list additionally carries the entries that DID answer real KRPC
-     *    pings from there: the two OVH dht.transmissionbt.com addresses and
-     *    three of the four router.bt.ouinet.work round-robin addresses
-     *    (ouinet is qBittorrent 5.x's censorship-friendly router). 1-2
-     *    replies out of 6 pings each — lossy but alive, and libtorrent
-     *    retries bootstrap continuously.
+     * The official bootstrap routers, hostname-only (dht.libtorrent.org,
+     * dht.transmissionbt.com and router.bittorrent.com are the libtorrent /
+     * Transmission / BEP-5 defaults and have kept their names for a decade;
+     * router.utorrent.com is just a CNAME of the last one). router.bt.ouinet.work
+     * is qBittorrent 5.x's censorship-friendly router, which resolves cleanly
+     * on China Mobile's plaintext DNS even without a proxy. No IP literals:
+     * the addresses behind these names rotate, and the user points their own
+     * proxy at the hostnames where the carrier kills the direct route.
      */
     const val DHT_BOOTSTRAP_CN_FRIENDLY =
         "dht.libtorrent.org:25401, dht.transmissionbt.com:6881, " +
-            "router.bittorrent.com:6881, router.bt.ouinet.work:6881, " +
-            "212.129.33.59:6881, 87.98.162.88:6881, " +
-            "185.126.239.132:6881, 168.222.245.126:6881, 103.75.116.208:6881"
+            "router.bittorrent.com:6881, router.bt.ouinet.work:6881"
 
     /** Pre-round-41 seed list: existing installs carry this value in
      *  qBittorrent.conf, so the startup migration must still treat it as
@@ -118,9 +110,19 @@ object NoxConfig {
         "dht.transmissionbt.com:6881, 212.129.33.59:6881, " +
             "87.98.162.88:6881, 185.157.221.247:25401, 67.215.246.10:6881"
 
+    /** The round-55/56 seed list: hostname + measured-answering IP
+     *  literals. The literals have exactly the rotting problem this list
+     *  was introduced to fix, so installs carrying it migrate to the
+     *  hostname-only list above. */
+    const val DHT_BOOTSTRAP_ROUND56 =
+        "dht.libtorrent.org:25401, dht.transmissionbt.com:6881, " +
+            "router.bittorrent.com:6881, router.bt.ouinet.work:6881, " +
+            "212.129.33.59:6881, 87.98.162.88:6881, " +
+            "185.126.239.132:6881, 168.222.245.126:6881, 103.75.116.208:6881"
+
     /** The round-54 seed list: all-hostname, but dht.libtorrent.org and
      *  router.utorrent.com resolve to garbage on China Mobile's plaintext
-     *  DNS — installs carrying it migrate to the measured list above. */
+     *  DNS — installs carrying it migrate to the current list above. */
     const val DHT_BOOTSTRAP_ROUND54 =
         "dht.transmissionbt.com:6881, dht.libtorrent.org:25401, " +
             "router.utorrent.com:6881, router.bt.ouinet.work:6881"
@@ -298,7 +300,8 @@ object NoxConfig {
                 val current = line.removePrefix("$KEY_DHT_BOOTSTRAP=")
                 if (sameBootstrapValue(current, DHT_BOOTSTRAP_LEGACY) ||
                     sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND46) ||
-                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND54)
+                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND54) ||
+                    sameBootstrapValue(current, DHT_BOOTSTRAP_ROUND56)
                 ) {
                     result = "$KEY_DHT_BOOTSTRAP=$DHT_BOOTSTRAP_CN_FRIENDLY"
                     bootstrapMigrated = true
