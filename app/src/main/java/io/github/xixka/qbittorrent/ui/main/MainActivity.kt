@@ -202,12 +202,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.homeContent.searchBar.setOnMenuItemClickListener(homeMenuHandler)
-        // the plain toolbar replacing the search bar when the search section
-        // is disabled carries the exact same drawer entry + pause/resume-all
-        binding.homeContent.homeToolbar.setNavigationOnClickListener {
-            binding.drawerLayout.openDrawer(GravityCompat.START)
-        }
-        binding.homeContent.homeToolbar.setOnMenuItemClickListener(homeMenuHandler)
 
         binding.homeContent.searchView.editText.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -239,6 +233,12 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.home_nav -> {
                     showTab(TAB_HOME)
+                    true
+                }
+                R.id.search_nav -> {
+                    // qBC parity: the engine search is an in-place
+                    // destination like the RSS hub
+                    showTab(TAB_SEARCH)
                     true
                 }
                 R.id.rss_nav -> {
@@ -360,6 +360,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createTabRoot(tab: String): Fragment = when (tab) {
+        TAB_SEARCH -> io.github.xixka.qbittorrent.ui.search.SearchFragment.newTabRoot()
         TAB_RSS -> RssFragment()
         TAB_SETTINGS -> SettingsFragment()
         else -> throw IllegalArgumentException("unknown tab $tab")
@@ -401,16 +402,29 @@ class MainActivity : AppCompatActivity() {
 
     private var rssPrefListener: android.content.SharedPreferences.OnSharedPreferenceChangeListener? = null
 
-    /** Shows / hides the home search section (Settings → Appearance). */
+    /**
+     * Shows / hides the SEARCH TAB of the bottom navigation (qBC parity:
+     * the engine search is a first-level destination, exactly like the
+     * RSS tab). The home screen keeps its search bar — that one filters
+     * the local torrent list and is independent of this toggle.
+     */
     private fun applySearchVisibility(show: Boolean) {
-        binding.homeContent.searchBar.visibility = if (show) View.VISIBLE else View.GONE
-        // NEVER touch the SearchView's visibility: it manages itself (GONE
-        // until expanded). Forcing it visible parks the full-screen collapsed
-        // overlay on top of the home screen and hides everything.
-        if (!show && binding.homeContent.searchView.visibility == View.VISIBLE) {
-            binding.homeContent.searchView.hide()
+        binding.bottomNavigation.menu.findItem(R.id.search_nav)?.isVisible = show
+        // keep the tab root fragment lifecycle in sync: a merely GONE
+        // container leaves it STARTED, still running its inner work
+        tabRoots[TAB_SEARCH]?.let { root ->
+            supportFragmentManager.beginTransaction()
+                .apply { if (show) show(root) else hide(root) }
+                .commitAllowingStateLoss()
         }
-        binding.homeContent.homeToolbar.visibility = if (show) View.GONE else View.VISIBLE
+        if (!show && currentTab == TAB_SEARCH) {
+            // the visible tab vanished from the nav: return to the list
+            navSelectionSuppressed = true
+            currentTab = TAB_HOME
+            updateContainerVisibility()
+            binding.bottomNavigation.selectedItemId = R.id.home_nav
+            navSelectionSuppressed = false
+        }
     }
 
     private fun registerSearchPrefListener() {
@@ -482,7 +496,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun restoreFragments(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) return
-        listOf(TAB_RSS, TAB_SETTINGS).forEach { tab ->
+        listOf(TAB_SEARCH, TAB_RSS, TAB_SETTINGS).forEach { tab ->
             supportFragmentManager.findFragmentByTag(ROOT_TAG_PREFIX + tab)?.let {
                 tabRoots[tab] = it
             }
@@ -493,9 +507,11 @@ class MainActivity : AppCompatActivity() {
             .forEach { pageStack += it }
         val savedTab = savedInstanceState.getString(STATE_CURRENT_TAB)
         currentTab = when (savedTab) {
+            TAB_SEARCH -> TAB_SEARCH
             TAB_RSS -> TAB_RSS
             TAB_SETTINGS -> TAB_SETTINGS
             else -> when (binding.bottomNavigation.selectedItemId) {
+                R.id.search_nav -> TAB_SEARCH
                 R.id.rss_nav -> TAB_RSS
                 R.id.settings_nav -> TAB_SETTINGS
                 else -> TAB_HOME
@@ -506,6 +522,7 @@ class MainActivity : AppCompatActivity() {
         // already, only the container visibility has to be re-derived.
         navSelectionSuppressed = true
         binding.bottomNavigation.selectedItemId = when (currentTab) {
+            TAB_SEARCH -> R.id.search_nav
             TAB_RSS -> R.id.rss_nav
             TAB_SETTINGS -> R.id.settings_nav
             else -> R.id.home_nav
@@ -1629,6 +1646,7 @@ class MainActivity : AppCompatActivity() {
         private var engineAutoStarted = false
 
         private const val TAB_HOME = "home"
+        private const val TAB_SEARCH = "search"
         private const val TAB_RSS = "rss"
         private const val TAB_SETTINGS = "settings"
         private const val ROOT_TAG_PREFIX = "root_"

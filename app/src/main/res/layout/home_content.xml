@@ -62,6 +62,10 @@
         app:liftOnScroll="false"
         app:statusBarForeground="?attr/colorSurface">
 
+        <!-- The search bar filters the LOCAL torrent list (LibreTorrent
+             parity) and is always shown; the engine search lives in its own
+             bottom-navigation tab (qBC parity, visibility toggled in
+             Settings → Appearance). -->
         <com.google.android.material.search.SearchBar
             android:id="@+id/search_bar"
             android:layout_width="wrap_content"
@@ -72,19 +76,6 @@
             android:minWidth="@dimen/search_bar_min_width"
             app:menu="@menu/home"
             app:navigationIcon="@drawable/ic_menu_24px" />
-
-        <!-- Plain toolbar swapped in when the search section is disabled in
-             Settings → Appearance: keeps the drawer entry and the
-             pause / resume-all actions, drops the search input. -->
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/home_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:layout_marginTop="@dimen/search_bar_top_margin"
-            android:visibility="gone"
-            app:menu="@menu/home"
-            app:navigationIcon="@drawable/ic_menu_24px"
-            app:title="@string/torrents" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Elevation needs to be greater than AppBarLayout's elevation -->

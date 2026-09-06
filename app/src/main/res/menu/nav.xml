@@ -6,6 +6,15 @@
         android:icon="@drawable/ic_lists_24px"
         android:title="@string/torrents" />
 
+    <!-- qBC bottom navigation parity: the engine search is a first-level
+         destination. Its visibility follows the Settings → Appearance
+         toggle (showSearch), exactly like the RSS tab. -->
+    <item
+        android:id="@+id/search_nav"
+        android:contentDescription="@string/search"
+        android:icon="@drawable/ic_search_24px"
+        android:title="@string/search" />
+
     <item
         android:id="@+id/rss_nav"
         android:contentDescription="@string/rss_title"

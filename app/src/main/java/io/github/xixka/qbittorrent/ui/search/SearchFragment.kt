@@ -61,7 +61,13 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
+        if (isTabRoot) {
+            // bottom-navigation destination (qBC parity): nothing to pop,
+            // the app bar carries no back arrow
+            binding.appBar.navigationIcon = null
+        } else {
+            binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
+        }
         binding.appBar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.search_plugins_menu -> {
@@ -215,12 +221,23 @@ class SearchFragment : Fragment() {
         override fun getItemCount() = plugins.size
     }
 
+    /** True when hosted as the bottom-navigation search tab (not pushed). */
+    private val isTabRoot: Boolean
+        get() = arguments?.getBoolean(ARG_AS_TAB) == true
+
     companion object {
         private const val ARG_PATTERN = "pattern"
+        private const val ARG_AS_TAB = "as_tab"
 
         fun newInstance(pattern: String?): SearchFragment =
             SearchFragment().apply {
                 arguments = Bundle().apply { putString(ARG_PATTERN, pattern) }
+            }
+
+        /** Bottom-navigation tab root (MainActivity TAB_SEARCH). */
+        fun newTabRoot(): SearchFragment =
+            SearchFragment().apply {
+                arguments = Bundle().apply { putBoolean(ARG_AS_TAB, true) }
             }
     }
 }
