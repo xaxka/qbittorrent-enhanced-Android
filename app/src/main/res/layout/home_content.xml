@@ -30,10 +30,15 @@
         app:text="@string/torrent_list_empty"
         tools:visibility="gone" />
 
+    <!-- No appbar scrolling-view behavior here: the marginTop is this view's
+         ONLY AppBarLayout compensation (the other children carry the
+         behavior), removing it pushes the centered indicator up under the
+         search bar. -->
     <RelativeLayout
         android:id="@+id/loading_view_torrent_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         tools:visibility="gone">
 
         <include layout="@layout/list_load_indicator" />
