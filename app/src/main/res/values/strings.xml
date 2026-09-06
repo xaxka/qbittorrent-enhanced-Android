@@ -175,6 +175,8 @@
     <string name="torrent_uploaded">Uploaded</string>
     <string name="torrent_eta">ETA</string>
     <string name="torrent_pieces">Pieces</string>
+    <string name="torrent_active_time">Active time</string>
+    <string name="torrent_seeding_time">Seeding time</string>
 
     <string name="detail_popularity">Popularity</string>
     <string name="detail_last_activity">Last activity</string>

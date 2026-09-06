@@ -175,6 +175,8 @@
     <string name="torrent_uploaded">已上传</string>
     <string name="torrent_eta">剩余时间</string>
     <string name="torrent_pieces">分块</string>
+    <string name="torrent_active_time">活跃时间</string>
+    <string name="torrent_seeding_time">做种时间</string>
 
     <string name="detail_popularity">流行度</string>
     <string name="detail_last_activity">最后活动</string>
