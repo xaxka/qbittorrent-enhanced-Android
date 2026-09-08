@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -112,7 +113,7 @@ class SearchFragment : Fragment() {
             setOnItemClickListener { _, _, position, _ ->
                 categoryIcons.getOrNull(position)?.let { icon ->
                     binding.searchCategoryLayout?.setStartIconDrawable(
-                        AppCompatResources.getDrawable(requireContext(), icon),
+                        ContextCompat.getDrawable(requireContext(), icon),
                     )
                 }
             }
