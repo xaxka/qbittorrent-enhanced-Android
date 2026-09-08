@@ -18,12 +18,14 @@ import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.launch
 
 /**
- * Search start screen, qBitController SearchStartScreen parity: query and
- * category on the app bar, plugin scope radio group (enabled / all /
- * manually select) with per-plugin checkbox cards below, plugins reload on
- * pull-to-refresh, and the toolbar carries the qBC action set (plugins,
- * start). Starting a search pushes [SearchResultFragment], which runs the
- * engine job — exactly like qBC's two-screen split.
+ * Search start screen, element-level qBitController SearchStartScreen parity:
+ * full-width outlined query field and category exposed-dropdown (leading
+ * icons tinted primary, the category icon follows the selection), plugin
+ * scope radio group (enabled / all / manually select) inside an outlined box
+ * with per-plugin checkbox cards below, plugins reload on pull-to-refresh,
+ * and the toolbar carries the qBC action set (plugins, start). Starting a
+ * search pushes [SearchResultFragment], which runs the engine job — exactly
+ * like qBC's two-screen split.
  */
 class SearchFragment : Fragment() {
 
@@ -44,6 +46,19 @@ class SearchFragment : Fragment() {
         "pictures" to R.string.search_cat_pictures,
         "software" to R.string.search_cat_software,
         "tv" to R.string.search_cat_tv,
+    )
+
+    /** qBC: a leading icon per category, shown in the dropdown field. */
+    private val categoryIcons = listOf(
+        R.drawable.ic_category_24px,
+        R.drawable.ic_animation_24px,
+        R.drawable.ic_book_24px,
+        R.drawable.ic_sports_esports_24px,
+        R.drawable.ic_movie_24px,
+        R.drawable.ic_music_note_24px,
+        R.drawable.ic_image_24px,
+        R.drawable.ic_computer_24px,
+        R.drawable.ic_tv_24px,
     )
 
     private var categoryLabels: List<Pair<String, String>> = emptyList()
@@ -82,14 +97,27 @@ class SearchFragment : Fragment() {
             }
         }
 
-        // localized category labels
+        // localized category labels + qBC-style dropdown wiring
         categoryLabels = categories.map { pair ->
             pair.first to getString(pair.second)
         }
-        binding.searchCategoryDropdown?.setAdapter(
-            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, categoryLabels.map { it.second }),
-        )
-        binding.searchCategoryDropdown?.setText(categoryLabels.firstOrNull()?.second ?: "", false)
+        binding.searchCategoryDropdown?.apply {
+            setAdapter(
+                ArrayAdapter(
+                    requireContext(),
+                    com.google.android.material.R.layout.m3_auto_complete_simple_item,
+                    categoryLabels.map { it.second },
+                ),
+            )
+            setOnItemClickListener { _, _, position, _ ->
+                categoryIcons.getOrNull(position)?.let { icon ->
+                    binding.searchCategoryLayout?.setStartIconDrawable(
+                        AppCompatResources.getDrawable(requireContext(), icon),
+                    )
+                }
+            }
+            setText(categoryLabels.firstOrNull()?.second ?: "", false)
+        }
 
         arguments?.getString(ARG_PATTERN)?.let { binding.searchPattern?.setText(it) }
 
@@ -97,6 +125,18 @@ class SearchFragment : Fragment() {
         pluginList.layoutManager = LinearLayoutManager(requireContext())
         pluginAdapter = PluginSelectAdapter()
         pluginList.adapter = pluginAdapter
+        // qBC LazyColumn verticalArrangement = 8dp between plugin cards
+        val spacing = (8 * resources.displayMetrics.density).toInt()
+        pluginList.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: android.graphics.Rect,
+                view: View,
+                parent: RecyclerView,
+                state: RecyclerView.State,
+            ) {
+                outRect.bottom = spacing
+            }
+        })
 
         binding.pluginScopeGroup.setOnCheckedChangeListener { _, _ -> syncPluginSelectionUi() }
 
@@ -163,7 +203,7 @@ class SearchFragment : Fragment() {
     private fun startSearch() {
         val pattern = binding.searchPattern?.text?.toString()?.trim().orEmpty()
         if (pattern.isEmpty()) {
-            binding.searchPattern?.error = getString(R.string.rss_required)
+            binding.searchPatternLayout?.error = getString(R.string.rss_required)
             return
         }
         (activity as? MainActivity)?.pushPage(
