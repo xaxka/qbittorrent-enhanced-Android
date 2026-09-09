@@ -25,6 +25,7 @@ import io.github.xixka.qbittorrent.databinding.ItemRssNodeBinding
 import io.github.xixka.qbittorrent.model.RssFeedNode
 import io.github.xixka.qbittorrent.model.RssRule
 import io.github.xixka.qbittorrent.ui.main.MainActivity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -134,11 +135,14 @@ class RssFragment : Fragment() {
 
     private fun repository() = ServiceLocator.repository(requireContext())
 
-    /** qBC refreshAllFeeds: an empty itemPath refreshes every feed. */
+    /** qBC refreshAllFeeds: an empty itemPath refreshes every feed; the
+     *  server fetch is async, so the tree is re-read a second later —
+     *  reloading immediately only shows the stale pre-fetch state. */
     private fun refreshAll() {
         lifecycleScope.launch {
             val result = runCatching { repository().rssRefreshItem("") }
             snackbar(if (result.isSuccess) R.string.rss_refresh_all_done else R.string.rss_action_failed)
+            delay(1000)
             refreshFeedsTab()
         }
     }
@@ -249,21 +253,16 @@ class RssFragment : Fragment() {
 
     fun showNodeMenu(node: RssFeedNode, anchor: View) {
         PopupMenu(requireContext(), anchor).apply {
-            // qBC gates rename / move / delete to nested items (level > 0);
-            // root-level folders only offer "add into".
-            if (node.path.isNotEmpty()) {
-                menu.add(0, 1, 0, if (node.isFeed) R.string.rss_rename_feed else R.string.rss_rename_folder)
-                if (node.isFeed) menu.add(0, 2, 1, R.string.rss_edit_url)
-                menu.add(0, 3, 2, if (node.isFeed) R.string.rss_move_feed else R.string.rss_move_folder)
-                menu.add(0, 4, 3, if (node.isFeed) R.string.rss_delete_feed else R.string.rss_delete_folder)
-                if (!node.isFeed) menu.add(0, 5, 4, R.string.rss_add_feed)
-                if (!node.isFeed) menu.add(0, 6, 5, R.string.rss_add_folder)
-            } else if (!node.isFeed) {
-                menu.add(0, 5, 0, R.string.rss_add_feed)
-                menu.add(0, 6, 1, R.string.rss_add_folder)
-            } else {
-                menu.add(0, 2, 0, R.string.rss_edit_url)
-            }
+            // qBC gates rename/move/delete on level > 0, but its tree root is
+            // a SYNTHETIC invisible "/" node — every visible item is level 1+.
+            // Our tree has no synthetic root, so every visible node gets the
+            // full action set (this was the "cannot delete root feeds" bug).
+            menu.add(0, 1, 0, if (node.isFeed) R.string.rss_rename_feed else R.string.rss_rename_folder)
+            if (node.isFeed) menu.add(0, 2, 1, R.string.rss_edit_url)
+            menu.add(0, 3, 2, if (node.isFeed) R.string.rss_move_feed else R.string.rss_move_folder)
+            menu.add(0, 4, 3, if (node.isFeed) R.string.rss_delete_feed else R.string.rss_delete_folder)
+            if (!node.isFeed) menu.add(0, 5, 4, R.string.rss_add_feed)
+            if (!node.isFeed) menu.add(0, 6, 5, R.string.rss_add_folder)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     1 -> showRenameNodeDialog(node)
