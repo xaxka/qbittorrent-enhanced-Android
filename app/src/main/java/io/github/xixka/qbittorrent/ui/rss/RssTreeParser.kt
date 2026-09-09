@@ -62,14 +62,49 @@ object RssTreeParser {
         )
     }
 
-    private fun parseArticle(a: JsonObject): RssArticle = RssArticle(
-        id = a.get("id")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
-        title = a.get("title")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
-        description = a.get("description")?.takeIf { it.isJsonPrimitive }?.asString,
-        torrentUrl = a.get("torrentUrl")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
-        link = a.get("link")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
-        isRead = a.get("isRead")?.takeIf { it.isJsonPrimitive }?.asBoolean ?: false,
-        date = a.get("date")?.takeIf { it.isJsonPrimitive }?.asLong ?: 0L,
+    private fun parseArticle(a: JsonObject): RssArticle {
+        val torrentUrl = (a.get("torrentURL") ?: a.get("torrentUrl"))
+            ?.takeIf { it.isJsonPrimitive }?.asString ?: ""
+        return RssArticle(
+            id = a.get("id")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+            title = a.get("title")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+            description = a.get("description")?.takeIf { it.isJsonPrimitive }?.asString,
+            torrentUrl = torrentUrl,
+            link = a.get("link")?.takeIf { it.isJsonPrimitive }?.asString ?: "",
+            isRead = a.get("isRead")?.takeIf { it.isJsonPrimitive }?.asBoolean ?: false,
+            date = parseArticleDate(a.get("date")),
+        )
+    }
+
+    /**
+     * The engine serializes article dates with `QDateTime::toString(
+     * Qt::RFC2822Date)` — e.g. "09 Sep 2026 21:00:00 +0800" (a STRING).
+     * Gson's asLong throws on that, which used to drop every article from
+     * runCatching and show an empty feed. Returns SECONDS since epoch
+     * (the model contract — consumers multiply by 1000). Numeric dates are
+     * still accepted as-is.
+     */
+    private fun parseArticleDate(el: com.google.gson.JsonElement?): Long {
+        val primitive = el?.takeIf { it.isJsonPrimitive }?.asJsonPrimitive ?: return 0L
+        if (primitive.isNumber) return primitive.asLong
+        val text = primitive.asString.trim()
+        if (text.isEmpty()) return 0L
+        for (format in RFC2822_FORMATS) {
+            try {
+                // SimpleDateFormat works in milliseconds — convert to seconds
+                return (java.text.SimpleDateFormat(format, java.util.Locale.US)
+                    .parse(text)?.time ?: 0L) / 1000
+            } catch (_: java.text.ParseException) {
+                // try the next pattern
+            }
+        }
+        return 0L
+    }
+
+    private val RFC2822_FORMATS = listOf(
+        "EEE, dd MMM yyyy HH:mm:ss Z", // RFC 2822 with weekday
+        "dd MMM yyyy HH:mm:ss Z",      // Qt RFC2822Date (no weekday)
+        "dd MMM yyyy HH:mm:ss zzz",   // named zone, e.g. GMT+08:00
     )
 
     /** All feeds of the tree, flattened, as (path, node) pairs. */

@@ -333,10 +333,14 @@ data class RssArticle(
     @SerializedName("id") val id: String = "",
     @SerializedName("title") val title: String = "",
     @SerializedName("description") val description: String? = null,
-    @SerializedName("torrentUrl") val torrentUrl: String = "",
+    @SerializedName("torrentURL") val torrentUrl: String = "",
     @SerializedName("link") val link: String = "",
     @SerializedName("isRead") val isRead: Boolean = false,
-    /** Seconds since epoch — the engine emits a plain number. */
+    /**
+     * Seconds since epoch. The engine sends an RFC 2822 string
+     * ("09 Sep 2026 21:00:00 +0800") — RssTreeParser converts it;
+     * see parseArticleDate.
+     */
     @SerializedName("date") val date: Long = 0L,
 )
 
