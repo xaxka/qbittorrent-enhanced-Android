@@ -68,6 +68,10 @@ class SearchPluginsFragment : Fragment() {
         binding.pluginList.setEmptyView(binding.emptyView)
         binding.emptyView.setText(R.string.search_plugins_empty)
         binding.emptyView.setIconResource(R.drawable.ic_extension_24px)
+        // qBC LazyColumn parity: spacedBy(8.dp) between the plugin cards
+        binding.pluginList.addItemDecoration(
+            io.github.xixka.qbittorrent.ui.customviews.VerticalSpaceItemDecoration(requireContext(), 8f),
+        )
 
         binding.swipeRefresh.setOnRefreshListener { load() }
         load()

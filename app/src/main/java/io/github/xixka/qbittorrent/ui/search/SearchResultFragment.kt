@@ -136,6 +136,10 @@ class SearchResultFragment : Fragment() {
         binding.resultList.adapter = adapter
         binding.resultList.setEmptyView(binding.emptyView)
         binding.emptyView.setText(R.string.search_running)
+        // qBC LazyColumn parity: spacedBy(8.dp) between the result cards
+        binding.resultList.addItemDecoration(
+            io.github.xixka.qbittorrent.ui.customviews.VerticalSpaceItemDecoration(requireContext(), 8f),
+        )
 
         binding.swipeRefresh.setOnRefreshListener { pollResults() }
 
@@ -515,18 +519,20 @@ class SearchResultFragment : Fragment() {
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.search_result_details)
             .setView(view)
-            .setPositiveButton(R.string.search_add_torrent, null)
-            .setNegativeButton(R.string.search_open_site, null)
-            .setNeutralButton(android.R.string.cancel, null)
             .show()
 
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+        // qBC confirmButton slot: stacked full-width Download / Open-site
+        view.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.details_download,
+        ).setOnClickListener {
             dialog.dismiss()
             if (entry.fileUrl.isNotBlank()) {
                 AddTorrentActivity.start(requireContext(), entry.fileUrl)
             }
         }
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+        view.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.details_open_site,
+        ).setOnClickListener {
             dialog.dismiss()
             runCatching {
                 startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(entry.descriptionLink)))

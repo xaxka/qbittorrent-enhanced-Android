@@ -165,6 +165,9 @@
     <color name="colorFilePriorityHigh">#FF8A65</color>
     <color name="colorFilePriorityMaximum">#FF7B72</color>
     <color name="colorFilePriorityMixed">#4FC3F7</color>
-    <color name="colorSearchSeeders">#7CC98A</color>
-    <color name="colorSearchLeechers">#E58B8B</color>
+    <!-- qBC dark-theme seeder / leecher accents + 10%-alpha dialog tints -->
+    <color name="colorSearchSeeders">#66BB6A</color>
+    <color name="colorSearchLeechers">#42A5F5</color>
+    <color name="colorSearchSeedersBg">#1A66BB6A</color>
+    <color name="colorSearchLeechersBg">#1A42A5F5</color>
 </resources>

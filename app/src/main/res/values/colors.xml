@@ -169,7 +169,11 @@
     <color name="colorFilePriorityHigh">#FF5722</color>
     <color name="colorFilePriorityMaximum">#CF222E</color>
     <color name="colorFilePriorityMixed">#03A9F4</color>
-    <!-- qBC search seeder / leecher accent colors (CustomColors.kt parity) -->
-    <color name="colorSearchSeeders">#3B7E44</color>
-    <color name="colorSearchLeechers">#A33B3B</color>
+    <!-- qBC search seeder / leecher accent colors (CustomColors.kt parity):
+         green / blue in light theme; the *Bg variants are the 10%-alpha
+         tints qBC uses for the DetailsDialog peer info cards. -->
+    <color name="colorSearchSeeders">#388E3C</color>
+    <color name="colorSearchLeechers">#1976D2</color>
+    <color name="colorSearchSeedersBg">#1A388E3C</color>
+    <color name="colorSearchLeechersBg">#1A1976D2</color>
 </resources>
