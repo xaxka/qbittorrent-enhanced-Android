@@ -9,7 +9,6 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.activity.OnBackPressedCallback
@@ -98,6 +97,10 @@ class RssArticlesFragment : Fragment() {
         binding.articleList.adapter = adapter
         binding.articleList.setEmptyView(binding.emptyView)
         binding.emptyView.setText(R.string.rss_no_articles)
+        // qBC LazyColumn parity: spacedBy(8.dp) between the article cards
+        binding.articleList.addItemDecoration(
+            io.github.xixka.qbittorrent.ui.customviews.VerticalSpaceItemDecoration(requireContext(), 8f),
+        )
         binding.emptyView.setIconResource(R.drawable.ic_article_24px)
 
         binding.swipeRefresh.setOnRefreshListener { load() }
@@ -322,12 +325,12 @@ class RssArticlesFragment : Fragment() {
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.rss_details)
             .setView(view)
-            .setPositiveButton(R.string.rss_add_torrent, null)
-            .setNegativeButton(R.string.rss_mark_read, null)
-            .setNeutralButton(android.R.string.cancel, null)
             .show()
 
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+        // qBC confirmButton slot: stacked full-width Download / Mark-as-read
+        view.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.details_download,
+        ).setOnClickListener {
             val url = article.torrentUrl.ifBlank { article.link }
             if (url.isNotBlank()) {
                 AddTorrentActivity.start(requireContext(), url)
@@ -337,7 +340,9 @@ class RssArticlesFragment : Fragment() {
                 dialog.dismiss()
             }
         }
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+        view.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.details_mark_read,
+        ).setOnClickListener {
             dialog.dismiss()
             if (!article.isRead) markArticleRead(article, showMessage = true)
         }

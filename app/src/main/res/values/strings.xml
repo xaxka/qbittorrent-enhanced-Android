@@ -967,10 +967,16 @@
     <string name="rss_rule_smart_filter">Smart episode filter</string>
     <string name="rss_rule_category">Assign category</string>
     <string name="rss_rule_save_path">Save path</string>
-    <string name="rss_rule_affected_feeds">Affected feeds</string>
-    <string name="rss_rule_affected_feeds_helper">One path per line (empty = all feeds)</string>
     <string name="rss_rule_ignore_days">Ignore matching releases published before (days)</string>
     <string name="rss_rule_add_paused">Add paused</string>
+    <string name="rss_rule_save_other_dir">Save to a different directory</string>
+    <string name="rss_rule_use_global_settings">Use global settings</string>
+    <string name="rss_rule_add_paused_always">Always</string>
+    <string name="rss_rule_add_paused_never">Never</string>
+    <string name="rss_rule_content_layout">Torrent content layout</string>
+    <string name="rss_rule_apply_rule_to_feeds">Apply rule to feeds</string>
+    <string name="rss_rule_no_feed_found">No feed found</string>
+    <string name="rss_rule_feeds_count">%1$d feeds</string>
     <string name="rss_rule_summary_disabled">Disabled</string>
     <string name="search_engine_title">Search</string>
     <string name="search_pattern_hint">Search pattern</string>
