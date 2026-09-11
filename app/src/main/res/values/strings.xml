@@ -914,7 +914,7 @@
     <string name="rss_rule_create_success">RSS rule created successfully.</string>
     <string name="rss_rule_rename_success">RSS rule renamed successfully.</string>
     <string name="rss_rule_delete_success">RSS rule deleted successfully.</string>
-    <string name="rss_rule_not_found">Couldn't find rule.</string>
+    <string name="rss_rule_not_found">Couldn\'t find rule.</string>
     <string name="rss_rule_item_enabled">Enabled</string>
     <string name="rss_rule_item_disabled">Disabled</string>
     <plurals name="rss_rule_feeds">
