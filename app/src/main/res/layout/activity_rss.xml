@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- RSS hub, qBC RssFeedsScreen parity: Feeds tree + Rules tabs; the
-     toolbar carries the qBC action set (add / refresh all / rules), and
-     the bottom bar slides in during qBC's move mode ("select destination
-     folder"). No FAB — adding happens from the toolbar like upstream. -->
+<!-- RSS tab root, qBC RssFeedsScreen parity — feeds ONLY, no tabs and no
+     pager: the toolbar carries the qBC action set (add / refresh all /
+     rules), the list renders the subscription tree with the synthetic
+     root "/" as its first card, and the bottom bar slides in during
+     qBC's move mode ("select destination folder"). Rules is a separate
+     pushed screen reached from the toolbar, like upstream. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -20,33 +22,22 @@
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_back_24px"
-            app:title="@string/rss_title" />
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabContentStart="0dp"
-            app:tabMode="fixed">
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rss_tab_feeds" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/rss_tab_rules" />
-        </com.google.android.material.tabs.TabLayout>
+            app:title="@string/rss_title"
+            app:titleTextAppearance="?attr/textAppearanceTitleLarge"
+            app:titleTextColor="?attr/colorOnSurface" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+            android:id="@+id/feed_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- qBC move mode: tap a folder in the tree to move the picked item
          there; the back arrow (and the system back) cancel the move. -->

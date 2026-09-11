@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "keyboard double arrow down" — the qBC RssFeedsScreen
+     toolbar action that opens the rules (RSS downloader) screen. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M480,384L288,192L336,144L480,288L624,144L672,192L480,384ZM480,768L288,576L336,528L480,672L624,528L672,576L480,768Z"/>
+</vector>

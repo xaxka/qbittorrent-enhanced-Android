@@ -356,10 +356,19 @@ data class RssFeedNode(
     val children: List<RssFeedNode> = emptyList(),
     /** Slash path of the parent folder chain (for building API item paths). */
     val path: List<String> = emptyList(),
+    /**
+     * Depth in the tree, qBC parity: 0 = the synthetic root "/" shown in
+     * the list, 1 = items directly under it. Drives card indent
+     * (level * 12dp) and the level-0 menu that only offers add actions.
+     */
+    val level: Int = 1,
     val articles: List<RssArticle> = emptyList(),
     val hasUnread: Boolean = false,
 ) {
     val isFeed: Boolean get() = uid != null
+
+    /** qBC parity: stable identity for the expand/collapse set. */
+    val uniqueId: String get() = uid ?: "$level-$name"
 
     /** Backslash-joined path the Web API uses to address this item. */
     val apiPath: String get() = (path + name).joinToString("\\")

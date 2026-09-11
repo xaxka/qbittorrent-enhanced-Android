@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- qBC RssRulesScreen toolbar: create rule (the back arrow comes from the
-     fragment's navigation icon). -->
+<!-- qBC EditRssRuleScreen toolbar: save rule. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_rss_add_rule"
-        android:icon="@drawable/ic_add_24px"
-        android:title="@string/rss_add_rule"
+        android:id="@+id/action_rss_save_rule"
+        android:icon="@drawable/ic_save_24px"
+        android:title="@string/rss_rule_save_action"
         app:iconTint="?attr/colorOnSurfaceVariant"
         app:showAsAction="always" />
 </menu>

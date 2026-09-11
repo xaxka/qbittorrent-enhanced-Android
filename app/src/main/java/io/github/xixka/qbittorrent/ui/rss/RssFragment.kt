@@ -5,57 +5,60 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.MenuCompat
 import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.appcompat.widget.PopupMenu
-import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.tabs.TabLayoutMediator
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.ActivityRssBinding
 import io.github.xixka.qbittorrent.databinding.ItemRssNodeBinding
-import io.github.xixka.qbittorrent.databinding.ItemRssRuleBinding
 import io.github.xixka.qbittorrent.model.RssFeedNode
-import io.github.xixka.qbittorrent.model.RssRule
 import io.github.xixka.qbittorrent.ui.main.MainActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * RSS hub — qBitController RssFeedsScreen parity, rendered with this app's
- * tabbed shell (feeds + rules):
- *  - Feeds tab: the subscription tree as elevated cards with expand arrows
- *    and per-node overflow menus (rename / edit URL / move / delete /
- *    add-into-folder), qBC's move mode (tap a folder in the tree to move
- *    the picked item there), refresh-all, and pull-to-refresh.
- *  - Rules tab: the auto-download rules with the qBC editor dialog.
- * Everything reports through snackbars; the toolbar carries the qBC action
- * set per tab (add / refresh all / rules, add-rule), no FAB.
+ * RSS tab root — qBC RssFeedsScreen parity, feeds ONLY (no tabs, no pager):
+ *  - toolbar: add (dropdown with feed / folder), refresh all and the
+ *    double-arrow-down "rules" action that pushes the RSS downloader
+ *    screen ([RssRulesFragment]) like upstream.
+ *  - list: the subscription tree as elevated cards indented by depth
+ *    (level * 12dp) with the synthetic root "/" (uniqueId "0-/",
+ *    expanded by default) as the first card; expand arrows, folder /
+ *    rss icons tinted primary, per-node overflow menus with icons
+ *    (rename / edit URL / move / delete, add feed / add folder for
+ *    folders, add-only for the level-0 root).
+ *  - move mode with the bottom bar ("select destination folder").
+ *  - tapping any node — feed OR folder — opens its articles screen.
  */
 class RssFragment : Fragment() {
 
     private var _binding: ActivityRssBinding? = null
     private val binding get() = _binding!!
 
-    /** The item being moved (qBC movingItemId); null = move mode off. */
+    private var adapter: NodeAdapter? = null
+
+    /** Guards against stacking the 8dp gap decoration on view re-creation. */
+    private var spacingDecorationAdded = false
+
+    /** Node ids whose children are shown; the root "0-/" starts expanded. */
+    private val expanded = mutableSetOf<String>()
+
+    private var rootNode: RssFeedNode? = null
     private var movingNode: RssFeedNode? = null
 
+    /** Cancels move mode on system back, qBC parity. */
     private val moveBackCallback = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() = exitMoveMode()
+        override fun handleOnBackPressed() = cancelMoveMode()
     }
 
     override fun onCreateView(
@@ -68,26 +71,46 @@ class RssFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // the toolbar arrow returns to the torrent list (bottom-nav back)
-        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.goHome() }
+        binding.appBar.setTitle(R.string.rss_title)
         binding.appBar.inflateMenu(R.menu.rss_feeds)
-        binding.appBar.setOnMenuItemClickListener { onMenuItem(it.itemId) }
+        binding.appBar.setOnMenuItemClickListener { item -> onMenuItem(item.itemId) }
+        binding.moveBar.setNavigationOnClickListener { cancelMoveMode() }
 
-        binding.moveBar.setNavigationOnClickListener { exitMoveMode() }
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner, moveBackCallback,
+        val list = binding.feedList
+        list.layoutManager = LinearLayoutManager(requireContext())
+        list.clipToPadding = false
+        // qBC LazyColumn parity: contentPadding = (start 12, end 12, top 8)
+        // and spacedBy(8.dp) between the cards.
+        val density = resources.displayMetrics.density
+        list.setPadding(
+            (12 * density).toInt(),
+            (8 * density).toInt(),
+            (12 * density).toInt(),
+            (8 * density).toInt(),
         )
+        if (!spacingDecorationAdded) {
+            spacingDecorationAdded = true
+            addItemDecorationSpacing(list, density)
+        }
 
-        binding.viewPager.adapter = RssPagerAdapter(this)
-        binding.viewPager.registerOnPageChangeCallback(object :
-            androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) = switchMenus(position)
-        })
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, pos ->
-            tab.setText(if (pos == 0) R.string.rss_tab_feeds else R.string.rss_tab_rules)
-        }.attach()
-        switchMenus(0)
+        adapter = NodeAdapter(
+            onClick = { onNodeClick(it) },
+            onToggleExpand = { toggleExpand(it) },
+            onMenu = { node, anchor -> showNodeMenu(node, anchor) },
+        )
+        list.adapter = adapter
+
+        binding.swipeRefresh.setOnRefreshListener {
+            binding.swipeRefresh.isRefreshing = false
+            load()
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, moveBackCallback)
+
+        if (savedInstanceState == null) {
+            expanded.add(ROOT_ID)
+        }
+        load()
     }
 
     override fun onDestroyView() {
@@ -95,12 +118,71 @@ class RssFragment : Fragment() {
         super.onDestroyView()
     }
 
-    private fun switchMenus(tab: Int) {
-        binding.appBar.menu.findItem(R.id.action_rss_add)?.isVisible = tab == 0
-        binding.appBar.menu.findItem(R.id.action_rss_refresh_all)?.isVisible = tab == 0
-        binding.appBar.menu.findItem(R.id.action_rss_rules)?.isVisible = tab == 0
-        binding.appBar.menu.findItem(R.id.action_rss_add_rule)?.isVisible = tab == 1
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putStringArrayList(KEY_EXPANDED, ArrayList(expanded))
     }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        savedInstanceState?.getStringArrayList(KEY_EXPANDED)?.let { expanded.addAll(it) }
+    }
+
+    // ---------------- data ----------------
+
+    private fun repository() = ServiceLocator.repository(requireContext())
+
+    /** Loads the tree and submits the flattened expanded view. */
+    fun load() {
+        lifecycleScope.launch {
+            val root = runCatching {
+                RssTreeParser.parseTree(repository().rssItems(true))
+            }.getOrNull()
+            if (_binding == null) return@launch
+            rootNode = root
+            submitNodes()
+        }
+    }
+
+    /** qBC processNodes: depth-first walk skipping collapsed folders. */
+    private fun submitNodes() {
+        val root = rootNode ?: return
+        val result = mutableListOf<RssFeedNode>()
+        val stack = ArrayDeque<RssFeedNode>()
+        stack.add(root)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeLast()
+            result.add(node)
+            if (node.uniqueId in expanded && node.children.isNotEmpty()) {
+                node.children.asReversed().forEach { stack.add(it) }
+            }
+        }
+        adapter?.submitList(result)
+    }
+
+    private fun toggleExpand(node: RssFeedNode) {
+        if (node.isFeed || node.children.isEmpty()) return
+        if (node.uniqueId in expanded) expanded.remove(node.uniqueId) else expanded.add(node.uniqueId)
+        submitNodes()
+    }
+
+    private fun onNodeClick(node: RssFeedNode) {
+        val moving = movingNode
+        if (moving != null) {
+            // qBC: tapping a folder while moving drops the item there
+            if (!node.isFeed) completeMove(node)
+        } else {
+            openArticles(node)
+        }
+    }
+
+    private fun openArticles(node: RssFeedNode) {
+        (activity as? MainActivity)?.pushPage(
+            RssArticlesFragment.newInstance(node.apiPath, node.name),
+        )
+    }
+
+    // ---------------- toolbar ----------------
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
         R.id.action_rss_add -> {
@@ -112,35 +194,30 @@ class RssFragment : Fragment() {
             true
         }
         R.id.action_rss_rules -> {
-            binding.viewPager.currentItem = 1
-            true
-        }
-        R.id.action_rss_add_rule -> {
-            showEditRuleDialog(null, null)
+            (activity as? MainActivity)?.pushPage(RssRulesFragment())
             true
         }
         else -> false
     }
 
-    /** qBC's add dropdown: header-less anchor menu with the two choices. */
+    /** qBC's add dropdown, anchored at the toolbar action. */
     private fun showAddMenu(anchor: View?) {
         anchor ?: return
-        PopupMenu(requireContext(), anchor).apply {
-            menu.add(0, 1, 0, R.string.rss_add_feed)
-            menu.add(0, 2, 1, R.string.rss_add_folder)
-            setOnMenuItemClickListener { item ->
-                if (item.itemId == 1) showAddFeedDialog(null) else showAddFolderDialog(null)
-                true
-            }
-        }.show()
+        val popup = PopupMenu(requireContext(), anchor)
+        popup.menu.add(0, ID_ADD_FEED, 0, R.string.rss_add_feed).setIcon(R.drawable.ic_rss_feed_24px)
+        popup.menu.add(0, ID_ADD_FOLDER, 1, R.string.rss_add_folder).setIcon(R.drawable.ic_folder_24px)
+        popup.setOnMenuItemClickListener { item ->
+            if (item.itemId == ID_ADD_FEED) showAddFeedDialog(emptyList()) else showAddFolderDialog(emptyList())
+            true
+        }
+        showPopupWithIcons(popup)
+        popup.show()
     }
 
     private fun snackbar(res: Int) {
         _binding ?: return
         Snackbar.make(binding.root, res, Snackbar.LENGTH_SHORT).show()
     }
-
-    private fun repository() = ServiceLocator.repository(requireContext())
 
     /** qBC refreshAllFeeds: an empty itemPath refreshes every feed; the
      *  server fetch is async, so the tree is re-read a second later —
@@ -150,18 +227,8 @@ class RssFragment : Fragment() {
             val result = runCatching { repository().rssRefreshItem("") }
             snackbar(if (result.isSuccess) R.string.rss_refresh_all_done else R.string.rss_action_failed)
             delay(1000)
-            refreshFeedsTab()
+            load()
         }
-    }
-
-    private fun refreshFeedsTab() {
-        val fragment = childFragmentManager.fragments.firstOrNull { it is RssFeedsFragment } as? RssFeedsFragment
-        fragment?.load()
-    }
-
-    private fun refreshRulesTab() {
-        val fragment = childFragmentManager.fragments.firstOrNull { it is RssRulesFragment } as? RssRulesFragment
-        fragment?.load()
     }
 
     // ---------------- move mode (qBC) ----------------
@@ -170,42 +237,85 @@ class RssFragment : Fragment() {
         movingNode = node
         moveBackCallback.isEnabled = true
         binding.moveBar.visibility = View.VISIBLE
-        refreshFeedsTab()
+        submitNodes()
     }
 
-    private fun exitMoveMode() {
-        if (movingNode == null) return
+    private fun cancelMoveMode() {
         movingNode = null
         moveBackCallback.isEnabled = false
         binding.moveBar.visibility = View.GONE
-        refreshFeedsTab()
+        submitNodes()
     }
 
-    fun inMoveMode() = movingNode != null
-
-    fun isMoving(node: RssFeedNode): Boolean {
-        val moving = movingNode ?: return false
-        return moving.apiPath == node.apiPath && moving.name == node.name
-    }
-
-    /** qBC: tapping a folder while moving drops the picked item into it. */
-    fun completeMove(target: RssFeedNode) {
-        val item = movingNode ?: return
-        val from = item.apiPath
-        val to = (target.path + item.name).joinToString("\\")
+    private fun completeMove(destFolder: RssFeedNode) {
+        val moving = movingNode ?: return
+        val from = moving.apiPath
+        val to = (destFolder.path + destFolder.name + moving.name).joinToString("\\")
         movingNode = null
         moveBackCallback.isEnabled = false
         binding.moveBar.visibility = View.GONE
         lifecycleScope.launch {
             val result = runCatching { repository().rssMoveItem(from, to) }
             snackbar(if (result.isSuccess) R.string.rss_success else R.string.rss_action_failed)
-            refreshFeedsTab()
+            load()
         }
     }
 
+    // ---------------- node overflow menu ----------------
+
+    /**
+     * qBC FeedItem dropdown, icons included: level > 0 nodes offer
+     * rename / edit URL (feeds) / move / delete, folders add feed +
+     * add folder below a divider; the level-0 root "/" offers ONLY
+     * add feed / add folder.
+     */
+    fun showNodeMenu(node: RssFeedNode, anchor: View) {
+        val popup = PopupMenu(requireContext(), anchor)
+        if (node.level > 0) {
+            popup.menu.add(1, ID_RENAME, 0, menuLabel(R.string.rss_rename_feed, R.string.rss_rename_folder, node))
+                .setIcon(R.drawable.ic_edit_24px)
+            if (node.isFeed) {
+                popup.menu.add(1, ID_EDIT_URL, 1, R.string.rss_edit_url)
+                    .setIcon(R.drawable.ic_link_24px)
+            }
+            popup.menu.add(1, ID_MOVE, 2, menuLabel(R.string.rss_move_feed, R.string.rss_move_folder, node))
+                .setIcon(R.drawable.ic_drive_file_move_24px)
+            popup.menu.add(1, ID_DELETE, 3, menuLabel(R.string.rss_delete_feed, R.string.rss_delete_folder, node))
+                .setIcon(R.drawable.ic_delete_24px)
+            if (!node.isFeed) {
+                popup.menu.add(2, ID_ADD_FEED_INTO, 4, R.string.rss_add_feed)
+                    .setIcon(R.drawable.ic_rss_feed_24px)
+                popup.menu.add(2, ID_ADD_FOLDER_INTO, 5, R.string.rss_add_folder)
+                    .setIcon(R.drawable.ic_folder_24px)
+                MenuCompat.setGroupDividerEnabled(popup.menu, true)
+            }
+        } else {
+            popup.menu.add(0, ID_ADD_FEED_INTO, 0, R.string.rss_add_feed)
+                .setIcon(R.drawable.ic_rss_feed_24px)
+            popup.menu.add(0, ID_ADD_FOLDER_INTO, 1, R.string.rss_add_folder)
+                .setIcon(R.drawable.ic_folder_24px)
+        }
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                ID_RENAME -> showRenameNodeDialog(node)
+                ID_EDIT_URL -> showEditUrlDialog(node)
+                ID_MOVE -> startMoveMode(node)
+                ID_DELETE -> confirmDeleteNode(node)
+                ID_ADD_FEED_INTO -> showAddFeedDialog(node.path + node.name)
+                ID_ADD_FOLDER_INTO -> showAddFolderDialog(node.path + node.name)
+            }
+            true
+        }
+        showPopupWithIcons(popup)
+        popup.show()
+    }
+
+    private fun menuLabel(feedRes: Int, folderRes: Int, node: RssFeedNode) =
+        getString(if (node.isFeed) feedRes else folderRes)
+
     // ---------------- feed / folder dialogs ----------------
 
-    private fun showAddFeedDialog(parentPath: List<String>?) {
+    private fun showAddFeedDialog(parentPath: List<String>) {
         val view = layoutInflater.inflate(R.layout.dialog_rss_feed, null)
         val url = view.findViewById<TextInputEditText>(R.id.rss_feed_url)
         val name = view.findViewById<TextInputEditText>(R.id.rss_feed_name)
@@ -223,17 +333,17 @@ class RssFragment : Fragment() {
             }
             val feedName = name?.text?.toString()?.trim().orEmpty()
             // qBC: the item path is parent + (name or url), "\"-joined
-            val itemPath = (parentPath.orEmpty() + feedName.ifBlank { feedUrl }).joinToString("\\")
+            val itemPath = (parentPath + feedName.ifBlank { feedUrl }).joinToString("\\")
             dialog.dismiss()
             lifecycleScope.launch {
                 val result = runCatching { repository().rssAddFeed(feedUrl, itemPath) }
                 snackbar(if (result.isSuccess) R.string.rss_added else R.string.rss_action_failed)
-                refreshFeedsTab()
+                load()
             }
         }
     }
 
-    private fun showAddFolderDialog(parentPath: List<String>?) {
+    private fun showAddFolderDialog(parentPath: List<String>) {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
         val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -248,42 +358,50 @@ class RssFragment : Fragment() {
                 input?.error = getString(R.string.rss_required)
                 return@setOnClickListener
             }
-            val itemPath = (parentPath.orEmpty() + name).joinToString("\\")
+            val itemPath = (parentPath + name).joinToString("\\")
             dialog.dismiss()
             lifecycleScope.launch {
                 runCatching { repository().rssAddFolder(itemPath) }
                 snackbar(R.string.rss_success)
-                refreshFeedsTab()
+                load()
             }
         }
     }
 
-    fun showNodeMenu(node: RssFeedNode, anchor: View) {
-        PopupMenu(requireContext(), anchor).apply {
-            // qBC gates rename/move/delete on level > 0, but its tree root is
-            // a SYNTHETIC invisible "/" node — every visible item is level 1+.
-            // Our tree has no synthetic root, so every visible node gets the
-            // full action set (this was the "cannot delete root feeds" bug).
-            menu.add(0, 1, 0, if (node.isFeed) R.string.rss_rename_feed else R.string.rss_rename_folder)
-            if (node.isFeed) menu.add(0, 2, 1, R.string.rss_edit_url)
-            menu.add(0, 3, 2, if (node.isFeed) R.string.rss_move_feed else R.string.rss_move_folder)
-            menu.add(0, 4, 3, if (node.isFeed) R.string.rss_delete_feed else R.string.rss_delete_folder)
-            if (!node.isFeed) menu.add(0, 5, 4, R.string.rss_add_feed)
-            if (!node.isFeed) menu.add(0, 6, 5, R.string.rss_add_folder)
-            setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    1 -> showRenameNodeDialog(node)
-                    2 -> showEditUrlDialog(node)
-                    3 -> startMoveMode(node)
-                    4 -> confirmDeleteNode(node)
-                    5 -> showAddFeedDialog(node.path + node.name)
-                    6 -> showAddFolderDialog(node.path + node.name)
-                }
-                true
+    /** qBC rename: a moveItem to the same parent with the new name. */
+    private fun showRenameNodeDialog(node: RssFeedNode) {
+        val view = layoutInflater.inflate(R.layout.dialog_input, null)
+        val input = view.findViewById<TextInputEditText>(R.id.input)
+        input?.inputType = InputType.TYPE_CLASS_TEXT
+        input?.setText(node.name)
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(menuLabel(R.string.rss_rename_feed, R.string.rss_rename_folder, node))
+            .setView(view)
+            .setPositiveButton(android.R.string.ok, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val newName = input?.text?.toString()?.trim().orEmpty()
+            if (newName.isEmpty()) {
+                input?.error = getString(R.string.rss_required)
+                return@setOnClickListener
             }
-        }.show()
+            if (newName != node.name) {
+                dialog.dismiss()
+                lifecycleScope.launch {
+                    val from = node.apiPath
+                    val to = (node.path + newName).joinToString("\\")
+                    val result = runCatching { repository().rssMoveItem(from, to) }
+                    snackbar(if (result.isSuccess) R.string.rss_success else R.string.rss_action_failed)
+                    load()
+                }
+            } else {
+                dialog.dismiss()
+            }
+        }
     }
 
+    /** qBC edit feed URL: setFeedUrl with the node's path. */
     private fun showEditUrlDialog(node: RssFeedNode) {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
@@ -304,487 +422,90 @@ class RssFragment : Fragment() {
             dialog.dismiss()
             lifecycleScope.launch {
                 val result = runCatching { repository().rssSetFeedUrl(node.apiPath, newUrl) }
-                snackbar(if (result.isSuccess) R.string.rss_success else R.string.rss_action_failed)
-                refreshFeedsTab()
-            }
-        }
-    }
-
-    private fun showRenameNodeDialog(node: RssFeedNode) {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(node.name)
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (node.isFeed) R.string.rss_rename_feed else R.string.rss_rename_folder)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val newName = input?.text?.toString()?.trim().orEmpty()
-            if (newName.isEmpty()) {
-                input?.error = getString(R.string.rss_required)
-                return@setOnClickListener
-            }
-            if (newName != node.name) {
-                dialog.dismiss()
-                lifecycleScope.launch {
-                    val from = node.apiPath
-                    val to = (node.path + newName).joinToString("\\")
-                    val result = runCatching { repository().rssMoveItem(from, to) }
-                    snackbar(if (result.isSuccess) R.string.rss_success else R.string.rss_action_failed)
-                    refreshFeedsTab()
-                }
-            } else {
-                dialog.dismiss()
+                snackbar(if (result.isSuccess) R.string.rss_success_feed_url else R.string.rss_action_failed)
+                load()
             }
         }
     }
 
     private fun confirmDeleteNode(node: RssFeedNode) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (node.isFeed) R.string.rss_delete_feed else R.string.rss_delete_folder)
+            .setTitle(menuLabel(R.string.rss_delete_feed, R.string.rss_delete_folder, node))
             .setMessage(getString(R.string.rss_delete_confirm, node.name))
             .setPositiveButton(R.string.delete) { _, _ ->
                 lifecycleScope.launch {
                     val result = runCatching { repository().rssRemoveItem(node.apiPath) }
                     snackbar(if (result.isSuccess) R.string.rss_success else R.string.rss_action_failed)
-                    refreshFeedsTab()
+                    load()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    // ---------------- rules ----------------
+    // ---------------- list ----------------
 
-    /** Full qBC rule editor: new rule when [name] is null, edit otherwise. */
-    fun showEditRuleDialog(name: String?, rule: RssRule?) {
-        val view = layoutInflater.inflate(R.layout.dialog_rss_rule, null)
-        val enabled = view.findViewById<MaterialCheckBox>(R.id.rule_enabled)
-        val mustContain = view.findViewById<TextInputEditText>(R.id.rule_must_contain)
-        val mustNotContain = view.findViewById<TextInputEditText>(R.id.rule_must_not_contain)
-        val useRegex = view.findViewById<MaterialCheckBox>(R.id.rule_use_regex)
-        val episodeFilter = view.findViewById<TextInputEditText>(R.id.rule_episode_filter)
-        val smartFilter = view.findViewById<MaterialCheckBox>(R.id.rule_smart_filter)
-        val ignoreDays = view.findViewById<TextInputEditText>(R.id.rule_ignore_days)
-        val categoryInput = view.findViewById<MaterialAutoCompleteTextView>(R.id.rule_category)
-        val saveOtherDir = view.findViewById<MaterialCheckBox>(R.id.rule_save_other_dir)
-        val savePathLayout = view.findViewById<TextInputLayout>(R.id.rule_save_path_layout)
-        val savePath = view.findViewById<TextInputEditText>(R.id.rule_save_path)
-        val addPausedInput = view.findViewById<MaterialAutoCompleteTextView>(R.id.rule_add_paused)
-        val contentLayoutInput = view.findViewById<MaterialAutoCompleteTextView>(R.id.rule_content_layout)
-        val feedsBox = view.findViewById<LinearLayout>(R.id.rule_feeds_box)
-        val noFeeds = view.findViewById<TextView>(R.id.rule_no_feeds)
-
-        // qBC prefills: addPaused index 0/1/2 = global/always/never;
-        // contentLayout 0/1/2/3 = global/original/subfolder/no-subfolder;
-        // "Save to a different directory" hides the path field when off.
-        enabled.isChecked = rule?.enabled ?: true
-        mustContain.setText(rule?.mustContain.orEmpty())
-        mustNotContain.setText(rule?.mustNotContain.orEmpty())
-        useRegex.isChecked = rule?.useRegex ?: false
-        episodeFilter.setText(rule?.episodeFilter.orEmpty())
-        smartFilter.isChecked = rule?.smartFilter ?: false
-        ignoreDays.setText((rule?.ignoreDays ?: 0).toString())
-        saveOtherDir.isChecked = !rule?.savePath.isNullOrEmpty()
-        savePath.setText(rule?.savePath.orEmpty())
-        savePathLayout.visibility = if (saveOtherDir.isChecked) View.VISIBLE else View.GONE
-        saveOtherDir.setOnCheckedChangeListener { _, checked ->
-            savePathLayout.visibility = if (checked) View.VISIBLE else View.GONE
-        }
-
-        val pausedLabels = listOf(
-            getString(R.string.rss_rule_use_global_settings),
-            getString(R.string.rss_rule_add_paused_always),
-            getString(R.string.rss_rule_add_paused_never),
-        )
-        var pausedIndex = when (rule?.addPaused) {
-            true -> 1
-            false -> 2
-            else -> 0
-        }
-        addPausedInput.setText(pausedLabels[pausedIndex], false)
-        addPausedInput.setAdapter(
-            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, pausedLabels),
-        )
-        addPausedInput.setOnItemClickListener { _, _, which, _ -> pausedIndex = which }
-
-        val layoutLabels = listOf(
-            getString(R.string.rss_rule_use_global_settings),
-            getString(R.string.qbt_content_layout_original),
-            getString(R.string.qbt_content_layout_subfolder),
-            getString(R.string.qbt_content_layout_nosubfolder),
-        )
-        var layoutIndex = when (rule?.contentLayout) {
-            "Original" -> 1
-            "Subfolder" -> 2
-            "NoSubfolder" -> 3
-            else -> 0
-        }
-        contentLayoutInput.setText(layoutLabels[layoutIndex], false)
-        contentLayoutInput.setAdapter(
-            ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, layoutLabels),
-        )
-        contentLayoutInput.setOnItemClickListener { _, _, which, _ -> layoutIndex = which }
-
-        var selectedCategory = rule?.assignedCategory.orEmpty()
-        val feedChecks = mutableListOf<Pair<String, MaterialCheckBox>>()
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (name == null) getString(R.string.rss_add_rule) else name)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val ruleName = name ?: promptRuleNameValue ?: ""
-                if (ruleName.isBlank()) return@setPositiveButton
-                val newRule = RssRule(
-                    enabled = enabled.isChecked,
-                    mustContain = mustContain.text?.toString()?.trim().orEmpty(),
-                    mustNotContain = mustNotContain.text?.toString()?.trim().orEmpty(),
-                    useRegex = useRegex.isChecked,
-                    episodeFilter = episodeFilter.text?.toString()?.trim().orEmpty(),
-                    ignoreDays = ignoreDays.text?.toString()?.trim()?.toIntOrNull() ?: 0,
-                    addPaused = when (pausedIndex) {
-                        1 -> true
-                        2 -> false
-                        else -> null
-                    },
-                    assignedCategory = selectedCategory,
-                    savePath = if (saveOtherDir.isChecked) {
-                        savePath.text?.toString()?.trim().orEmpty()
-                    } else {
-                        ""
-                    },
-                    contentLayout = when (layoutIndex) {
-                        1 -> "Original"
-                        2 -> "Subfolder"
-                        3 -> "NoSubfolder"
-                        else -> null
-                    },
-                    smartFilter = smartFilter.isChecked,
-                    affectedFeeds = feedChecks
-                        .filter { it.second.isChecked }
-                        .map { it.first },
-                )
-                lifecycleScope.launch {
-                    val result = runCatching { repository().rssSetRule(ruleName, newRule) }
-                    snackbar(if (result.isSuccess) R.string.rss_rule_saved else R.string.rss_action_failed)
-                    refreshRulesTab()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-
-        // qBC: the category dropdown is fed by the server categories and
-        // the "apply rule to feeds" box by the current feed tree — both
-        // loaded asynchronously while the dialog is already visible.
-        lifecycleScope.launch {
-            val categories = runCatching { repository().categories().keys }
-                .getOrDefault(emptySet())
-                .sorted()
-            val categoryLabels = listOf(getString(R.string.no_category)) + categories
-            categoryInput.setAdapter(
-                ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, categoryLabels),
-            )
-            categoryInput.setText(
-                if (selectedCategory.isNotEmpty() && selectedCategory in categories) selectedCategory
-                else categoryLabels[0],
-                false,
-            )
-            categoryInput.setOnItemClickListener { _, _, which, _ ->
-                selectedCategory = if (which == 0) "" else categoryLabels[which]
-            }
-
-            val feeds = runCatching {
-                flattenFeeds(RssTreeParser.parse(repository().rssItems(false)))
-            }.getOrDefault(emptyList())
-            if (feeds.isEmpty()) {
-                noFeeds.visibility = View.VISIBLE
-                feedsBox.visibility = View.GONE
-            } else {
-                feeds.forEach { (feedName, feedUrl) ->
-                    val cb = MaterialCheckBox(feedsBox.context).apply {
-                        text = feedName
-                        isChecked = feedUrl in (rule?.affectedFeeds ?: emptyList())
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                        )
-                    }
-                    feedsBox.addView(cb)
-                    feedChecks.add(feedUrl to cb)
-                }
-            }
-        }
-
-        if (name == null) {
-            // new rule: ask for the name first, keep it in a holder field
-            val nameView = layoutInflater.inflate(R.layout.dialog_input, null)
-            val nameInput = nameView.findViewById<TextInputEditText>(R.id.input)
-            nameInput?.hint = getString(R.string.rss_rule_name)
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.rss_add_rule)
-                .setView(nameView)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    promptRuleNameValue = nameInput?.text?.toString()?.trim().orEmpty()
-                    if (promptRuleNameValue.isNullOrBlank()) {
-                        snackbar(R.string.rss_rule_name_empty)
-                    } else {
-                        dialog.setTitle(promptRuleNameValue).show()
-                    }
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        } else {
-            dialog.show()
-        }
-    }
-
-    /** Flattens the feed tree into (name, url) pairs for the rule editor. */
-    private fun flattenFeeds(nodes: List<RssFeedNode>): List<Pair<String, String>> =
-        nodes.flatMap { node ->
-            if (node.isFeed) {
-                if (node.url != null) listOf(node.name to node.url) else emptyList()
-            } else {
-                flattenFeeds(node.children)
-            }
-        }
-
-    /** Name captured by the new-rule name dialog. */
-    private var promptRuleNameValue: String? = null
-
-    /** qBC RuleItem overflow menu, anchored at the card's menu button:
-     *  rename / delete (editing opens by tapping the card itself). */
-    fun showRuleMenu(name: String, rule: RssRule, anchor: View) {
-        val menu = PopupMenu(requireContext(), anchor)
-        menu.menu.add(0, 1, 0, R.string.rss_rename_rule)
-        menu.menu.add(0, 2, 1, R.string.rss_delete_rule)
-        menu.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                1 -> showRenameRuleDialog(name)
-                2 -> confirmDeleteRule(name)
-            }
-            true
-        }
-        menu.show()
-    }
-
-    private fun showRenameRuleDialog(name: String) {
-        val view = layoutInflater.inflate(R.layout.dialog_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(name)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.rss_rename_rule)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newName = input?.text?.toString()?.trim().orEmpty()
-                if (newName.isNotEmpty() && newName != name) {
-                    lifecycleScope.launch {
-                        runCatching { repository().rssRenameRule(name, newName) }
-                        refreshRulesTab()
-                    }
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun confirmDeleteRule(name: String) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.rss_delete_rule)
-            .setMessage(getString(R.string.rss_delete_rule_confirm, name))
-            .setPositiveButton(R.string.delete) { _, _ ->
-                lifecycleScope.launch {
-                    runCatching { repository().rssRemoveRule(name) }
-                    refreshRulesTab()
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    // ---------------- pager ----------------
-
-    private class RssPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
-        override fun createFragment(position: Int): Fragment =
-            if (position == 0) RssFeedsFragment() else RssRulesFragment()
-
-        override fun getItemCount() = 2
-    }
-}
-
-/**
- * Feeds tab, qBC FeedItem parity: elevated cards indented by depth
- * (level * 12dp), expand arrows (48dp placeholder for childless folders),
- * per-node overflow menu, move-mode highlight, click = open articles of
- * the node (feeds AND folders — qBC navigates for both).
- */
-class RssFeedsFragment : Fragment() {
-
-    private var adapter: NodeAdapter? = null
-    private var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout? = null
-    private var expanded = HashSet<String>()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        val list = io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView(
-            requireContext(), null,
-        )
-        list.layoutManager = LinearLayoutManager(requireContext())
-        list.clipToPadding = false
-        // qBC LazyColumn parity: 12dp horizontal / 8dp top edge padding
-        // (contentPadding = PaddingValues(start = 12.dp, end = 12.dp,
-        // top = 8.dp)) and spacedBy(8.dp) between the cards.
-        val listDensity = resources.displayMetrics.density
-        list.setPadding(
-            (12 * listDensity).toInt(),
-            (8 * listDensity).toInt(),
-            (12 * listDensity).toInt(),
-            (8 * listDensity).toInt(),
-        )
-        list.addItemDecoration(
-            io.github.xixka.qbittorrent.ui.customviews.VerticalSpaceItemDecoration(requireContext(), 8f),
-        )
-        val empty = io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder(
-            requireContext(), null,
-        )
-        empty.setIconResource(io.github.xixka.qbittorrent.R.drawable.ic_rss_feed_24px)
-        empty.setText(io.github.xixka.qbittorrent.R.string.rss_empty)
-        val content = android.widget.FrameLayout(requireContext())
-        content.addView(
-            list,
-            android.widget.FrameLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
-        )
-        content.addView(
-            empty,
-            android.widget.FrameLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
-        )
-        val swipe = androidx.swiperefreshlayout.widget.SwipeRefreshLayout(requireContext())
-        swipe.addView(
-            content,
-            android.view.ViewGroup.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
-        )
-        swipe.setOnRefreshListener { load() }
-        swipeRefresh = swipe
-        adapter = NodeAdapter()
-        list.adapter = adapter
-        list.setEmptyView(empty)
-        return swipe
-    }
-
-    override fun onResume() {
-        super.onResume()
-        load()
-    }
-
-    fun load() {
-        val act = activity ?: return
-        lifecycleScope.launch {
-            val tree = runCatching {
-                RssTreeParser.parse(ServiceLocator.repository(act).rssItems(true))
-            }.getOrDefault(emptyList())
-            val visible = mutableListOf<RssFeedNode>()
-            val depths = HashMap<String, Int>()
-            fun addLevel(nodes: List<RssFeedNode>, depth: Int) {
-                for (n in nodes) {
-                    visible.add(n)
-                    depths[n.apiPath] = depth
-                    if (!n.isFeed && n.apiPath in expanded) addLevel(n.children, depth + 1)
-                }
-            }
-            addLevel(tree, 0)
-            adapter?.submit(visible, depths)
-            swipeRefresh?.isRefreshing = false
-        }
-    }
-
-    private fun openArticles(node: RssFeedNode) {
-        (activity as? MainActivity)?.pushPage(
-            RssArticlesFragment.newInstance(node.apiPath, node.name),
-        )
-    }
-
-    private inner class NodeAdapter :
-        ListAdapter<RssFeedNode, NodeAdapter.Holder>(DIFF) {
-
-        private var depths = HashMap<String, Int>()
-
-        fun submit(visible: List<RssFeedNode>, depths: HashMap<String, Int>) {
-            this.depths = depths
-            submitList(visible)
-        }
+    /**
+     * qBC FeedItem parity: elevated card indented by depth (level * 12dp),
+     * expand arrow (48dp, or a 48dp placeholder for childless folders and
+     * feeds), rss / folder icon tinted primary, name, overflow menu;
+     * move mode highlights the moving card.
+     */
+    private inner class NodeAdapter(
+        private val onClick: (RssFeedNode) -> Unit,
+        private val onToggleExpand: (RssFeedNode) -> Unit,
+        private val onMenu: (RssFeedNode, View) -> Unit,
+    ) : ListAdapter<RssFeedNode, NodeAdapter.Holder>(DIFF) {
 
         inner class Holder(private val b: ItemRssNodeBinding) : RecyclerView.ViewHolder(b.root) {
-            fun bind(node: RssFeedNode) {
-                val host = parentFragment as? RssFragment
-                val depth = depths[node.apiPath] ?: 0
-                val density = resources.displayMetrics.density
-
-                // qBC: tree depth indents the whole card — the Compose
-                // `modifier.padding(start = (level * 12).dp)` acts as a
-                // margin, so the elevated card itself shifts and shrinks.
-                // MaterialCardView.setPadding() does not reproduce that
-                // (the card background stays full-width), hence the margin.
-                val lp = b.card.layoutParams as RecyclerView.LayoutParams
-                val indent = (depth * 12 * density).toInt()
-                if (lp.marginStart != indent) {
-                    lp.marginStart = indent
-                    b.card.layoutParams = lp
+            fun bind(item: RssFeedNode) {
+                val density = b.root.context.resources.displayMetrics.density
+                (b.card.layoutParams as RecyclerView.LayoutParams).apply {
+                    val indent = (item.level * 12 * density).toInt()
+                    if (marginStart != indent) {
+                        marginStart = indent
+                        b.card.requestLayout()
+                    }
                 }
-                if (host?.isMoving(node) == true) {
+                // move mode: qBC highlights the moving card
+                b.card.setStrokeWidth(0)
+                val moving = movingNode?.apiPath == item.apiPath
+                if (moving) {
                     b.card.setCardBackgroundColor(
                         com.google.android.material.color.MaterialColors.getColor(
-                            b.card, com.google.android.material.R.attr.colorSecondaryContainer,
-                        ),
+                            b.root, com.google.android.material.R.attr.colorSecondaryContainer,
+                        )
                     )
                 } else {
                     b.card.setCardBackgroundColor(
                         com.google.android.material.color.MaterialColors.getColor(
-                            b.card, com.google.android.material.R.attr.colorSurfaceContainerLow,
-                        ),
+                            b.root, com.google.android.material.R.attr.colorSurfaceContainerLow,
+                        )
                     )
                 }
 
-                b.name.text = node.name
-                b.url.visibility = View.GONE
+                val showArrow = !item.isFeed && item.children.isNotEmpty()
+                b.expandArrow.visibility = if (showArrow) View.VISIBLE else View.GONE
+                b.arrowSpacer.visibility = if (showArrow) View.GONE else View.VISIBLE
+                if (showArrow) {
+                    b.expandArrow.setImageResource(
+                        if (item.uniqueId in expanded) {
+                            R.drawable.ic_keyboard_arrow_down_24px
+                        } else {
+                            R.drawable.ic_keyboard_arrow_right_24px
+                        }
+                    )
+                    b.expandArrow.setOnClickListener { onToggleExpand(item) }
+                }
+
                 b.icon.setImageResource(
-                    if (node.isFeed) io.github.xixka.qbittorrent.R.drawable.ic_rss_feed_24px
-                    else io.github.xixka.qbittorrent.R.drawable.ic_folder_24px,
+                    if (item.isFeed) R.drawable.ic_rss_feed_24px else R.drawable.ic_folder_24px
                 )
+                b.name.text = item.name
+                b.url.visibility = View.GONE
 
-                // expand arrow only when the folder has children; a fixed
-                // 48dp placeholder keeps rows aligned otherwise (qBC)
-                val hasChildren = !node.isFeed && node.children.isNotEmpty()
-                val isExpanded = node.apiPath in expanded
-                b.expandArrow.visibility = if (hasChildren) View.VISIBLE else View.GONE
-                b.arrowSpacer.visibility = if (hasChildren) View.GONE else View.VISIBLE
-                b.expandArrow.rotation = if (isExpanded) 0f else -90f
-                b.expandArrow.setOnClickListener {
-                    if (node.apiPath in expanded) expanded.remove(node.apiPath) else expanded.add(node.apiPath)
-                    load()
-                }
-
-                b.nodeMenu.setOnClickListener { v -> host?.showNodeMenu(node, v) }
-
-                b.card.setOnClickListener {
-                    if (host?.inMoveMode() == true) {
-                        // qBC: while moving, tapping a folder drops the item
-                        if (!node.isFeed) host?.completeMove(node)
-                    } else {
-                        openArticles(node)
-                    }
-                }
+                b.card.setOnClickListener { onClick(item) }
+                b.nodeMenu.setOnClickListener { onMenu(item, it) }
             }
         }
 
@@ -794,7 +515,37 @@ class RssFeedsFragment : Fragment() {
         override fun onBindViewHolder(holder: Holder, position: Int) = holder.bind(getItem(position))
     }
 
+    // ---------------- helpers ----------------
+
+    /** 8dp gap between the cards, qBC spacedBy(8.dp) parity. */
+    private fun addItemDecorationSpacing(list: RecyclerView, density: Float) {
+        val gap = (8 * density).toInt()
+        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: android.graphics.Rect,
+                view: View,
+                parent: RecyclerView,
+                state: RecyclerView.State,
+            ) {
+                outRect.bottom = gap
+            }
+        })
+    }
+
     companion object {
+        /** qBC uniqueId of the synthetic tree root shown as the first card. */
+        const val ROOT_ID = "0-/"
+
+        private const val KEY_EXPANDED = "expanded"
+        private const val ID_ADD_FEED = 1
+        private const val ID_ADD_FOLDER = 2
+        private const val ID_RENAME = 3
+        private const val ID_EDIT_URL = 4
+        private const val ID_MOVE = 5
+        private const val ID_DELETE = 6
+        private const val ID_ADD_FEED_INTO = 7
+        private const val ID_ADD_FOLDER_INTO = 8
+
         private val DIFF = object : DiffUtil.ItemCallback<RssFeedNode>() {
             override fun areItemsTheSame(oldItem: RssFeedNode, newItem: RssFeedNode) =
                 oldItem.apiPath == newItem.apiPath
@@ -802,163 +553,26 @@ class RssFeedsFragment : Fragment() {
             override fun areContentsTheSame(oldItem: RssFeedNode, newItem: RssFeedNode) =
                 oldItem == newItem
         }
-    }
-}
 
-/** Rules tab: the auto-download rule list. */
-class RssRulesFragment : Fragment() {
-
-    private var adapter: RulesAdapter? = null
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        val list = io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView(
-            requireContext(), null,
-        )
-        list.layoutManager = LinearLayoutManager(requireContext())
-        list.clipToPadding = false
-        // qBC LazyColumn parity: 12dp horizontal / 8dp top edge padding
-        // (contentPadding) and spacedBy(8.dp) between the cards.
-        val listDensity = resources.displayMetrics.density
-        list.setPadding(
-            (12 * listDensity).toInt(),
-            (8 * listDensity).toInt(),
-            (12 * listDensity).toInt(),
-            (8 * listDensity).toInt(),
-        )
-        list.addItemDecoration(
-            io.github.xixka.qbittorrent.ui.customviews.VerticalSpaceItemDecoration(requireContext(), 8f),
-        )
-        val empty = io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder(
-            requireContext(), null,
-        )
-        empty.setIconResource(io.github.xixka.qbittorrent.R.drawable.ic_rule_24px)
-        empty.setText(io.github.xixka.qbittorrent.R.string.rss_rules_empty)
-        val root = android.widget.FrameLayout(requireContext())
-        root.addView(
-            list,
-            android.widget.FrameLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
-        )
-        root.addView(
-            empty,
-            android.widget.FrameLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
-        )
-        adapter = RulesAdapter(
-            // qBC: tapping the card opens the rule editor; the overflow
-            // menu carries rename / delete
-            onEdit = { item ->
-                (parentFragment as? RssFragment)?.showEditRuleDialog(item.first, item.second)
-            },
-            onMenu = { item, anchor ->
-                (parentFragment as? RssFragment)?.showRuleMenu(item.first, item.second, anchor)
-            },
-        )
-        list.adapter = adapter
-        list.setEmptyView(empty)
-        return root
-    }
-
-    override fun onResume() {
-        super.onResume()
-        load()
-    }
-
-    fun load() {
-        val act = activity ?: return
-        lifecycleScope.launch {
-            val rules = runCatching {
-                ServiceLocator.repository(act).rssRules()
-            }.getOrDefault(emptyMap())
-            adapter?.submitList(rules.entries.sortedBy { it.key.lowercase() }.map { it.key to it.value })
-        }
-    }
-
-    /**
-     * qBC RuleItem parity: elevated card, rule name + chips (enabled /
-     * disabled, affected-feed count with the rss glyph, category,
-     * must-contain) and a trailing overflow menu.
-     */
-    private class RulesAdapter(
-        private val onEdit: (Pair<String, RssRule>) -> Unit,
-        private val onMenu: (Pair<String, RssRule>, View) -> Unit,
-    ) : ListAdapter<Pair<String, RssRule>, RulesAdapter.Holder>(DIFF) {
-
-        inner class Holder(private val b: ItemRssRuleBinding) : RecyclerView.ViewHolder(b.root) {
-            fun bind(item: Pair<String, RssRule>) {
-                val rule = item.second
-                b.ruleName.text = item.first
-
-                // Enabled chip: primaryContainer / "Enabled"; disabled:
-                // surfaceVariant / "Disabled" (qBC colors)
-                if (rule.enabled) {
-                    b.chipEnabled.text =
-                        b.root.context.getString(io.github.xixka.qbittorrent.R.string.rss_rule_enabled)
-                    b.chipEnabled.setBackgroundResource(
-                        io.github.xixka.qbittorrent.R.drawable.bg_category_chip,
-                    )
-                    b.chipEnabled.setTextColor(
-                        com.google.android.material.color.MaterialColors.getColor(
-                            b.root, com.google.android.material.R.attr.colorOnPrimaryContainer,
-                        ),
-                    )
-                } else {
-                    b.chipEnabled.text = b.root.context.getString(
-                        io.github.xixka.qbittorrent.R.string.rss_rule_summary_disabled,
-                    )
-                    b.chipEnabled.setBackgroundResource(
-                        io.github.xixka.qbittorrent.R.drawable.bg_chip_surface_variant,
-                    )
-                    b.chipEnabled.setTextColor(
-                        com.google.android.material.color.MaterialColors.getColor(
-                            b.root, com.google.android.material.R.attr.colorOnSurfaceVariant,
-                        ),
-                    )
-                }
-
-                b.chipFeeds.visibility =
-                    if (rule.affectedFeeds.isEmpty()) View.GONE else View.VISIBLE
-                b.chipFeedsCount.text = b.root.context.getString(
-                    io.github.xixka.qbittorrent.R.string.rss_rule_feeds_count,
-                    rule.affectedFeeds.size,
+        /**
+         * PopupMenu keeps its icons hidden by default; qBC's dropdown menus
+         * show leading icons, so force them on (framework reflection, best
+         * effort — falls back to plain text when unavailable).
+         */
+        fun showPopupWithIcons(popup: PopupMenu) {
+            try {
+                val field = popup.javaClass.getDeclaredField("mPopup")
+                field.isAccessible = true
+                val menuHelper = field.get(popup)
+                val cls = Class.forName(menuHelper.javaClass.name)
+                val method = cls.getDeclaredMethod(
+                    "setForceShowIcon",
+                    Boolean::class.javaPrimitiveType,
                 )
-                b.chipCategory.visibility =
-                    if (rule.assignedCategory.isBlank()) View.GONE else View.VISIBLE
-                b.chipCategory.text = rule.assignedCategory
-                b.chipMust.visibility =
-                    if (rule.mustContain.isBlank()) View.GONE else View.VISIBLE
-                b.chipMust.text = rule.mustContain
-
-                b.card.setOnClickListener { onEdit(item) }
-                b.ruleMenu.setOnClickListener { v -> onMenu(item, v) }
+                method.invoke(menuHelper, true)
+            } catch (_: Exception) {
+                // icons stay hidden — menus still work
             }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
-            Holder(ItemRssRuleBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-
-        override fun onBindViewHolder(holder: Holder, position: Int) = holder.bind(getItem(position))
-    }
-
-    companion object {
-        private val DIFF = object : DiffUtil.ItemCallback<Pair<String, RssRule>>() {
-            override fun areItemsTheSame(
-                oldItem: Pair<String, RssRule>,
-                newItem: Pair<String, RssRule>,
-            ) = oldItem.first == newItem.first
-
-            override fun areContentsTheSame(
-                oldItem: Pair<String, RssRule>,
-                newItem: Pair<String, RssRule>,
-            ) = oldItem == newItem
         }
     }
 }

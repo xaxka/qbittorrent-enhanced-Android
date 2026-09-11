@@ -13,10 +13,30 @@ import io.github.xixka.qbittorrent.model.RssFeedNode
  */
 object RssTreeParser {
 
-    fun parse(root: JsonObject): List<RssFeedNode> =
-        parseLevel(root, emptyList())
+    /**
+     * qBC RssFeedNodeSerializer parity: the feeds screen renders a synthetic
+     * root node "/" (uniqueId "0-/") as the first row of the list, expanded
+     * by default; its menu only offers add-feed / add-folder. Children of
+     * the server tree sit at level 1.
+     */
+    fun parseTree(root: JsonObject): RssFeedNode =
+        RssFeedNode(
+            name = "/",
+            uid = null,
+            url = null,
+            children = parseLevel(root, emptyList(), 1),
+            path = emptyList(),
+            level = 0,
+        )
 
-    private fun parseLevel(obj: JsonObject, parentPath: List<String>): List<RssFeedNode> {
+    fun parse(root: JsonObject): List<RssFeedNode> =
+        parseLevel(root, emptyList(), 1)
+
+    private fun parseLevel(
+        obj: JsonObject,
+        parentPath: List<String>,
+        level: Int,
+    ): List<RssFeedNode> {
         val result = mutableListOf<RssFeedNode>()
         for ((key, value) in obj.entrySet()) {
             val child = value as? JsonObject ?: continue
@@ -37,12 +57,13 @@ object RssTreeParser {
                         url = url,
                         children = emptyList(),
                         path = parentPath,
+                        level = level,
                         articles = articles,
                         hasUnread = articles.any { !it.isRead },
                     )
                 )
             } else {
-                val children = parseLevel(child, parentPath + key)
+                val children = parseLevel(child, parentPath + key, level + 1)
                 result.add(
                     RssFeedNode(
                         name = key,
@@ -50,15 +71,15 @@ object RssTreeParser {
                         url = null,
                         children = children,
                         path = parentPath,
+                        level = level,
                         hasUnread = children.any { it.hasUnread },
                     )
                 )
             }
         }
-        // folders first, then feeds — qBC sorts everything alphabetically;
-        // LibreTorrent groups folders above feeds
+        // qBC sortNodes: case-insensitive alphabetical, no folder grouping
         return result.sortedWith(
-            compareBy<RssFeedNode> { !it.isFeed }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
+            compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }
         )
     }
 
