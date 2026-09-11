@@ -213,7 +213,7 @@ class RssRulesFragment : Fragment() {
                 if (rule.enabled) {
                     b.chipEnabled.text = getString(R.string.rss_rule_item_enabled)
                     b.chipEnabled.setBackgroundResource(R.drawable.bg_category_chip)
-                    val primary = MaterialColors.getColor(b.root, com.google.android.material.R.attr.colorPrimary)
+                    val primary = MaterialColors.getColor(b.root, R.attr.colorPrimary)
                     b.chipEnabled.backgroundTintList =
                         ColorStateList.valueOf((primary and 0x00FFFFFF) or (0x26 shl 24))
                     b.chipEnabled.setTextColor(primary)
