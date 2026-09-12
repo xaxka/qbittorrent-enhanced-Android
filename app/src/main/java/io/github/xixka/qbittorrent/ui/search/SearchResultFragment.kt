@@ -120,7 +120,7 @@ class SearchResultFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.appBar.title = pattern.ifBlank { getString(R.string.search_engine_title) }
+        binding.appBar.title = pattern.ifBlank { getString(R.string.search_result_title) }
         binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
         binding.appBar.inflateMenu(R.menu.search_results)
         binding.appBar.setOnMenuItemClickListener { onMenuItem(it.itemId) }
@@ -334,7 +334,7 @@ class SearchResultFragment : Fragment() {
         binding.searchInput.setText("")
         nameQuery = ""
         applyPipeline()
-        binding.appBar.title = pattern.ifBlank { getString(R.string.search_engine_title) }
+        binding.appBar.title = pattern.ifBlank { getString(R.string.search_result_title) }
     }
 
     /** qBC sort dropdown: radio options + a reverse checkbox. */

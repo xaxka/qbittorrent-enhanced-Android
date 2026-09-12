@@ -1,9 +1,12 @@
 package io.github.xixka.qbittorrent.ui.search
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
@@ -13,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import io.github.xixka.qbittorrent.R
 import io.github.xixka.qbittorrent.data.ServiceLocator
 import io.github.xixka.qbittorrent.databinding.FragmentSearchPluginsBinding
@@ -122,29 +126,41 @@ class SearchPluginsFragment : Fragment() {
     private fun showInstallDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_input, null)
         val input = view.findViewById<TextInputEditText>(R.id.input)
-        input?.hint = "https://…/plugin.py"
-        // qBC's install dialog accepts MULTIPLE sources, one per line
+        val inputLayout = view.findViewById<TextInputLayout>(R.id.inputLayout)
+        // qBC InstallPluginDialog: label "URL or local directory", multiline
+        // field (max 10 lines) with URI keyboard; the error clears on typing.
+        inputLayout?.hint = getString(R.string.search_plugins_install_hint)
+        input?.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
         input?.setSingleLine(false)
-        input?.minLines = 2
-        MaterialAlertDialogBuilder(requireContext())
+        input?.maxLines = 10
+        input?.addTextChangedListener {
+            inputLayout?.isErrorEnabled = false
+        }
+        // qBC's install dialog accepts MULTIPLE sources, one per line; an
+        // empty confirmation keeps the dialog open with the inline error.
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.search_install_plugin)
             .setView(view)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                val sources = input?.text?.toString()?.trim().orEmpty()
-                if (sources.isNotEmpty()) {
-                    lifecycleScope.launch {
-                        val result = runCatching {
-                            ServiceLocator.repository(requireContext()).searchInstallPlugin(sources)
-                        }
-                        snackbar(if (result.isSuccess) R.string.search_plugin_installed else R.string.rss_action_failed)
-                        // the engine needs a moment before the new plugin shows up
-                        delay(1000)
-                        load()
-                    }
-                }
-            }
+            .setPositiveButton(android.R.string.ok, null)
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
+            val sources = input?.text?.toString()?.trim().orEmpty()
+            if (sources.isNotEmpty()) {
+                dialog.dismiss()
+                lifecycleScope.launch {
+                    val result = runCatching {
+                        ServiceLocator.repository(requireContext()).searchInstallPlugin(sources)
+                    }
+                    snackbar(if (result.isSuccess) R.string.search_plugin_installed else R.string.rss_action_failed)
+                    // the engine needs a moment before the new plugin shows up
+                    delay(1000)
+                    load()
+                }
+            } else {
+                inputLayout?.error = getString(R.string.search_plugins_cannot_be_empty)
+            }
+        }
     }
 
     private fun updatePlugins() {
