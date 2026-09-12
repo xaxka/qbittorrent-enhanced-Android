@@ -121,7 +121,10 @@ class SearchResultFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.appBar.title = pattern.ifBlank { getString(R.string.search_result_title) }
-        binding.appBar.setNavigationOnClickListener { (activity as? MainActivity)?.popPage() }
+        binding.appBar.setNavigationOnClickListener {
+            // qBC: the back arrow leaves search mode first, otherwise pops the page
+            if (searchMode) exitSearchMode() else (activity as? MainActivity)?.popPage()
+        }
         binding.appBar.inflateMenu(R.menu.search_results)
         binding.appBar.setOnMenuItemClickListener { onMenuItem(it.itemId) }
 
@@ -146,6 +149,11 @@ class SearchResultFragment : Fragment() {
         binding.searchInput.addTextChangedListener { text ->
             nameQuery = text?.toString().orEmpty()
             applyPipeline()
+            // qBC: the close (X) action only exists while the query is non-empty
+            if (searchMode) {
+                binding.appBar.menu.findItem(R.id.search_filter_menu)?.isVisible =
+                    nameQuery.isNotEmpty()
+            }
         }
 
         // selection bottom bar
@@ -200,7 +208,9 @@ class SearchResultFragment : Fragment() {
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
         R.id.search_filter_menu -> {
-            if (searchMode) exitSearchMode() else enterSearchMode()
+            // qBC: in search mode the action becomes Close, which just
+            // clears the query and keeps typing; outside it enters search
+            if (searchMode) binding.searchInput.setText("") else enterSearchMode()
             true
         }
         R.id.search_filter_dialog_menu -> {
@@ -323,8 +333,21 @@ class SearchResultFragment : Fragment() {
         searchMode = true
         searchBackCallback.isEnabled = true
         binding.searchInput.isVisible = true
-        binding.appBar.title = " "
+        binding.appBar.title = null
+        // qBC swaps the search action for a close (X) action, visible only
+        // once the user has typed something
+        binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
+            setIcon(R.drawable.ic_close_24px)
+            isVisible = false
+        }
         binding.searchInput.requestFocus()
+        val imm = requireContext().getSystemService(
+            android.content.Context.INPUT_METHOD_SERVICE,
+        ) as android.view.inputmethod.InputMethodManager
+        imm.showSoftInput(
+            binding.searchInput,
+            android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT,
+        )
     }
 
     private fun exitSearchMode() {
@@ -335,6 +358,10 @@ class SearchResultFragment : Fragment() {
         nameQuery = ""
         applyPipeline()
         binding.appBar.title = pattern.ifBlank { getString(R.string.search_result_title) }
+        binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
+            setIcon(R.drawable.ic_search_24px)
+            isVisible = true
+        }
     }
 
     /** qBC sort dropdown: radio options + a reverse checkbox. */
