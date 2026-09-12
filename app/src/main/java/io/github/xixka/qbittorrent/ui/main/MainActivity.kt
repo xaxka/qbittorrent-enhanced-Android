@@ -309,8 +309,17 @@ class MainActivity : AppCompatActivity() {
     /** Root fragment of each bottom-nav destination. */
     private val tabRoots = mutableMapOf<String, Fragment>()
 
-    /** In-place sub-pages pushed above the current destination root. */
-    private val pageStack = mutableListOf<Fragment>()
+    /**
+     * In-place sub-pages pushed above each destination root, PER TAB —
+     * leaving a tab only HIDES its root and sub-pages, nothing is removed,
+     * so switching back restores the tab exactly where the user left it
+     * (qBC-style multiple back stacks).
+     */
+    private val pageStacks = mutableMapOf<String, MutableList<Fragment>>()
+
+    /** Sub-page stack of the CURRENT tab. */
+    private val pageStack: MutableList<Fragment>
+        get() = pageStacks.getOrPut(currentTab) { mutableListOf() }
 
     private fun repo() = ServiceLocator.repository(this)
 
@@ -335,12 +344,19 @@ class MainActivity : AppCompatActivity() {
             updateContainerVisibility()
             return
         }
-        clearPageStack()
-        tabRoots[currentTab]?.let { root ->
-            supportFragmentManager.beginTransaction().hide(root).commitAllowingStateLoss()
-        }
+        // qBC-style multiple back stacks: leaving a tab only HIDES its root
+        // and sub-pages — nothing is removed, so switching back restores
+        // the tab exactly where the user left it.
+        val outgoing = currentTab
+        val tx = supportFragmentManager.beginTransaction()
+        tabRoots[outgoing]?.let { tx.hide(it) }
+        pageStacks[outgoing]?.forEach { tx.hide(it) }
         currentTab = tab
         if (tab == TAB_HOME) {
+            // the torrent-list tab hosts sub-pages too (torrent details) —
+            // re-show whatever survived below the home content
+            pageStacks[TAB_HOME]?.forEach { tx.show(it) }
+            tx.commitAllowingStateLoss()
             updateContainerVisibility()
         } else {
             val tag = ROOT_TAG_PREFIX + tab
@@ -348,13 +364,13 @@ class MainActivity : AppCompatActivity() {
             if (existing == null) {
                 val root = createTabRoot(tab)
                 tabRoots[tab] = root
-                supportFragmentManager.beginTransaction()
-                    .add(R.id.destination_container, root, tag)
-                    .commitAllowingStateLoss()
+                tx.add(R.id.destination_container, root, tag)
             } else {
                 tabRoots[tab] = existing
-                supportFragmentManager.beginTransaction().show(existing).commitAllowingStateLoss()
+                tx.show(existing)
             }
+            pageStacks[tab]?.forEach { tx.show(it) }
+            tx.commitAllowingStateLoss()
             updateContainerVisibility()
         }
     }
@@ -371,13 +387,12 @@ class MainActivity : AppCompatActivity() {
     /** Hides or shows the RSS tab of the bottom navigation. */
     private fun applyRssVisibility(show: Boolean) {
         binding.bottomNavigation.menu.findItem(R.id.rss_nav)?.isVisible = show
-        // keep the RSS root fragment lifecycle in sync: a merely GONE
-        // container leaves it STARTED, still running its inner work
-        tabRoots[TAB_RSS]?.let { root ->
-            supportFragmentManager.beginTransaction()
-                .apply { if (show) show(root) else hide(root) }
-                .commitAllowingStateLoss()
-        }
+        // keep the RSS fragments' lifecycle in sync: a merely GONE
+        // container leaves them STARTED, still running their inner work
+        val tx = supportFragmentManager.beginTransaction()
+        tabRoots[TAB_RSS]?.let { root -> if (show) tx.show(root) else tx.hide(root) }
+        pageStacks[TAB_RSS]?.forEach { page -> if (show) tx.show(page) else tx.hide(page) }
+        tx.commitAllowingStateLoss()
         if (!show && currentTab == TAB_RSS) {
             // the visible tab vanished from the nav: return to the list
             navSelectionSuppressed = true
@@ -410,13 +425,12 @@ class MainActivity : AppCompatActivity() {
      */
     private fun applySearchVisibility(show: Boolean) {
         binding.bottomNavigation.menu.findItem(R.id.search_nav)?.isVisible = show
-        // keep the tab root fragment lifecycle in sync: a merely GONE
-        // container leaves it STARTED, still running its inner work
-        tabRoots[TAB_SEARCH]?.let { root ->
-            supportFragmentManager.beginTransaction()
-                .apply { if (show) show(root) else hide(root) }
-                .commitAllowingStateLoss()
-        }
+        // keep the tab fragments' lifecycle in sync: a merely GONE
+        // container leaves them STARTED, still running their inner work
+        val tx = supportFragmentManager.beginTransaction()
+        tabRoots[TAB_SEARCH]?.let { root -> if (show) tx.show(root) else tx.hide(root) }
+        pageStacks[TAB_SEARCH]?.forEach { page -> if (show) tx.show(page) else tx.hide(page) }
+        tx.commitAllowingStateLoss()
         if (!show && currentTab == TAB_SEARCH) {
             // the visible tab vanished from the nav: return to the list
             navSelectionSuppressed = true
@@ -448,7 +462,9 @@ class MainActivity : AppCompatActivity() {
         val top = topFragment()
         val tx = supportFragmentManager.beginTransaction()
         top?.let { tx.hide(it) }
-        tx.add(R.id.destination_container, fragment)
+        // the page tag encodes the owning tab so a recreation can route
+        // surviving sub-pages back into the right per-tab stack
+        tx.add(R.id.destination_container, fragment, PAGE_TAG_PREFIX + currentTab)
         tx.commitAllowingStateLoss()
         pageStack += fragment
         updateContainerVisibility()
@@ -465,19 +481,14 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    private fun clearPageStack() {
-        if (pageStack.isEmpty()) return
-        val tx = supportFragmentManager.beginTransaction()
-        pageStack.forEach { tx.remove(it) }
-        tx.commitAllowingStateLoss()
-        pageStack.clear()
-    }
-
-    /** Bottom-nav / toolbar-arrow "back to torrents". */
+    /** Bottom-nav / toolbar-arrow "back to torrents" (other tabs' stacks survive). */
     fun goHome() {
-        if (currentTab == TAB_HOME && pageStack.isEmpty()) return
-        clearPageStack()
-        if (currentTab != TAB_HOME) showTab(TAB_HOME) else updateContainerVisibility()
+        if (currentTab == TAB_HOME) {
+            while (pageStack.isNotEmpty()) popPage()
+            updateContainerVisibility()
+        } else {
+            showTab(TAB_HOME)
+        }
         if (binding.bottomNavigation.selectedItemId != R.id.home_nav) {
             binding.bottomNavigation.selectedItemId = R.id.home_nav
         }
@@ -502,9 +513,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
         val roots = tabRoots.values.toSet()
+        // surviving sub-pages are routed back into their owning tab's
+        // stack via the PAGE_TAG_PREFIX tag pushPage stamped them with
         supportFragmentManager.fragments
             .filter { it.id == R.id.destination_container && it !in roots }
-            .forEach { pageStack += it }
+            .forEach { frag ->
+                val tag = frag.tag
+                if (tag != null && tag.startsWith(PAGE_TAG_PREFIX)) {
+                    pageStacks.getOrPut(tag.removePrefix(PAGE_TAG_PREFIX)) { mutableListOf() } += frag
+                }
+            }
         val savedTab = savedInstanceState.getString(STATE_CURRENT_TAB)
         currentTab = when (savedTab) {
             TAB_SEARCH -> TAB_SEARCH
@@ -1650,6 +1668,9 @@ class MainActivity : AppCompatActivity() {
         private const val TAB_RSS = "rss"
         private const val TAB_SETTINGS = "settings"
         private const val ROOT_TAG_PREFIX = "root_"
+
+        /** Tag prefix pushPage stamps sub-pages with (encodes the owning tab). */
+        private const val PAGE_TAG_PREFIX = "page_"
 
         /** Saved bottom-nav tab, restored after activity recreation. */
         private const val STATE_CURRENT_TAB = "state_current_tab"
