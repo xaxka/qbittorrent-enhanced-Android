@@ -53,7 +53,6 @@ abstract class DetailTabViewModel(app: Application, val hash: String) :
     AndroidViewModel(app) {
 
     protected val repository = ServiceLocator.repository(app)
-    private val prefs = ServiceLocator.prefs(app)
 
     private val _isScreenActive = MutableStateFlow(false)
 
@@ -91,7 +90,8 @@ abstract class DetailTabViewModel(app: Application, val hash: String) :
                 PollGate(loading, active, refreshing, selecting)
             }.collectLatest { gate ->
                 if (gate.active && !gate.selecting && gate.loading == null) {
-                    delay(prefs.pollIntervalSec * 1000L)
+                    // fixed 1-second refresh
+                    delay(1_000L)
                     load(autoRefresh = true)
                 }
             }

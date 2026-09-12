@@ -181,7 +181,8 @@ class TorrentListViewModel(app: Application) : AndroidViewModel(app) {
                 ) {
                     300L
                 } else {
-                    prefs.pollIntervalSec.coerceIn(1, 60) * 1000L
+                    // fixed 1-second torrent list refresh
+                    1_000L
                 }
                 delay(interval)
             }

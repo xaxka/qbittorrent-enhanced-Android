@@ -130,13 +130,9 @@ class SettingsFragment : Fragment() {
             checked = prefs.showSearch,
         )
 
-        rows += Header(R.string.settings_behavior)
-        rows += Item(
-            id = ID_POLL_INTERVAL,
-            icon = R.drawable.ic_schedule_24px,
-            title = getString(R.string.settings_poll_label),
-            summary = getString(R.string.pref_poll_interval_sub, prefs.pollIntervalSec),
-        )
+        // The torrent list refresh is hard-fixed to 1 second (qBC-style
+        // live list) — no user-configurable interval row.
+
         // Engine lifecycle (boot autostart + watchdog) is always-on internal
         // behavior — no toggle rows, the engine is simply managed for the
         // user and only surfaces a retry prompt if it fails to start.
@@ -212,8 +208,6 @@ class SettingsFragment : Fragment() {
 
             ID_THEME -> showThemeDialog()
 
-            ID_POLL_INTERVAL -> showPollIntervalDialog()
-
             ID_SERVER -> push(ServerSettingsFragment())
 
             ID_CHECK_UPDATE -> checkUpdate()
@@ -237,26 +231,6 @@ class SettingsFragment : Fragment() {
                 prefs.themeMode = modes[which]
                 ThemeUtils.applyThemeMode(modes[which])
                 dialog.dismiss()
-                rebuildRows()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showPollIntervalDialog() {
-        val layout = LayoutInflater.from(requireContext())
-            .inflate(R.layout.dialog_input, null)
-        layout.findViewById<TextInputLayout>(R.id.inputLayout)?.hint =
-            getString(R.string.settings_poll_label)
-        val input = layout.findViewById<TextInputEditText>(R.id.input)
-        input?.setText(prefs.pollIntervalSec.toString())
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.settings_poll_label)
-            .setView(layout)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                input?.text?.toString()?.trim()?.toIntOrNull()?.let {
-                    prefs.pollIntervalSec = it.coerceIn(1, 60)
-                }
                 rebuildRows()
             }
             .setNegativeButton(android.R.string.cancel, null)
@@ -413,7 +387,6 @@ class SettingsFragment : Fragment() {
         private const val ID_THEME = 3
         private const val ID_SHOW_RSS = 5
         private const val ID_SHOW_SEARCH = 13
-        private const val ID_POLL_INTERVAL = 4
         private const val ID_SERVER = 7
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10

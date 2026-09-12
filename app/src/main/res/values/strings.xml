@@ -513,7 +513,6 @@
     <string name="settings_qbt_open">Open qBittorrent settings</string>
     <string name="settings_qbt_open_sub">Speed limits, connections, privacy, seeding, WebUI — the full option set</string>
     <string name="settings_app_section">App</string>
-    <string name="settings_poll_label">Torrent list refresh interval (seconds)</string>
     <string name="settings_engine_group">Bundled engine</string>
     <string name="settings_remote_switch">Connect to a remote server</string>
     <string name="settings_remote_switch_sub">Leave off to use the built-in engine — nothing to configure</string>
@@ -546,7 +545,6 @@
     <string name="category_delete">Delete category</string>
     <string name="category_delete_confirm">Delete the category \"%1$s\"? Torrents are kept but become uncategorized.</string>
     <string name="settings_appearance">Appearance</string>
-    <string name="settings_behavior">Behavior</string>
     <string name="settings_connection">Connection</string>
     <string name="settings_about">About</string>
     <string name="pref_dynamic_colors">Dynamic colors</string>
@@ -560,7 +558,6 @@
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="pref_poll_interval_sub">Update the torrent list every %1$d seconds</string>
     <string name="settings_server_connection">Server connection</string>
     <string name="settings_server_connection_engine">Connected to the bundled engine</string>
     <string name="settings_server_connection_not_configured">Not configured yet</string>

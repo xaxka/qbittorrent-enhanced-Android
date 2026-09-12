@@ -507,7 +507,6 @@
     <string name="settings_qbt_open">打开 qBittorrent 设置</string>
     <string name="settings_qbt_open_sub">限速、连接、隐私、做种、Web 界面——完整参数</string>
     <string name="settings_app_section">应用</string>
-    <string name="settings_poll_label">种子列表刷新间隔（秒）</string>
     <string name="settings_engine_group">内置引擎</string>
     <string name="settings_remote_switch">连接远程服务器</string>
     <string name="settings_remote_switch_sub">关闭时使用内置引擎，无需任何配置</string>
@@ -540,7 +539,6 @@
     <string name="category_delete">删除分类</string>
     <string name="category_delete_confirm">删除分类“%1$s”？种子会保留，但将变为未分类。</string>
     <string name="settings_appearance">外观</string>
-    <string name="settings_behavior">行为</string>
     <string name="settings_connection">连接</string>
     <string name="settings_about">关于</string>
     <string name="pref_dynamic_colors">动态取色</string>
@@ -554,7 +552,6 @@
     <string name="theme_system">跟随系统</string>
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
-    <string name="pref_poll_interval_sub">每 %1$d 秒更新一次种子列表</string>
     <string name="settings_server_connection">服务器连接</string>
     <string name="settings_server_connection_engine">已连接内置引擎</string>
     <string name="settings_server_connection_not_configured">尚未配置</string>

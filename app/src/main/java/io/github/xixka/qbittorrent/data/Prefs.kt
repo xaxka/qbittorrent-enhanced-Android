@@ -59,10 +59,6 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_PASSWORD, "") ?: ""
         set(value) = sp.edit().putString(KEY_PASSWORD, value).apply()
 
-    var pollIntervalSec: Int
-        get() = sp.getInt(KEY_POLL, 1).coerceIn(1, 60)
-        set(value) = sp.edit().putInt(KEY_POLL, value).apply()
-
     /**
      * Whether the app talks to a remote server instead of the bundled
      * engine. The standard (remote-control) edition always answers true;
@@ -292,7 +288,6 @@ class Prefs(context: Context) {
         const val KEY_BASE_PATH = "server_base_path"
         const val KEY_USERNAME = "server_username"
         const val KEY_PASSWORD = "server_password"
-        const val KEY_POLL = "poll_interval"
         const val KEY_ENGINE_ENABLED = "engine_enabled"
         const val KEY_ENGINE_PORT = "engine_port"
         const val KEY_ENGINE_SAVE_PATH = "engine_save_path"
