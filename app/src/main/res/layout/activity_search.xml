@@ -110,18 +110,6 @@
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="?attr/colorPrimary" />
 
-                    <!-- The bundled engine has no Python: qB search plugins are
-                         server-side programs, so local search cannot work. -->
-                    <TextView
-                        android:id="@+id/local_engine_hint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="4dp"
-                        android:text="@string/search_python_missing"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:visibility="gone" />
-
                     <!-- qBC: the radio group sits inside a box outlined like an
                          unfocused OutlinedTextField (1dp stroke, 4dp corners,
                          12dp inner padding, 8dp between rows). -->

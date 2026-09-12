@@ -143,11 +143,8 @@ class SearchFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener { loadPlugins() }
 
-        // The bundled engine deliberately ships without Python, and qB's
-        // search plugins only run with one — tell the user up front instead
-        // of letting them run into the 409 error.
-        binding.localEngineHint?.visibility =
-            if (ServiceLocator.prefs(requireContext()).usingLocalEngine) View.VISIBLE else View.GONE
+        // No Python-missing explainer under the plugins (removed per user
+        // request): the results screen still surfaces the 409 error state.
 
         loadPlugins()
 
