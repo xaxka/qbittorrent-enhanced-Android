@@ -106,6 +106,9 @@ class ServerSettingsFragment : Fragment() {
         val list = binding.profileList
         list.removeAllViews()
         binding.emptyView.visibility = if (profiles.isEmpty()) View.VISIBLE else View.GONE
+        // keep the switch in sync (adding a server in engine mode engages
+        // remote mode programmatically — the user did not touch the switch)
+        if (BuildConfig.IS_ENHANCED) binding.remoteSwitch.isChecked = prefs.useRemoteServer
         if (BuildConfig.IS_ENHANCED && !prefs.useRemoteServer) {
             // engine mode: the caption doubles as the LAN WebUI access info
             binding.remoteSwitchSub.text = engineCaption()
@@ -250,7 +253,16 @@ class ServerSettingsFragment : Fragment() {
                 if (prefs.activeServer() == null) {
                     prefs.activeServerId = profile.id
                 }
-                if (!BuildConfig.IS_ENHANCED) prefs.useRemoteServer = true
+                if (!BuildConfig.IS_ENHANCED) {
+                    prefs.useRemoteServer = true
+                } else if (existing == null && !prefs.useRemoteServer) {
+                    // Enhanced edition, engine mode so far: adding a server
+                    // means the user wants to drive that remote instance —
+                    // engage remote mode and activate the new profile so
+                    // the connection is actually used
+                    prefs.useRemoteServer = true
+                    prefs.activeServerId = profile.id
+                }
                 ServiceLocator.resetClient()
                 dialog.dismiss()
                 render()
@@ -259,9 +271,14 @@ class ServerSettingsFragment : Fragment() {
 
         // test the connection with the values currently typed in the dialog
         view.findViewById<View>(R.id.testButton).setOnClickListener {
-            // test with the advanced settings as typed (timeout / headers /
-            // basic auth), not just the parsed URL
+            // test with everything as typed (credentials / timeout / headers /
+            // basic auth / trust-all), not just the parsed URL — the dialog's
+            // username and password MUST reach the login call, otherwise the
+            // test always logs in as the ServerConfig defaults and fails
             val config = configFromUrl()?.copy(
+                username = username.text?.toString()?.trim().orEmpty(),
+                password = password.text?.toString().orEmpty(),
+                trustAllCerts = trustAll.isChecked,
                 requestTimeout = timeout.text?.toString()?.trim()?.toIntOrNull()?.coerceIn(1, 600) ?: 0,
                 customHeaders = headers.text?.toString()?.trim().orEmpty(),
                 basicAuth = basicAuth.isChecked,
