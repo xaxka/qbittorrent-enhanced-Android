@@ -150,18 +150,10 @@ class SearchResultFragment : Fragment() {
             nameQuery = text?.toString().orEmpty()
             applyPipeline()
             // qBC: the close (X) action only exists while the query is
-            // non-empty — a hidden close becomes an invisible SPACER, so
-            // the slot stays reserved and the other actions never reflow
+            // non-empty (toggled via isVisible, the proven mechanism)
             if (searchMode) {
-                binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
-                    if (nameQuery.isNotEmpty()) {
-                        setIcon(R.drawable.ic_close_24px)
-                        isEnabled = true
-                    } else {
-                        setIcon(R.drawable.ic_blank_24px)
-                        isEnabled = false
-                    }
-                }
+                binding.appBar.menu.findItem(R.id.search_filter_menu)?.isVisible =
+                    nameQuery.isNotEmpty()
             }
         }
 
@@ -331,9 +323,9 @@ class SearchResultFragment : Fragment() {
     }
 
     private fun syncRunningState() {
+        // the stop action now lives in the kebab overflow: no icon is
+        // rendered, the disabled state only greys the menu row (qBC parity)
         binding.appBar.menu.findItem(R.id.search_stop_menu)?.isEnabled = searchRunning
-        binding.appBar.menu.findItem(R.id.search_stop_menu)?.icon?.alpha =
-            if (searchRunning) 255 else 128
     }
 
     // ---------------- filter / sort / selection ----------------
@@ -343,12 +335,13 @@ class SearchResultFragment : Fragment() {
         searchBackCallback.isEnabled = true
         binding.searchInput.isVisible = true
         binding.appBar.title = null
-        // qBC swaps the search action for a close (X) action; while the
-        // query is empty it renders as an invisible SPACER — the slot
-        // stays reserved (blank icon, not hidden, so no reflow)
+        // qBC swaps the search action for a close (X) action, visible only
+        // once the user has typed something (hidden via isVisible — the
+        // proven mechanism, unlike icon swapping which blanked the slot
+        // and crashed on some devices)
         binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
-            setIcon(R.drawable.ic_blank_24px)
-            isEnabled = false
+            setIcon(R.drawable.ic_close_24px)
+            isVisible = false
         }
         binding.searchInput.requestFocus()
         val imm = requireContext().getSystemService(
@@ -370,7 +363,7 @@ class SearchResultFragment : Fragment() {
         binding.appBar.title = pattern.ifBlank { getString(R.string.search_result_title) }
         binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
             setIcon(R.drawable.ic_search_24px)
-            isEnabled = true
+            isVisible = true
         }
     }
 
