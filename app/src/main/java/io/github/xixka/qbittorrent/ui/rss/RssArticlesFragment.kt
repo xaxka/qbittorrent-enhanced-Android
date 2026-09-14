@@ -108,6 +108,12 @@ class RssArticlesFragment : Fragment() {
         binding.searchInput.addTextChangedListener { text: Editable? ->
             searchQuery = text?.toString().orEmpty()
             applyFilter()
+            // qBC: the close (X) action only exists while the query is
+            // non-empty (toggled via isVisible, the proven mechanism)
+            if (searchMode) {
+                binding.appBar.menu.findItem(R.id.action_rss_search)?.isVisible =
+                    searchQuery.isNotEmpty()
+            }
         }
 
         // selection bottom bar
@@ -143,7 +149,9 @@ class RssArticlesFragment : Fragment() {
 
     private fun onMenuItem(itemId: Int): Boolean = when (itemId) {
         R.id.action_rss_search -> {
-            if (searchMode) exitSearchMode() else enterSearchMode()
+            // qBC: in search mode the action becomes Close, which just
+            // clears the query and keeps typing; outside it enters search
+            if (searchMode) binding.searchInput.setText("") else enterSearchMode()
             true
         }
         R.id.action_rss_mark_all -> {
@@ -162,8 +170,22 @@ class RssArticlesFragment : Fragment() {
         searchBackCallback.isEnabled = true
         binding.searchInput.isVisible = true
         binding.appBar.title = " "
+        // qBC swaps the search action for a close (X) action, visible only
+        // once the user has typed something (hidden via isVisible — the
+        // proven mechanism, unlike keeping the search icon in place, which
+        // made the second tap collapse the field right after opening it)
+        binding.appBar.menu.findItem(R.id.action_rss_search)?.apply {
+            setIcon(R.drawable.ic_close_24px)
+            isVisible = false
+        }
         binding.searchInput.requestFocus()
-        refreshMenuIcons()
+        val imm = requireContext().getSystemService(
+            android.content.Context.INPUT_METHOD_SERVICE,
+        ) as android.view.inputmethod.InputMethodManager
+        imm.showSoftInput(
+            binding.searchInput,
+            android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT,
+        )
     }
 
     private fun exitSearchMode() {
@@ -174,16 +196,9 @@ class RssArticlesFragment : Fragment() {
         searchQuery = ""
         applyFilter()
         binding.appBar.title = feedTitle.ifBlank { getString(R.string.rss_all_articles) }
-        refreshMenuIcons()
-    }
-
-    private fun refreshMenuIcons() {
-        // qBC swaps the search icon for a close icon once a query is typed
         binding.appBar.menu.findItem(R.id.action_rss_search)?.apply {
-            setIcon(
-                if (searchMode && searchQuery.isNotEmpty()) R.drawable.ic_close_24px
-                else R.drawable.ic_search_24px,
-            )
+            setIcon(R.drawable.ic_search_24px)
+            isVisible = true
         }
     }
 
@@ -207,7 +222,6 @@ class RssArticlesFragment : Fragment() {
             allArticles.filter { it.title.contains(query, ignoreCase = true) }
         }
         adapter.submitList(visible)
-        refreshMenuIcons()
     }
 
     private fun onArticleClick(article: RssArticle) {
