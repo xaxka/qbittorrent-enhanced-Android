@@ -56,7 +56,10 @@ object UpdateInstaller {
             var lastBytes = 0L
             var lastTime = System.currentTimeMillis()
             try {
-                val file = ApkDownloader.download(url, dest) { p ->
+                // direct GitHub URL first, then the built-in gh-proxy
+                // mirrors (GithubProxies) — release downloads otherwise
+                // never complete on networks that block GitHub
+                val file = ApkDownloader.download(GithubProxies.candidates(url), dest) { p ->
                     activity.runOnUiThread {
                         val now = System.currentTimeMillis()
                         // throttle updates; without a known total fall back to

@@ -51,6 +51,63 @@ object ApkDownloader {
     private class Meta(val total: Long, val acceptRanges: Boolean)
 
     /**
+     * Fast-fail liveness client for mirror-candidate probing: a dead or
+     * black-holed mirror must not hold the fallback chain hostage for the
+     * full download connect timeout.
+     */
+    private val probeClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(8, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .followRedirects(true)
+            .build()
+    }
+
+    /**
+     * Downloads the first URL in [urls] that works, trying the list in
+     * order — the direct GitHub URL first, then the built-in gh-proxy
+     * mirrors (see [GithubProxies]). Unreachable candidates are skipped
+     * after a quick liveness probe; a candidate whose actual download
+     * fails is removed and the next one is tried. Returns the completed,
+     * length-verified file.
+     */
+    suspend fun download(
+        urls: List<String>,
+        dest: File,
+        threads: Int = 8,
+        onProgress: (Progress) -> Unit,
+    ): File = withContext(Dispatchers.IO) {
+        if (urls.isEmpty()) throw IOException("no download URL")
+        val original = urls.first()
+        var lastError: Exception? = null
+        for (candidate in urls) {
+            // quick liveness check: any completed HTTP exchange (even a
+            // 404/405) means the transport works — real status errors
+            // surface fast on the actual GET, while black-holed hosts
+            // time out here instead of stalling the chain
+            if (candidate != original && !isReachable(candidate)) continue
+            try {
+                val file = download(candidate, dest, threads, onProgress)
+                GithubProxies.markWorking(candidate, original)
+                return@withContext file
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                lastError = e
+                dest.delete()
+            }
+        }
+        throw IOException(
+            "all mirrors failed: ${lastError?.message ?: "?"}"
+        )
+    }
+
+    /** True when a HEAD exchange completes — host is routable. */
+    private fun isReachable(url: String): Boolean = runCatching {
+        probeClient.newCall(Request.Builder().url(url).head().build()).execute().use { true }
+    }.getOrDefault(false)
+
+    /**
      * Downloads [url] to [dest] and returns it. The returned file is
      * complete and length-verified. Partial files are removed on failure
      * or cancellation.

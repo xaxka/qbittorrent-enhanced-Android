@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
  */
 object UpdateChecker {
 
-    private const val REPO_API = "https://api.github.com/repos/xixka/qbittorrentAndroid"
+    private const val REPO_API = "https://api.github.com/repos/xaxka/qbittorrent-enhanced-Android"
 
     private val http: OkHttpClient by lazy {
         OkHttpClient.Builder()
@@ -51,19 +51,53 @@ object UpdateChecker {
     /**
      * Fetches the newest published release and returns an [Update] when it is
      * newer than the running build, `null` when up-to-date.
-     * @throws java.io.IOException on network / API failures
+     *
+     * The GitHub API URL is requested directly first (best for users with
+     * direct connectivity), then through the built-in gh-proxy mirrors —
+     * see [GithubProxies] — so the check also works on networks where
+     * api.github.com is blocked.
+     * @throws java.io.IOException on network / API failures (all candidates)
      */
     suspend fun check(): Update? = withContext(Dispatchers.IO) {
+        val apiUrl = "$REPO_API/releases?per_page=20"
+        var lastError: Exception? = null
+        for (candidate in GithubProxies.candidates(apiUrl)) {
+            try {
+                val best = fetchNewestRelease(candidate)
+                GithubProxies.markWorking(candidate, apiUrl)
+                // only report when strictly newer than the running build:
+                // versionCode (epoch seconds, unique per CI build) is the
+                // authoritative signal — the engine versionName is stable across
+                // builds, so comparing names would never surface an update.
+                // The name comparison is only a fallback for releases whose
+                // body carried no versionCode.
+                return@withContext best?.takeIf { isNewer(it) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                lastError = e
+            }
+        }
+        throw java.io.IOException(
+            "GitHub API unreachable (direct + ${GithubProxies.candidates(apiUrl).size - 1} mirrors)" +
+                ": ${lastError?.message ?: "?"}"
+        )
+    }
+
+    /** Fetches and parses the release list from one API candidate URL. */
+    private fun fetchNewestRelease(url: String): Update? {
         val request = Request.Builder()
-            .url("$REPO_API/releases?per_page=20")
+            .url(url)
             .header("Accept", "application/vnd.github+json")
             .build()
         http.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw java.io.IOException("GitHub API HTTP ${response.code}")
+                val via = java.net.URI(url).host ?: url
+                throw java.io.IOException("GitHub API HTTP ${response.code} via $via")
             }
             val body = response.body?.string() ?: throw java.io.IOException("Empty response")
-            val releases = org.json.JSONArray(body)
+            val releases = runCatching { org.json.JSONArray(body) }
+                .getOrElse { throw java.io.IOException("Invalid JSON via ${java.net.URI(url).host}") }
             var best: Update? = null
             for (i in 0 until releases.length()) {
                 val rel = releases.optJSONObject(i) ?: continue
@@ -71,13 +105,7 @@ object UpdateChecker {
                 val candidate = parseRelease(rel) ?: continue
                 if (best == null || candidate.versionCode > best.versionCode) best = candidate
             }
-            // only report when strictly newer than the running build:
-            // versionCode (epoch seconds, unique per CI build) is the
-            // authoritative signal — the engine versionName is stable across
-            // builds, so comparing names would never surface an update.
-            // The name comparison is only a fallback for releases whose body
-            // carried no versionCode.
-            if (best != null && isNewer(best)) best else null
+            return best
         }
     }
 
