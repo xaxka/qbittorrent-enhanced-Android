@@ -248,9 +248,10 @@ class SearchResultFragment : Fragment() {
                     val localEngine = ServiceLocator.prefs(requireContext()).usingLocalEngine
                     val pythonMissing = message.contains("python", ignoreCase = true) ||
                         (localEngine && e is io.github.xixka.qbittorrent.api.QBApiException && e.code == 409)
-                    binding.emptyView.setText(
-                        if (pythonMissing) R.string.search_python_missing else R.string.search_no_results,
-                    )
+                    // the start failure is explained by the dialog alone —
+                    // the page keeps a neutral empty state and must not
+                    // duplicate the (long) Python-missing explainer inline
+                    binding.emptyView.setText(R.string.search_no_results)
                     MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.search_engine_title)
                         .setMessage(
