@@ -994,11 +994,7 @@
     <string name="search_pattern_hint">Search Query</string>
     <string name="search_start">Start Search</string>
     <string name="search_stop">Stop Search</string>
-    <string name="search_running">Searching…</string>
-    <string name="search_done">Search finished</string>
-    <string name="search_no_results">No results found</string>
     <string name="search_start_failed">Search is disabled on the server (enable it in qBittorrent options)</string>
-    <string name="search_python_missing">Search plugins are Python programs that run on the qBittorrent server. The bundled engine does not include Python, so local search is unavailable. Remote servers with Python installed support search.</string>
     <string name="search_add_torrent">Download</string>
     <string name="search_open_site">Open Description</string>
     <string name="search_category">Category</string>

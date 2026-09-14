@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Search results, qBC SearchResultScreen parity: toolbar with filter /
      sort / stop, a name-filter input that swaps in for the title, the
-     "showing X of Y" count bar, pull-to-refresh results, a selection
-     bottom bar (download selected / select all / inverse) and a progress
-     indicator while the search is still running. -->
+     always-visible "showing X of Y" count bar with the indeterminate
+     progress line riding its top edge while the search runs,
+     pull-to-refresh results, and a selection bottom bar (download
+     selected / select all / inverse). No empty-list placeholder and no
+     in-page state text — qBC shows none. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -44,17 +47,32 @@
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <TextView
-        android:id="@+id/result_count"
+    <!-- qBC parity: the "showing X of Y" count bar is ALWAYS visible (it
+         reads "0 of 0" until the first poll lands) and the thin
+         indeterminate progress line rides its top edge while the search
+         is running. -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="4dp"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        android:visibility="gone"
-        tools:text="Showing 12 of 30"
-        xmlns:tools="http://schemas.android.com/tools" />
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/result_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="4dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            tools:text="Showing 12 of 30" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/search_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </FrameLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
@@ -62,24 +80,16 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <FrameLayout
+        <!-- qBC parity: no empty-list placeholder on the results screen —
+             the list is simply blank until (and unless) results arrive. -->
+        <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
+            android:id="@+id/result_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <io.github.xixka.qbittorrent.ui.customviews.EmptyRecyclerView
-                android:id="@+id/result_list"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingHorizontal="12dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp" />
-
-            <io.github.xixka.qbittorrent.ui.customviews.EmptyListPlaceholder
-                android:id="@+id/empty_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </FrameLayout>
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Selection mode bottom bar, qBC parity: close, "N selected",

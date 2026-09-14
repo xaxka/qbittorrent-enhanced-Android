@@ -137,8 +137,14 @@ class SearchResultFragment : Fragment() {
 
         binding.resultList.layoutManager = LinearLayoutManager(requireContext())
         binding.resultList.adapter = adapter
-        binding.resultList.setEmptyView(binding.emptyView)
-        binding.emptyView.setText(R.string.search_running)
+        // qBC: the count bar is always visible ("Showing 0 of 0" until the
+        // first poll lands) — the results screen has no empty-list
+        // placeholder and no in-page state text whatsoever
+        binding.resultCount.text = getString(
+            R.string.search_result_showing_count,
+            0,
+            0,
+        )
         // qBC LazyColumn parity: spacedBy(8.dp) between the result cards
         binding.resultList.addItemDecoration(
             io.github.xixka.qbittorrent.ui.customviews.VerticalSpaceItemDecoration(requireContext(), 8f),
@@ -232,6 +238,11 @@ class SearchResultFragment : Fragment() {
     // ---------------- search lifecycle ----------------
 
     private fun startSearch() {
+        // qBC: the progress line is up from the moment the screen is
+        // entered (isSearchContinuing starts true), not only after the
+        // start request succeeds
+        searchRunning = true
+        syncRunningState()
         lifecycleScope.launch {
             val start = runCatching {
                 ServiceLocator.repository(requireContext()).searchStart(pattern, category, plugins)
@@ -239,72 +250,102 @@ class SearchResultFragment : Fragment() {
             start
                 .onSuccess { response ->
                     searchId = response.id
-                    searchRunning = true
-                    syncRunningState()
                     pollResults()
                 }
                 .onFailure { e ->
-                    val message = e.message ?: getString(R.string.search_start_failed)
-                    val localEngine = ServiceLocator.prefs(requireContext()).usingLocalEngine
-                    val pythonMissing = message.contains("python", ignoreCase = true) ||
-                        (localEngine && e is io.github.xixka.qbittorrent.api.QBApiException && e.code == 409)
-                    // the start failure is explained by the dialog alone —
-                    // the page keeps a neutral empty state and must not
-                    // duplicate the (long) Python-missing explainer inline
-                    binding.emptyView.setText(R.string.search_no_results)
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.search_engine_title)
-                        .setMessage(
-                            if (pythonMissing) getString(R.string.search_python_missing) else message,
-                        )
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show()
+                    // qBC parity: the start failure surfaces as a SNACKBAR
+                    // only — no dialog, no in-page explainer text; polling
+                    // simply never starts
+                    searchRunning = false
+                    syncRunningState()
+                    snackbar(e.message ?: getString(R.string.search_start_failed))
                 }
         }
+    }
+
+    /**
+     * One qBC updateResults() pass: fetch, apply the pipeline, update the
+     * count bar and hide the progress line once the engine reports
+     * "Stopped". Returns the error when the fetch failed (null = ok).
+     */
+    private suspend fun fetchResults(): Exception? {
+        val b = _binding ?: return null
+        val response = runCatching {
+            ServiceLocator.repository(requireContext()).searchResults(searchId)
+        }
+        response.exceptionOrNull()?.let { return it }
+        val results = response.getOrThrow()
+        allResults = results.results
+        applyPipeline()
+        b.resultCount.text = getString(
+            R.string.search_result_showing_count,
+            adapter.itemCount,
+            allResults.size,
+        )
+        if (results.status.equals("Stopped", ignoreCase = true)) {
+            searchRunning = false
+            syncRunningState()
+        }
+        return null
     }
 
     private fun pollResults() {
         if (searchId < 0) return
         searchJob?.cancel()
         searchJob = lifecycleScope.launch {
-            while (isActive && searchId >= 0) {
-                val b = _binding
-                if (b == null) break // view already torn down
-                // poll only while the screen is visible: no background traffic
-                if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                    val results = runCatching {
-                        ServiceLocator.repository(requireContext()).searchResults(searchId)
-                    }.getOrNull()
-                    if (results != null) {
-                        allResults = results.results
-                        applyPipeline()
-                        b.resultCount.isVisible = true
-                        b.resultCount.text = getString(
-                            R.string.search_result_showing_count,
-                            adapter.itemCount,
-                            allResults.size,
-                        )
-                        if (results.status.equals("Stopped", ignoreCase = true)) {
-                            searchRunning = false
-                            syncRunningState()
-                            b.emptyView.setText(
-                                if (allResults.isEmpty()) R.string.search_no_results else R.string.search_done,
-                            )
-                            break
-                        }
-                    }
+            // pull-to-refresh on a STOPPED (or failed) search still does one
+            // updateResults pass — qBC's refresh() always fetches; only the
+            // background loop below depends on the search still running
+            if (!searchRunning) {
+                fetchResults()
+                _binding?.swipeRefresh?.isRefreshing = false
+                return@launch
+            }
+            // qBC parity: poll every second while the screen is active and
+            // the search is still running; a fetch error surfaces as a
+            // snackbar and ENDS the loop (isSearchContinuing = false), the
+            // Stopped status just hides the progress line — never any
+            // in-page text
+            while (isActive && searchId >= 0 && searchRunning) {
+                if (_binding == null) break // view already torn down
+                // poll only while the activity is started: no background traffic
+                val error = if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    fetchResults()
+                } else {
+                    null
                 }
-                delay(2000)
+                _binding?.swipeRefresh?.isRefreshing = false
+                if (error != null) {
+                    searchRunning = false
+                    syncRunningState()
+                    snackbar(error.message ?: getString(R.string.search_start_failed))
+                    break
+                }
+                if (!searchRunning) break
+                delay(1000)
             }
             _binding?.swipeRefresh?.isRefreshing = false
         }
     }
 
     private fun stopSearch() {
+        // qBC: stop → snackbar, one final updateResults pass, then the
+        // progress line goes away
+        if (!searchRunning) return
         val id = searchId
         lifecycleScope.launch {
-            runCatching { ServiceLocator.repository(requireContext()).searchStop(id) }
-            snackbar(R.string.search_result_stop_done)
+            val stopped = runCatching {
+                ServiceLocator.repository(requireContext()).searchStop(id)
+            }
+            if (stopped.isSuccess) {
+                snackbar(R.string.search_result_stop_done)
+                searchRunning = false
+                syncRunningState()
+                fetchResults()
+                _binding?.swipeRefresh?.isRefreshing = false
+            } else {
+                snackbar(stopped.exceptionOrNull()?.message ?: getString(R.string.search_start_failed))
+            }
         }
     }
 
@@ -324,8 +365,10 @@ class SearchResultFragment : Fragment() {
     }
 
     private fun syncRunningState() {
-        // the stop action now lives in the kebab overflow: no icon is
-        // rendered, the disabled state only greys the menu row (qBC parity)
+        // qBC parity: the thin indeterminate progress line rides the count
+        // bar's top edge while the search is running; the stop action in
+        // the kebab overflow only greys the menu row (no icon swap)
+        binding.searchProgress.isVisible = searchRunning
         binding.appBar.menu.findItem(R.id.search_stop_menu)?.isEnabled = searchRunning
     }
 
@@ -503,7 +546,7 @@ class SearchResultFragment : Fragment() {
         }
         if (reverse) list = list.asReversed()
         adapter.submitList(list)
-        binding.resultCount.isVisible = allResults.isNotEmpty()
+        // qBC: the count bar never hides, it just updates — "Showing 0 of 0"
         binding.resultCount.text = getString(
             R.string.search_result_showing_count, list.size, allResults.size,
         )
@@ -541,6 +584,12 @@ class SearchResultFragment : Fragment() {
     private fun snackbar(res: Int) {
         _binding ?: return
         Snackbar.make(binding.root, res, Snackbar.LENGTH_SHORT).show()
+    }
+
+    /** qBC Event.Error → snackbar with the raw error message. */
+    private fun snackbar(text: String) {
+        _binding ?: return
+        Snackbar.make(binding.root, text, Snackbar.LENGTH_SHORT).show()
     }
 
     /** qBC DetailsDialog: name, size + site info rows, peer info cards,

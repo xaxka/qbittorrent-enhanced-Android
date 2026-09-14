@@ -993,11 +993,7 @@
     <string name="search_pattern_hint">搜索查询</string>
     <string name="search_start">开始搜索</string>
     <string name="search_stop">停止搜索</string>
-    <string name="search_running">搜索中…</string>
-    <string name="search_done">搜索完成</string>
-    <string name="search_no_results">未找到结果</string>
     <string name="search_start_failed">服务器已禁用搜索（请在 qBittorrent 选项中启用）</string>
-    <string name="search_python_missing">搜索插件是在 qBittorrent 服务器端运行的 Python 程序。内置引擎未附带 Python，因此本地无法使用搜索；连接装有 Python 的远程 qBittorrent 即可使用。</string>
     <string name="search_add_torrent">下载</string>
     <string name="search_open_site">打开描述</string>
     <string name="search_category">分类</string>
