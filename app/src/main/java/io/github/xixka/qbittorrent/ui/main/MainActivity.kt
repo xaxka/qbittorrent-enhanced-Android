@@ -354,8 +354,10 @@ class MainActivity : AppCompatActivity() {
         currentTab = tab
         if (tab == TAB_HOME) {
             // the torrent-list tab hosts sub-pages too (torrent details) —
-            // re-show whatever survived below the home content
-            pageStacks[TAB_HOME]?.forEach { tx.show(it) }
+            // show ONLY the top of the stack: the pages below it stay
+            // hidden exactly as pushPage left them, or their text ghosts
+            // through the top page's transparent list background
+            pageStacks[TAB_HOME]?.lastOrNull()?.let { tx.show(it) }
             tx.commitAllowingStateLoss()
             updateContainerVisibility()
         } else {
@@ -367,9 +369,16 @@ class MainActivity : AppCompatActivity() {
                 tx.add(R.id.destination_container, root, tag)
             } else {
                 tabRoots[tab] = existing
-                tx.show(existing)
             }
-            pageStacks[tab]?.forEach { tx.show(it) }
+            // Stack invariant (the one pushPage maintains): exactly ONE
+            // visible fragment per tab — the TOP of the stack, or the
+            // root when no pages were pushed. Returning to a tab must
+            // not reveal the fragments under the top: the results
+            // screen's list background is transparent, so a visible
+            // start screen underneath ghosts its text through the page
+            // (and vice versa), which looked like a broken overlay.
+            val top = pageStacks[tab]?.lastOrNull() ?: tabRoots[tab]
+            top?.let { tx.show(it) }
             tx.commitAllowingStateLoss()
             updateContainerVisibility()
         }
@@ -390,8 +399,17 @@ class MainActivity : AppCompatActivity() {
         // keep the RSS fragments' lifecycle in sync: a merely GONE
         // container leaves them STARTED, still running their inner work
         val tx = supportFragmentManager.beginTransaction()
-        tabRoots[TAB_RSS]?.let { root -> if (show) tx.show(root) else tx.hide(root) }
-        pageStacks[TAB_RSS]?.forEach { page -> if (show) tx.show(page) else tx.hide(page) }
+        if (show) {
+            // re-enabling the section may only reveal its fragments when
+            // its tab is the CURRENT destination — and only the TOP of
+            // its stack, never the pages under it (stack invariant)
+            if (currentTab == TAB_RSS) {
+                (pageStacks[TAB_RSS]?.lastOrNull() ?: tabRoots[TAB_RSS])?.let { tx.show(it) }
+            }
+        } else {
+            tabRoots[TAB_RSS]?.let { root -> tx.hide(root) }
+            pageStacks[TAB_RSS]?.forEach { page -> tx.hide(page) }
+        }
         tx.commitAllowingStateLoss()
         if (!show && currentTab == TAB_RSS) {
             // the visible tab vanished from the nav: return to the list
@@ -428,8 +446,17 @@ class MainActivity : AppCompatActivity() {
         // keep the tab fragments' lifecycle in sync: a merely GONE
         // container leaves them STARTED, still running their inner work
         val tx = supportFragmentManager.beginTransaction()
-        tabRoots[TAB_SEARCH]?.let { root -> if (show) tx.show(root) else tx.hide(root) }
-        pageStacks[TAB_SEARCH]?.forEach { page -> if (show) tx.show(page) else tx.hide(page) }
+        if (show) {
+            // re-enabling the section may only reveal its fragments when
+            // its tab is the CURRENT destination — and only the TOP of
+            // its stack, never the pages under it (stack invariant)
+            if (currentTab == TAB_SEARCH) {
+                (pageStacks[TAB_SEARCH]?.lastOrNull() ?: tabRoots[TAB_SEARCH])?.let { tx.show(it) }
+            }
+        } else {
+            tabRoots[TAB_SEARCH]?.let { root -> tx.hide(root) }
+            pageStacks[TAB_SEARCH]?.forEach { page -> tx.hide(page) }
+        }
         tx.commitAllowingStateLoss()
         if (!show && currentTab == TAB_SEARCH) {
             // the visible tab vanished from the nav: return to the list
