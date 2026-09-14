@@ -149,10 +149,19 @@ class SearchResultFragment : Fragment() {
         binding.searchInput.addTextChangedListener { text ->
             nameQuery = text?.toString().orEmpty()
             applyPipeline()
-            // qBC: the close (X) action only exists while the query is non-empty
+            // qBC: the close (X) action only exists while the query is
+            // non-empty — a hidden close becomes an invisible SPACER, so
+            // the slot stays reserved and the other actions never reflow
             if (searchMode) {
-                binding.appBar.menu.findItem(R.id.search_filter_menu)?.isVisible =
-                    nameQuery.isNotEmpty()
+                binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
+                    if (nameQuery.isNotEmpty()) {
+                        setIcon(R.drawable.ic_close_24px)
+                        isEnabled = true
+                    } else {
+                        setIcon(R.drawable.ic_blank_24px)
+                        isEnabled = false
+                    }
+                }
             }
         }
 
@@ -334,11 +343,12 @@ class SearchResultFragment : Fragment() {
         searchBackCallback.isEnabled = true
         binding.searchInput.isVisible = true
         binding.appBar.title = null
-        // qBC swaps the search action for a close (X) action, visible only
-        // once the user has typed something
+        // qBC swaps the search action for a close (X) action; while the
+        // query is empty it renders as an invisible SPACER — the slot
+        // stays reserved (blank icon, not hidden, so no reflow)
         binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
-            setIcon(R.drawable.ic_close_24px)
-            isVisible = false
+            setIcon(R.drawable.ic_blank_24px)
+            isEnabled = false
         }
         binding.searchInput.requestFocus()
         val imm = requireContext().getSystemService(
@@ -360,13 +370,26 @@ class SearchResultFragment : Fragment() {
         binding.appBar.title = pattern.ifBlank { getString(R.string.search_result_title) }
         binding.appBar.menu.findItem(R.id.search_filter_menu)?.apply {
             setIcon(R.drawable.ic_search_24px)
-            isVisible = true
+            isEnabled = true
         }
     }
 
-    /** qBC sort dropdown: radio options + a reverse checkbox. */
+    /** qBC sort dropdown: radio options + a reverse checkbox. The sort
+     *  action lives in the overflow (qBC's 3-button phone cap), so the
+     *  dropdown anchors under the toolbar's action area. */
     private fun showSortMenu() {
-        val anchor = binding.appBar.findViewById<View>(R.id.search_sort_menu) ?: return
+        var anchor: View? = binding.appBar.findViewById(R.id.search_sort_menu)
+        if (anchor == null) {
+            // sort item is in the kebab overflow: anchor on the action row
+            for (i in 0 until binding.appBar.childCount) {
+                val child = binding.appBar.getChildAt(i)
+                if (child is androidx.appcompat.widget.ActionMenuView) {
+                    anchor = child
+                    break
+                }
+            }
+        }
+        if (anchor == null) anchor = binding.appBar
         PopupMenu(requireContext(), anchor).apply {
             menu.add(1, 1, 0, R.string.search_result_sort_name).setCheckable(true)
             menu.add(1, 2, 1, R.string.search_result_sort_size).setCheckable(true)

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- qBC SearchResultScreen toolbar: filter by name, filter dialog, sort
-     menu, stop search. -->
+<!-- qBC SearchResultScreen toolbar. qBC caps the action row at THREE
+     buttons on phones (getMaxActionButtons: < 600dp -> 3, incl. the
+     overflow kebab) — showing all four icons spreads them across half
+     the bar and leaves the search action stranded mid-screen. Phone
+     parity therefore: search + filter as action buttons, sort + stop
+     in the overflow menu, exactly qBC's [search][filter][⋮] row. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
@@ -17,10 +21,11 @@
         android:id="@+id/search_sort_menu"
         android:icon="@drawable/ic_sort_24px"
         android:title="@string/search_result_sort"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/search_stop_menu"
         android:icon="@drawable/ic_stop_circle_24px"
         android:title="@string/search_stop"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 </menu>
+
