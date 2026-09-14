@@ -268,7 +268,7 @@ class SearchResultFragment : Fragment() {
      * count bar and hide the progress line once the engine reports
      * "Stopped". Returns the error when the fetch failed (null = ok).
      */
-    private suspend fun fetchResults(): Exception? {
+    private suspend fun fetchResults(): Throwable? {
         val b = _binding ?: return null
         val response = runCatching {
             ServiceLocator.repository(requireContext()).searchResults(searchId)
