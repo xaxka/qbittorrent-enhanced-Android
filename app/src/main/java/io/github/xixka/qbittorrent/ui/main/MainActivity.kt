@@ -717,7 +717,8 @@ class MainActivity : AppCompatActivity() {
         if (System.currentTimeMillis() - prefs.lastUpdateCheck < UPDATE_CHECK_INTERVAL_MS) return
         ServiceLocator.prefs(this).lastUpdateCheck = System.currentTimeMillis()
         lifecycleScope.launch {
-            val result = runCatching { UpdateChecker.check() }
+            val includeBeta = prefs.updateCheckIncludeBeta
+            val result = runCatching { UpdateChecker.check(includeBeta) }
             val alive = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
             result
                 .onSuccess { update ->

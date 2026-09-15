@@ -56,14 +56,20 @@ object UpdateChecker {
      * direct connectivity), then through the built-in gh-proxy mirrors —
      * see [GithubProxies] — so the check also works on networks where
      * api.github.com is blocked.
+     *
+     * [includeBeta] selects the release channel: with `false` (the default,
+     * matching the "Check for test updates" setting being off) only official
+     * releases — non-prerelease, non-draft, i.e. the `v*` tags — are
+     * considered; with `true` the rolling `dev` pre-release channel is
+     * included as well.
      * @throws java.io.IOException on network / API failures (all candidates)
      */
-    suspend fun check(): Update? = withContext(Dispatchers.IO) {
+    suspend fun check(includeBeta: Boolean = false): Update? = withContext(Dispatchers.IO) {
         val apiUrl = "$REPO_API/releases?per_page=20"
         var lastError: Exception? = null
         for (candidate in GithubProxies.candidates(apiUrl)) {
             try {
-                val best = fetchNewestRelease(candidate)
+                val best = fetchNewestRelease(candidate, includeBeta)
                 GithubProxies.markWorking(candidate, apiUrl)
                 // only report when strictly newer than the running build:
                 // versionCode (epoch seconds, unique per CI build) is the
@@ -84,8 +90,9 @@ object UpdateChecker {
         )
     }
 
-    /** Fetches and parses the release list from one API candidate URL. */
-    private fun fetchNewestRelease(url: String): Update? {
+    /** Fetches and parses the release list from one API candidate URL,
+     *  honouring the stable/beta channel filter. */
+    private fun fetchNewestRelease(url: String, includeBeta: Boolean): Update? {
         val request = Request.Builder()
             .url(url)
             .header("Accept", "application/vnd.github+json")
@@ -102,6 +109,8 @@ object UpdateChecker {
             for (i in 0 until releases.length()) {
                 val rel = releases.optJSONObject(i) ?: continue
                 if (rel.optBoolean("draft")) continue
+                // stable channel: skip the rolling dev pre-releases
+                if (!includeBeta && rel.optBoolean("prerelease")) continue
                 val candidate = parseRelease(rel) ?: continue
                 if (best == null || candidate.versionCode > best.versionCode) best = candidate
             }

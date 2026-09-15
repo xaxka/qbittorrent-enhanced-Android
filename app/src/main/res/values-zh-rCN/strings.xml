@@ -361,6 +361,8 @@
 
     <!-- update check (GitHub Releases) -->
     <string name="check_for_updates">检查更新</string>
+    <string name="pref_check_test_updates">检查测试版更新</string>
+    <string name="pref_check_test_updates_sub">检查更新时包含 dev 测试版（预发布）构建</string>
     <string name="update_available_title">有可用更新</string>
     <string name="update_available_message">新版本 %1$s 已发布。</string>
     <string name="update_download">下载</string>

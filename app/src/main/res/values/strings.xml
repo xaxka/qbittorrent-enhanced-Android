@@ -367,6 +367,8 @@
 
     <!-- update check (GitHub Releases) -->
     <string name="check_for_updates">Check for updates</string>
+    <string name="pref_check_test_updates">Check for test updates</string>
+    <string name="pref_check_test_updates_sub">Include dev (pre-release) builds when checking for updates</string>
     <string name="update_available_title">Update available</string>
     <string name="update_available_message">Version %1$s is available.</string>
     <string name="update_download">Download</string>

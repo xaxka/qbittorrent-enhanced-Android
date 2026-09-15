@@ -116,6 +116,16 @@ class Prefs(context: Context) {
         set(value) = sp.edit().putLong(KEY_UPDATE_CHECK_LAST, value).apply()
 
     /**
+     * Include pre-release (rolling `dev`) builds in the update check.
+     * Default OFF: users on the stable channel only see official releases
+     * (tags marked non-prerelease); flipping this opts into the dev
+     * channel built from every push to master.
+     */
+    var updateCheckIncludeBeta: Boolean
+        get() = sp.getBoolean(KEY_UPDATE_CHECK_BETA, false)
+        set(value) = sp.edit().putBoolean(KEY_UPDATE_CHECK_BETA, value).apply()
+
+    /**
      * Material You dynamic colors, ON by default on devices that support
      * them (Android 12+). Turning it off falls back to the static palette.
      */
@@ -296,6 +306,7 @@ class Prefs(context: Context) {
         const val KEY_ENGINE_USERNAME = "engine_username"
         const val KEY_ENGINE_PASSWORD = "engine_password"
         const val KEY_UPDATE_CHECK_LAST = "update_check_last"
+        const val KEY_UPDATE_CHECK_BETA = "update_check_beta"
         const val KEY_DYNAMIC_COLORS = "dynamic_colors"
         const val KEY_SHOW_RSS = "show_rss"
         const val KEY_SHOW_SEARCH = "show_search"

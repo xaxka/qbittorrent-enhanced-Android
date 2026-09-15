@@ -163,6 +163,16 @@ class SettingsFragment : Fragment() {
             title = getString(R.string.check_for_updates),
             summary = null,
         )
+        // Stable-channel default: only official (non-prerelease) releases
+        // are considered; opting in adds the rolling dev builds
+        rows += Item(
+            id = ID_CHECK_TEST_UPDATES,
+            icon = R.drawable.ic_refresh_24px,
+            title = getString(R.string.pref_check_test_updates),
+            summary = getString(R.string.pref_check_test_updates_sub),
+            switch = true,
+            checked = prefs.updateCheckIncludeBeta,
+        )
         adapter.submit(rows)
     }
 
@@ -206,6 +216,8 @@ class SettingsFragment : Fragment() {
 
             ID_SHOW_SEARCH -> prefs.showSearch = checked
 
+            ID_CHECK_TEST_UPDATES -> prefs.updateCheckIncludeBeta = checked
+
             ID_THEME -> showThemeDialog()
 
             ID_SERVER -> push(ServerSettingsFragment())
@@ -241,8 +253,9 @@ class SettingsFragment : Fragment() {
 
     private fun checkUpdate() {
         prefs.lastUpdateCheck = System.currentTimeMillis()
+        val includeBeta = prefs.updateCheckIncludeBeta
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = runCatching { UpdateChecker.check() }
+            val result = runCatching { UpdateChecker.check(includeBeta) }
             result
                 .onSuccess { update ->
                     if (update != null) showUpdateDialog(update) else showUpdateToast()
@@ -391,5 +404,6 @@ class SettingsFragment : Fragment() {
         private const val ID_CHECK_UPDATE = 9
         private const val ID_ABOUT = 10
         private const val ID_LOG = 12
+        private const val ID_CHECK_TEST_UPDATES = 14
     }
 }

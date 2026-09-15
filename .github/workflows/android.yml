@@ -5,6 +5,11 @@ on:
     branches:
       - master
       - main
+    tags:
+      # official (stable) releases: pushing v<version> builds the same
+      # APKs but publishes them as a regular (non-prerelease) release on
+      # that tag instead of the rolling dev channel
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -280,8 +285,10 @@ jobs:
       # (e.g. qBittorrent-Enhanced-26.09.04-arm64-v8a.apk). Names changed now,
       # so stale assets would otherwise linger forever next to the new stable
       # names — wipe ALL existing assets before publishing so the release
-      # always exposes exactly the three current APKs.
+      # always exposes exactly the three current APKs. Official tag builds
+      # never touch the dev channel, so they skip this step.
       - name: Remove stale dev-release assets
+        if: github.ref_type != 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -295,18 +302,24 @@ jobs:
             echo "dev release does not exist yet; nothing to clean"
           fi
 
-      - name: Publish dev build to GitHub Releases
+      # Branch pushes publish to the rolling pre-release `dev` channel;
+      # v* tag pushes publish the official stable release on that tag
+      # (marked latest, non-prerelease) — the app's update check offers
+      # stable releases to everyone and the dev channel only to users who
+      # turned on "check for test updates".
+      - name: Publish build to GitHub Releases
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: dev
-          name: dev
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}
           # Release notes stay minimal — exactly these four lines; the
           # readable explanation (ABI table, signing, update check) lives
           # in the README's Download section instead.
           body: |
-            Branch: ${{ github.ref_name }}
+            Ref: ${{ github.ref_name }}
             Commit: ${{ env.SHORT_SHA }}
             Built at: ${{ env.BUILT_AT }}
             Version: ${{ env.VERSION_NAME }} (versionCode ${{ env.VERSION_CODE }})
-          prerelease: true
+          prerelease: ${{ github.ref_type != 'tag' }}
+          make_latest: ${{ github.ref_type == 'tag' && 'true' || 'false' }}
           files: release-out/*.apk
